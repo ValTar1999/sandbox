@@ -14,6 +14,6 @@ body {
   --color-smart-secondary-lighten: oklch(97% 0.014 254.604);
   --color-smart-secondary-darken: oklch(48.8% 0.243 264.376);
 
-  /*  */
+  /* container */
   --container-9xl: 1536px;
 }
