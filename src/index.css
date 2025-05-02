@@ -1,0 +1,19 @@
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+@import 'tailwindcss';
+
+@tailwind utilities;
+
+@theme {
+  /* color */
+  --color-smart-main: oklch(54.6% 0.245 262.881);
+  --color-smart-main-darken: oklch(48.8% 0.243 264.376);
+  --color-smart-secondary: oklch(54.6% 0.245 262.881);
+  --color-smart-secondary-lighten: oklch(97% 0.014 254.604);
+  --color-smart-secondary-darken: oklch(48.8% 0.243 264.376);
+
+  /*  */
+  --container-9xl: 1536px;
+}
