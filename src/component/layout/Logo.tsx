@@ -13,7 +13,7 @@ const Logo: React.FC<LogoProps> = memo(({
   className,
   logoSrc = LogoImgSrc,
   altText = 'SMART Hub',
-  link = '/sandbox',
+  link = '/sandbox/',
   ...props
 }) => {
   return (

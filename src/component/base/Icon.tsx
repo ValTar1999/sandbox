@@ -46,7 +46,7 @@ const Icon: React.FC<IconProps> = ({
       {...props} // Прочие SVG пропсы (например, fill, stroke и т.д.)
     >
       {/* Используем спрайт для отображения иконки */}
-      <use href={`../assets/images/sprites/${SPRITE_MAP[variant]}#${icon}`} />
+      <use href={`/sandbox/assets/images/sprites/${SPRITE_MAP[variant]}#${icon}`} />
     </svg>
   )
 }
