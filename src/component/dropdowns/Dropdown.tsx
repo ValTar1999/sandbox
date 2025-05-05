@@ -3,7 +3,7 @@ import clsx from 'clsx';
 
 interface DropdownProps {
   trigger: React.ReactNode; // Элемент, который будет триггером для открытия меню
-  menu: React.ReactNode; // Содержимое меню
+  menu: React.ReactNode | ((args: { closeDropdown: () => void }) => React.ReactNode); // Содержимое меню
   className?: string; // Дополнительные стили для контейнера дропдауна
   menuClass?: string; // Дополнительные стили для меню
   onStateChange?: (isOpen: boolean) => void; // Функция обратного вызова для изменения состояния меню
@@ -45,6 +45,12 @@ export const Dropdown = ({
     });
   }, [onStateChange]);
 
+  const closeDropdown = useCallback(() => {
+    setIsOpen(false);
+    onStateChange?.(false);
+  }, [onStateChange]);
+  
+
   return (
     <div 
       ref={dropdownRef} 
@@ -64,14 +70,15 @@ export const Dropdown = ({
       {isOpen && (
         <div 
           className={clsx(
-            'absolute z-10 mt-1 rounded-md shadow-lg',
-            'bg-white border border-gray-200',
+            'absolute z-10 mt-1 rounded-md shadow-lg right-0',
+            'bg-white border border-gray-200 transition-opacity duration-300 ease-out',
+            isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95',
             menuClass // Применяем дополнительные стили для меню
           )}
           role="menu"
           aria-orientation="vertical" // Указываем вертикальное расположение элементов в меню
         >
-          {menu} {/* Вставляем элементы меню */}
+          {typeof menu === 'function' ? menu({ closeDropdown }) : menu} {/* Вставляем элементы меню */}
         </div>
       )}
     </div>

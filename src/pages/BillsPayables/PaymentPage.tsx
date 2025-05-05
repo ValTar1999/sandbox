@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { payments } from "./data";
 import Button from "../../component/base/Button";
@@ -6,6 +7,7 @@ import Icon from "../../component/base/Icon";
 import { RefreshButton } from "../../component/base/RefreshButton";
 import Box from "../../component/layout/Box";
 import Accordion from "../../component/dropdowns/Accordion";
+import DropdownCalendar from "../../component/dropdowns/DropdownCalendar";
 
 interface PayableSummaryItem {
   item: string;
@@ -64,6 +66,10 @@ const PaymentPage = () => {
     navigate(-1);
   };
 
+
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+
   return (
     <Box
       className="max-w-7xl mx-auto"
@@ -79,43 +85,79 @@ const PaymentPage = () => {
       footer={
         <div className="flex items-center gap-2 w-full justify-end">
           <Button size="md">Pay: {payment.totalAmount}</Button>
-          <Button size="md" icon="calendar" iconVariant="outline" variant="gray"></Button>
+          <DropdownCalendar 
+            dueDate={payment.dueDate} 
+            onSelectDate={setSelectedDate} 
+            selectedIndex={selectedIndex} 
+            setSelectedIndex={setSelectedIndex} 
+          />
         </div>
       }
     >
       <div className="p-6">
 
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-6">
-            <div className="text-2xl font-bold">
-              <span className="text-gray-900">{payment.totalAmount}</span> <span className="text-gray-500">{payment.amountValute}</span>
+        <div className="mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <div className="text-2xl font-bold">
+                <span className="text-gray-900">{payment.totalAmount}</span> <span className="text-gray-500">{payment.amountValute}</span>
+              </div>
+              {payment.status === "unprocessed" && (
+                <Badge icon="flag" iconDirection="left">
+                  Unprocessed
+                </Badge>
+              )}
+              {payment.status === "processed" && (
+                <Badge color="blue" icon="in-progress" iconDirection="left">
+                  Processing
+                </Badge>
+              )}
+              {payment.status === "paid" && (
+                <Badge color="green" icon="check-circle" iconDirection="left">
+                  Paid
+                </Badge>
+              )}
+              {payment.status === "failed" && (
+                <Badge color="red" icon="check-circle" iconDirection="left">
+                  Failed
+                </Badge>
+              )}
             </div>
-            {payment.status === "unprocessed" && (
-              <Badge icon="flag" iconDirection="left">
-                Unprocessed
-              </Badge>
-            )}
-            {payment.status === "processed" && (
-              <Badge color="blue" icon="in-progress" iconDirection="left">
-                Processing
-              </Badge>
-            )}
-            {payment.status === "paid" && (
-              <Badge color="green" icon="check-circle" iconDirection="left">
-                Paid
-              </Badge>
-            )}
-            {payment.status === "failed" && (
-              <Badge color="red" icon="check-circle" iconDirection="left">
-                Failed
-              </Badge>
-            )}
+
+            <div className="flex items-center gap-2">
+              <Button size="md">Pay: {payment.totalAmount}</Button>
+              <DropdownCalendar 
+                dueDate={payment.dueDate} 
+                onSelectDate={setSelectedDate} 
+                selectedIndex={selectedIndex} 
+                setSelectedIndex={setSelectedIndex} 
+              />
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button size="md">Pay: {payment.totalAmount}</Button>
-            <Button size="md" icon="calendar" iconVariant="outline" variant="gray"></Button>
-          </div>
+          {selectedDate && (
+            <div className="flex justify-end mt-2">
+              <div className="text-sm font-semibold inline-flex">
+                <div className="px-2 flex items-center gap-1 text-gray-600 bg-gray-50 border border-gray-300 rounded-l-md">
+                  <Icon className="w-4.5 h-4.5" icon="calendar" variant="outline" />
+                  <div className="">Schedule for:</div>
+                </div>
+                <div className="flex items-center border-y border-r border-gray-200 rounded-r-md">
+                  <div className="text-blue-600 pl-2">{selectedDate}</div>
+                  <Button 
+                    size="sm" 
+                    icon="x" 
+                    variant="add_on" 
+                    onClick={() => {
+                      setSelectedDate(null);
+                      setSelectedIndex(null); // Reset selection
+                    }} 
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
         </div>
 
         <div className="flex flex-wrap gap-6 border-y border-gray-200 py-5">
