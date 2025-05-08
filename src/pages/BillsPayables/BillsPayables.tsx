@@ -8,7 +8,7 @@ import { payments } from "./data";
 
 const statusMap = {
   'Ready to Pay': 'unprocessed',
-  'In Progress': 'processed',
+  'In Progress': ['processed', 'pastDue'],
   'Paid': 'paid',
   'Exceptions': 'failed'
 } as const;
@@ -21,7 +21,12 @@ const BillsPayables = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const filteredPayments = useMemo(
-    () => payments.filter(payment => payment.status === statusMap[activeTab]),
+    () => payments.filter(payment => {
+      const status = statusMap[activeTab];
+      return Array.isArray(status) 
+        ? status.includes(payment.status)
+        : payment.status === status;
+    }),
     [activeTab]
   );
 
@@ -61,7 +66,12 @@ const BillsPayables = () => {
       <div className="px-6 py-4">
         <div className="flex gap-9">
         {(Object.keys(statusMap) as StatusLabel[]).map(label => {
-          const tabCount = payments.filter(d => d.status === statusMap[label]).length;
+          const status = statusMap[label];
+          const tabCount = payments.filter(d => 
+            Array.isArray(status) 
+              ? status.includes(d.status)
+              : d.status === status
+          ).length;
 
           return (
             <ButtonTab
@@ -75,12 +85,9 @@ const BillsPayables = () => {
             </ButtonTab>
           );
         })}
-
         </div>
       </div>
-      <div className="px-6 pb-4">
-        <RootTable payments={currentData} />
-      </div>
+      <RootTable payments={currentData} />
     </Box>
   );
 };

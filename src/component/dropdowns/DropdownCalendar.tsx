@@ -8,6 +8,7 @@ interface DropdownCalendarProps {
   onSelectDate: (date: string | null) => void;
   selectedIndex: number | null;
   setSelectedIndex: (index: number | null) => void;
+  notification?: boolean;
 }
 
 const scheduleOptions = (dueDate: string) => [
@@ -16,10 +17,17 @@ const scheduleOptions = (dueDate: string) => [
   { label: 'Due date', date: dueDate ? new Date(dueDate) : new Date() },
 ];
 
-const DropdownCalendar = ({ dueDate, onSelectDate, selectedIndex, setSelectedIndex }: DropdownCalendarProps) => {
+const DropdownCalendar = ({ dueDate, onSelectDate, selectedIndex, setSelectedIndex, notification }: DropdownCalendarProps) => {
   return (
     <Dropdown
-      trigger={<Button size="md" iconVariant="outline" variant="gray" icon="calendar" />}
+      trigger={
+        <div className="relative">
+          {notification && (
+            <div className="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-white bg-smart-main"></div>
+          )}
+          <Button size="md" iconVariant="outline" variant="gray" icon="calendar" />
+        </div>
+      }
       menu={({ closeDropdown }) => (
         <div className="w-90 py-1">
           {scheduleOptions(dueDate).map((option, index) => (
@@ -42,13 +50,7 @@ const DropdownCalendar = ({ dueDate, onSelectDate, selectedIndex, setSelectedInd
             </div>
           ))}
           <div className="flex flex-col border-t border-gray-200">
-            <button
-              className="flex px-4 py-2 text-smart-main cursor-pointer text-sm font-medium hover:bg-gray-50 transition-all duration-300"
-              onClick={() => {
-                setSelectedIndex(null);
-                onSelectDate(null);
-              }}
-            >
+            <button className="flex px-4 py-2 text-smart-main cursor-pointer text-sm font-medium hover:bg-gray-50 transition-all duration-300">
               Choose another date
             </button>
             {selectedIndex !== null && (

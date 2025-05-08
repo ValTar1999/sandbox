@@ -21,7 +21,6 @@ const BoxHeader: React.FC<BoxHeaderProps> = ({
   description = '0 Payments', // Значение по умолчанию для описания
   showFilter = true, // Значение по умолчанию для показа фильтра
   onSearch, // Колбэк для поиска
-  onFilter, // Колбэк для фильтра
   className, // Дополнительные классы
 }) => {
   // Обработчик изменения значения в поле поиска
@@ -52,9 +51,9 @@ const BoxHeader: React.FC<BoxHeaderProps> = ({
         />
         {showFilter && (
           <Button
+            size="md"
             variant="secondary" // Стилизация кнопки
             icon="chevron-down" // Иконка для кнопки фильтра
-            onClick={onFilter} // Колбэк для фильтра
           >
             Filter
           </Button>

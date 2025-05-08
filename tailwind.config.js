@@ -14,6 +14,8 @@ export default {
   safelist: [
     'hover:text-smart-secondary-darken',
     'focus-visible:ring-smart-main',
+    'focus:border-smart-main',
+    'border-smart-main',
     'ring-gray-200',
     'ring-red-200',
     'ring-green-200',

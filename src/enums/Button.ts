@@ -77,7 +77,7 @@ export const sizes = {
 }
 
 export const classes = {
-  common: 'inline-flex items-center justify-center font-medium text-center whitespace-nowrap cursor-pointer transition-all duration-300',
+  common: 'inline-flex h-fit items-center justify-center font-medium text-center whitespace-nowrap cursor-pointer transition-all duration-300',
   disabled: 'opacity-40 pointer-events-none',
   colors: {
     primary: `bg-smart-main text-white shadow-sm hover:bg-smart-main-darken ${focusButton('focus-visible:ring-blue-600')}`,

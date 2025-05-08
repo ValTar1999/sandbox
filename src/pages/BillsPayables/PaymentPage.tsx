@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { payments } from "./data";
+import { payments, Payment } from "./data";
 import Button from "../../component/base/Button";
 import Badge from "../../component/base/Badge";
 import Icon from "../../component/base/Icon";
@@ -8,6 +8,8 @@ import { RefreshButton } from "../../component/base/RefreshButton";
 import Box from "../../component/layout/Box";
 import Accordion from "../../component/dropdowns/Accordion";
 import DropdownCalendar from "../../component/dropdowns/DropdownCalendar";
+// import InfoBox from '../../component/base/InfoBox';
+
 
 interface PayableSummaryItem {
   item: string;
@@ -16,40 +18,16 @@ interface PayableSummaryItem {
   amount: string;
 }
 
-interface PaymentWithSummary {
-  id: string;
-  totalAmount: string;
-  amountValute: string;
-  billReference: string;
-  payee: string;
-  source: string;
-  dueDate: string;
-  status: string;
-  notes: string;
-  attachments: string;
-  payableSummary: PayableSummaryItem[];
-}
-
-interface PaymentWithoutSummary {
-  id: string;
-  totalAmount: string;
-  amountValute: string;
-  billReference: string;
-  payee: string;
-  source: string;
-  dueDate: string;
-  status: string;
-  notes: string;
-  attachments: string;
-}
-
-function hasPayableSummary(payment: PaymentWithSummary | PaymentWithoutSummary): payment is PaymentWithSummary {
-  return (payment as PaymentWithSummary).payableSummary !== undefined;
+function hasPayableSummary(payment: Payment): payment is Payment & { payableSummary: PayableSummaryItem[] } {
+  return payment.payableSummary !== undefined;
 }
 
 const PaymentPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  
   const payment = payments.find(p => p.id === id);
 
   if (!payment) {
@@ -65,10 +43,6 @@ const PaymentPage = () => {
   const handleBack = () => {
     navigate(-1);
   };
-
-
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   return (
     <Box
@@ -95,7 +69,6 @@ const PaymentPage = () => {
       }
     >
       <div className="p-6">
-
         <div className="mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
@@ -126,7 +99,8 @@ const PaymentPage = () => {
 
             <div className="flex items-center gap-2">
               <Button size="md">Pay: {payment.totalAmount}</Button>
-              <DropdownCalendar 
+              <DropdownCalendar
+                notification
                 dueDate={payment.dueDate} 
                 onSelectDate={setSelectedDate} 
                 selectedIndex={selectedIndex} 
@@ -150,18 +124,16 @@ const PaymentPage = () => {
                     variant="add_on" 
                     onClick={() => {
                       setSelectedDate(null);
-                      setSelectedIndex(null); // Reset selection
+                      setSelectedIndex(null);
                     }} 
                   />
                 </div>
               </div>
             </div>
           )}
-
         </div>
 
         <div className="flex flex-wrap gap-6 border-y border-gray-200 py-5">
-
           <div className="font-medium">
             <div className="text-xs uppercase text-gray-500 mb-1 tracking-wider">DUE DATE</div>
             <span className="text-base font-gray-700">{payment.dueDate}</span>  
@@ -188,10 +160,16 @@ const PaymentPage = () => {
 
           <div className="font-medium">
             <div className="text-xs uppercase text-gray-500 mb-1 tracking-wider">Attachments</div>
-            <Badge>{payment?.attachments}</Badge>
+            <Badge>{payment.attachments}</Badge>
           </div>
-
         </div>
+
+        {/* <InfoBox
+          title='If your Routing Number, Account Number or Address records (as registered under the bank account) are no longer accurate, please update the details in your ERP. Once your details are updated, please "Refresh" to reflect the changes.'
+          color="blue"
+          icon="information-circle"
+        >
+        </InfoBox> */}
 
         <div className="mt-6">
           Selector

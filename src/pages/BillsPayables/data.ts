@@ -1,5 +1,26 @@
-export const payments = [
-  // Ready to Pay
+export interface Payment {
+  id: string;
+  lock?: boolean;
+  totalAmount: string;
+  amountValute: string;
+  billReference: string;
+  badgeVendors?: string;
+  payee: string;
+  paymentType?: string;
+  source: string;
+  dueDate: string;
+  status: string;
+  notes: string;
+  attachments: string;
+  payableSummary?: {
+    item: string;
+    quantity: number;
+    price: string;
+    amount: string;
+  }[];
+}
+
+export const readyToPay: Payment[] = [
   {
     id: 'XZ1-A',
     totalAmount: '$90,365.80',
@@ -8,7 +29,7 @@ export const payments = [
     payee: 'Liam Stone',
     source: 'Sage (ERP)',
     dueDate: 'Aug 17, 2023',
-    status: 'unprocessed',
+    status: 'unprocessed',   
     notes: 'Payment for Q2 consulting services. Urgent processing required.',
     attachments: 'invoice_345.xml',
     payableSummary: [
@@ -25,9 +46,11 @@ export const payments = [
   },
   {
     id: 'TY3-B',
+    lock: true,
     totalAmount: '$30,100.00',
     amountValute: 'USD',
     billReference: 'TY3-B',
+    badgeVendors: '4',
     payee: 'Sophia Nguyen',
     source: 'Sage (ERP)',
     dueDate: 'Aug 21, 2023',
@@ -35,13 +58,15 @@ export const payments = [
     notes: 'Final invoice for marketing campaign.',
     attachments: 'receipt_final.xml',
   },
+];
 
-  // In Progress
+export const inProgress: Payment[] = [
   {
     id: 'MV9-J',
     totalAmount: '$20,100.00',
     amountValute: 'USD',
     billReference: 'MV9-J',
+    paymentType: 'ACH',
     payee: 'Carlos Romero',
     source: 'Sage (ERP)',
     dueDate: 'Aug 24, 2023',
@@ -54,6 +79,7 @@ export const payments = [
     totalAmount: '$20,100.00',
     amountValute: 'USD',
     billReference: 'QN8-Z',
+    paymentType: 'sd',
     payee: 'Ava Schmidt',
     source: 'Sage (ERP)',
     dueDate: 'Aug 26, 2023',
@@ -61,8 +87,22 @@ export const payments = [
     notes: 'Includes additional fees for expedited delivery.',
     attachments: 'extra_charges.xml',
   },
+  {
+    id: 'QN8-Z0',
+    totalAmount: '$50,100.00',
+    amountValute: 'USD',
+    billReference: 'QN8-X',
+    paymentType: 'Card',
+    payee: 'Eva Schmidt',
+    source: 'Batch Upload',
+    dueDate: 'Aug 26, 2023',
+    status: 'pastDue',
+    notes: 'Includes additional fees for expedited delivery.',
+    attachments: 'extra_charges.xml',
+  },
+];
 
-  // Paid
+export const paid: Payment[] = [
   {
     id: 'KP4-L',
     totalAmount: '$20,100.00',
@@ -99,8 +139,9 @@ export const payments = [
     notes: 'Monthly subscription charge.',
     attachments: 'sub_2023_august.xml',
   },
+];
 
-  // Exceptions
+export const exceptions: Payment[] = [
   {
     id: 'ZC7-W',
     totalAmount: '$20,100.00',
@@ -113,4 +154,11 @@ export const payments = [
     notes: 'Payment failed due to invalid bank details.',
     attachments: 'error_log.xml',
   },
+];
+
+export const payments: Payment[] = [
+  ...readyToPay,
+  ...inProgress,
+  ...paid,
+  ...exceptions,
 ];
