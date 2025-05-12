@@ -210,7 +210,7 @@ const RootTable: React.FC<RootTableProps> = ({ payments }) => {
                   <td className={clsx(classConstructor.td)}>
                     <div className={clsx('text-sm  flex', `justify-${flexAlignMap.start}`)}>
                       {payment.status === "pastDue" ? (
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
                           <div className="text-yellow-600">{payment.dueDate}</div>
                           <Icon className="text-yellow-500" icon="exclamation-circle"/>
                         </div>

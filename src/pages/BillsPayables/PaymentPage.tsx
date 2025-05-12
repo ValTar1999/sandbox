@@ -8,7 +8,8 @@ import { RefreshButton } from "../../component/base/RefreshButton";
 import Box from "../../component/layout/Box";
 import Accordion from "../../component/dropdowns/Accordion";
 import DropdownCalendar from "../../component/dropdowns/DropdownCalendar";
-// import InfoBox from '../../component/base/InfoBox';
+import WrapSelect from "../../component/base/WrapSelect";
+import InfoBox from '../../component/base/InfoBox';
 
 
 interface PayableSummaryItem {
@@ -42,7 +43,8 @@ const PaymentPage = () => {
 
   const handleBack = () => {
     navigate(-1);
-  };
+  };  
+  
 
   return (
     <Box
@@ -164,16 +166,41 @@ const PaymentPage = () => {
           </div>
         </div>
 
-        {/* <InfoBox
-          title='If your Routing Number, Account Number or Address records (as registered under the bank account) are no longer accurate, please update the details in your ERP. Once your details are updated, please "Refresh" to reflect the changes.'
-          color="blue"
-          icon="information-circle"
-        >
-        </InfoBox> */}
-
-        <div className="mt-6">
-          Selector
+        <div className="pt-6 pb-9 flex space-x-6">
+          <div className="w-full">
+            <div className="mb-4">
+              <div className="mb-1 text-sm font-medium text-gray-700">
+                Origination Account
+              </div>            
+              <WrapSelect/>
+            </div>
+            <InfoBox
+              title='Insufficient Funds'
+              text="Your selected bank account does not have enough funds to complete this payable with the sum of $(2,553.68) USD or the balance for the bank account cannot be checked. You can choose a different bank account or you’ll need to ensure sufficient funds when the check payment clears."
+              color="yellow"
+              icon="exclamation"
+            >
+            </InfoBox>
+          </div>
+          <div className="mt-6 flex justify-center items-center min-w-10 h-10 w-10 rounded-full bg-gray-50 ring-2 ring-inset ring-gray-200">
+            <Icon icon="arrow-right"/>
+          </div>
+          <div className="w-full">
+            <div className="mb-4">              
+              <div className="mb-1 text-sm font-medium text-gray-700">
+                Method of Payment
+              </div>      
+              <WrapSelect/>
+            </div>
+            <InfoBox
+              title='If your Routing Number, Account Number or Address records (as registered under the bank account) are no longer accurate, please update the details in your ERP. Once your details are updated, please "Refresh" to reflect the changes.'
+              color="blue"
+              icon="information-circle"
+            >
+            </InfoBox>
+          </div>
         </div>
+
 
         <div className="flex flex-col">
           {hasPayableSummary(payment) && (
