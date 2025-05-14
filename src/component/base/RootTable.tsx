@@ -13,11 +13,14 @@ import SD from '../../assets/image/SMART-Disburse.svg';
 
 interface RootTableProps {
   payments: Payment[];
+  onCancelClick: (payment: Payment) => void;
+  onReRunClick: (payment: Payment) => void;
 }
 
-const RootTable: React.FC<RootTableProps> = ({ payments }) => {
+const RootTable: React.FC<RootTableProps> = ({ payments, onCancelClick, onReRunClick }) => {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const navigate = useNavigate();
+
   const toggleExpand = (id: string) => {
     setExpandedRow(prev => (prev === id ? null : id));
   };
@@ -35,6 +38,11 @@ const RootTable: React.FC<RootTableProps> = ({ payments }) => {
   };
 
   const hasPaymentType = payments.some(payment => payment.paymentType);
+
+  const handleCancelClick = (payment: Payment, e: React.MouseEvent) => {
+    e.stopPropagation();
+    onCancelClick(payment);
+  };
 
   return (
     <div className="px-6 pb-4">
@@ -255,27 +263,44 @@ const RootTable: React.FC<RootTableProps> = ({ payments }) => {
                   {payment.status === "unprocessed" && (                  
                   <td className={clsx(classConstructor.td)}>
                     <div className={clsx('flex', `justify-${flexAlignMap.end}`)}>
-                        <Button size="md"  onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/payables/${payment.id}`);
-                        }}>Pay
-                        </Button>
+                      <Button size="md"  onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/payables/${payment.id}`);
+                      }}>Pay
+                      </Button>
                     </div>
                   </td>
                   )}
 
                   {payment.status === "processed" && (                  
-                  <td className={clsx(classConstructor.td)}>
-                    <div className={clsx('flex', `justify-${flexAlignMap.end}`)}>
-                        <Button variant="gray" size="md" onClick={(e) => e.stopPropagation()}>Cancel</Button>
-                    </div>
-                  </td>
+                    <td className={clsx(classConstructor.td)}>
+                      <div className={clsx('flex', `justify-${flexAlignMap.end}`)}>
+                        <Button
+                          variant="gray"
+                          size="md"
+                          onClick={(e) => handleCancelClick(payment, e)}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </td>
                   )}
 
                   {payment.status === "failed" && (                  
                   <td className={clsx(classConstructor.td)}>
                     <div className={clsx('flex', `justify-${flexAlignMap.end}`)}>
-                        <Button icon="x" iconDirection="right" variant="gray" size="md" onClick={(e) => e.stopPropagation()}>Re-Run</Button>
+                      <Button 
+                        icon="x" 
+                        iconDirection="right" 
+                        variant="gray" 
+                        size="md" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onReRunClick(payment);
+                        }}
+                      >
+                        Re-Run
+                      </Button>
                     </div>
                   </td>
                   )}
@@ -344,6 +369,7 @@ const RootTable: React.FC<RootTableProps> = ({ payments }) => {
           </tbody>
         </table>
       </div>
+
     </div>
   );
 };

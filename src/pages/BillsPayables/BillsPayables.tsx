@@ -5,6 +5,8 @@ import BoxHeader from "../../component/layout/BoxHeader";
 import { ButtonTab } from "../../component/base/ButtonTab";
 import RootTable from "../../component/base/RootTable";
 import { payments } from "./data";
+import CancelPaymentModal from "../../modals/CancelPaymentModal";
+import ReRunPaymentModal from "../../modals/ReRunPaymentModal";
 
 const statusMap = {
   'Ready to Pay': 'unprocessed',
@@ -19,6 +21,9 @@ const BillsPayables = () => {
   const [activeTab, setActiveTab] = useState<StatusLabel>('Ready to Pay');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [isReRunModalOpen, setIsReRunModalOpen] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState<typeof payments[0] | null>(null);
 
   const filteredPayments = useMemo(
     () => payments.filter(payment => {
@@ -44,6 +49,40 @@ const BillsPayables = () => {
   const handleItemsPerPageChange = (items: number) => {
     setItemsPerPage(items);
     setCurrentPage(1); 
+  };
+
+  const handleCancelClick = (payment: typeof payments[0]) => {
+    setSelectedPayment(payment);
+    setIsCancelModalOpen(true);
+  };
+
+  const handleReRunClick = (payment: typeof payments[0]) => {
+    setSelectedPayment(payment);
+    setIsReRunModalOpen(true);
+  };
+
+  const handleCancelConfirm = () => {
+    // Here you would typically make an API call to cancel the payment
+    console.log('Cancelling payment:', selectedPayment);
+    setIsCancelModalOpen(false);
+    setSelectedPayment(null);
+  };
+
+  const handleReRunConfirm = () => {
+    // Here you would typically make an API call to re-run the payment
+    console.log('Re-running payment:', selectedPayment);
+    setIsReRunModalOpen(false);
+    setSelectedPayment(null);
+  };
+
+  const handleCancelClose = () => {
+    setIsCancelModalOpen(false);
+    setSelectedPayment(null);
+  };
+
+  const handleReRunClose = () => {
+    setIsReRunModalOpen(false);
+    setSelectedPayment(null);
   };
 
   return (
@@ -87,7 +126,23 @@ const BillsPayables = () => {
         })}
         </div>
       </div>
-      <RootTable payments={currentData} />
+      <div className="">
+        <RootTable 
+          payments={currentData} 
+          onCancelClick={handleCancelClick}
+          onReRunClick={handleReRunClick}
+        />
+        <CancelPaymentModal 
+          open={isCancelModalOpen}
+          onClose={handleCancelClose}
+          onConfirm={handleCancelConfirm}
+        />
+        <ReRunPaymentModal
+          open={isReRunModalOpen}
+          onClose={handleReRunClose}
+          onConfirm={handleReRunConfirm}
+        />
+      </div>
     </Box>
   );
 };

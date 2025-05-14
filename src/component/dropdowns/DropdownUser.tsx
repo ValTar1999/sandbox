@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { focusButton, focusItem } from '../../config/commonStyles'; // Импорт стилей для фокуса
+import { focusButton, focusItem } from '../../config/commonStyles';
 
 // Компоненты
 import { Dropdown } from './Dropdown'; // Импорт компонента Dropdown
