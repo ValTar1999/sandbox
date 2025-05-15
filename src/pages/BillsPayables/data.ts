@@ -82,7 +82,7 @@ export const readyToPay: Payment[] = [
           { id: 'LC7-A', dueDate: 'Jul 27, 2023', amount: '2,459.00' },
           { id: 'LC7-B', dueDate: 'Jun 22, 2023', amount: '500.00' },
           { id: 'LC7-A', dueDate: 'Jul 27, 2023', amount: '2,459.00' },
-          { id: 'LC7-B', dueDate: 'Jun 22, 2023', amount: '500.00' },
+          { id: 'LC7-B', dueDate: 'Jun 22, 2023', amount: '500.00' }
         ]
       },
       {
