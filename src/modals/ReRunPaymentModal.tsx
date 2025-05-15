@@ -22,11 +22,9 @@ const ReRunPaymentModal: React.FC<ReRunPaymentModalProps> = ({ open, onClose, on
         description="Your payment is in progress. Check back later for status updates. If there are additional actions for you to take, you'll be notified."
         icon={<Icon icon="check-circle" className="h-11 w-11 text-green-500" />}
         onClose={onClose}
-        footer={
-          <Button size="xl"className="w-full" onClick={onConfirm}>Done</Button>
-        }
       >
         <PaymentStepProgress/>
+        <Button size="xl"className="w-full" onClick={onConfirm}>Done</Button>
       </Modal>
     </LayoutModal>
   );

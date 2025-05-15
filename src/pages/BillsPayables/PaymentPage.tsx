@@ -10,6 +10,7 @@ import Accordion from "../../component/dropdowns/Accordion";
 import DropdownCalendar from "../../component/dropdowns/DropdownCalendar";
 import WrapSelect from "../../component/base/WrapSelect";
 import InfoBox from '../../component/base/InfoBox';
+import VendorsToPay from '../../component/dropdowns/VendorsToPay';
 
 
 interface PayableSummaryItem {
@@ -262,7 +263,13 @@ const PaymentPage = () => {
               </div>
             </div>
           </Accordion>
+
+          {payment.vendors && (
+            <VendorsToPay/>
+          )}
+
         </div>
+
 
       </div>
     </Box>

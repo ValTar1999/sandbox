@@ -1,3 +1,15 @@
+export interface PayableItem {
+  id: string;
+  dueDate: string;
+  amount: string;
+}
+
+export interface Vendor {
+  name: string;
+  paymentMethod: string;
+  payables: PayableItem[];
+}
+
 export interface Payment {
   id: string;
   lock?: boolean;
@@ -18,6 +30,7 @@ export interface Payment {
     price: string;
     amount: string;
   }[];
+  vendors?: Vendor[];
 }
 
 export const readyToPay: Payment[] = [
@@ -43,6 +56,7 @@ export const readyToPay: Payment[] = [
       { item: 'Sliding Door Cupboard 0912GD712', quantity: 1, price: '$25,250.95', amount: '$25,250.95' },
       { item: 'Bed Cover 1124FH8', quantity: 3, price: '$115.95', amount: '$347.80' },
     ],
+    badgeVendors: '0',
   },
   {
     id: 'TY3-B',
@@ -50,13 +64,42 @@ export const readyToPay: Payment[] = [
     totalAmount: '$30,100.00',
     amountValute: 'USD',
     billReference: 'TY3-B',
-    badgeVendors: '4',
     payee: 'Sophia Nguyen',
     source: 'Sage (ERP)',
     dueDate: 'Aug 21, 2023',
     status: 'unprocessed',
     notes: 'Final invoice for marketing campaign.',
     attachments: 'receipt_final.xml',
+    vendors: [
+      {
+        name: 'Nichol Nickel Mining',
+        paymentMethod: 'ACH - Bank of America ••••1728',
+        payables: [
+          { id: 'LC7-A', dueDate: 'Jul 27, 2023', amount: '2,459.00' },
+          { id: 'LC7-B', dueDate: 'Jun 22, 2023', amount: '500.00' },
+          { id: 'LC7-A', dueDate: 'Jul 27, 2023', amount: '2,459.00' },
+          { id: 'LC7-B', dueDate: 'Jun 22, 2023', amount: '500.00' },
+          { id: 'LC7-A', dueDate: 'Jul 27, 2023', amount: '2,459.00' },
+          { id: 'LC7-B', dueDate: 'Jun 22, 2023', amount: '500.00' },
+          { id: 'LC7-A', dueDate: 'Jul 27, 2023', amount: '2,459.00' },
+          { id: 'LC7-B', dueDate: 'Jun 22, 2023', amount: '500.00' },
+        ]
+      },
+      {
+        name: 'Liam Anderson',
+        paymentMethod: 'SMART Disburse • comas@tequila.me',
+        payables: [
+          { id: 'LC7-C', dueDate: 'May 15, 2023', amount: '575.00' },
+          { id: 'LC7-D', dueDate: 'Apr 12, 2023', amount: '988.00' }
+        ]
+      },
+      {
+        name: 'Ava Martinez',
+        paymentMethod: '',
+        payables: []
+      }
+    ],
+    badgeVendors: '0',
   },
 ];
 
@@ -162,3 +205,10 @@ export const payments: Payment[] = [
   ...paid,
   ...exceptions,
 ];
+
+payments.forEach(payment => {
+  if (payment.vendors) {
+    payment.badgeVendors = payment.vendors.length.toString();
+    payment.badgeVendors = "0";
+  }
+});

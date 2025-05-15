@@ -44,6 +44,12 @@ const RootTable: React.FC<RootTableProps> = ({ payments, onCancelClick, onReRunC
     onCancelClick(payment);
   };
 
+  payments.forEach(payment => {
+    if (payment.vendors) {
+      payment.badgeVendors = payment.vendors.length.toString();
+    }
+  });
+
   return (
     <div className="px-6 pb-4">
       <div className="overflow-x-auto">
@@ -185,8 +191,8 @@ const RootTable: React.FC<RootTableProps> = ({ payments, onCancelClick, onReRunC
 
                   <td className={clsx(classConstructor.td)}>
                     <div className={clsx('flex items-center gap-2', `justify-${flexAlignMap.start}`)}> 
-                      {payment.badgeVendors && (
-                        <Badge size="lg" rounded color="gray">{payment.badgeVendors}</Badge>                 
+                      {payment.badgeVendors && payment.badgeVendors !== "0" && (
+                        <Badge size="lg" rounded color="gray">{payment.badgeVendors}</Badge>
                       )}
                       <div className="text-sm text-gray-900 ">
                         {payment.payee}
