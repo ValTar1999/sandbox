@@ -246,7 +246,8 @@ const PaymentPage = () => {
               </table>
             </Accordion>
           )}
-
+          
+          {payment.unprocessed && (
           <Accordion title="Activity log">
             <div className="flex items-start">
               <div className="mr-4 pt-1.5">
@@ -259,10 +260,11 @@ const PaymentPage = () => {
                     Payment for payable ID <a className="text-smart-main hover:text-smart-main-darken hover:underline" href="#">#2345REQ3</a> is pending initiation on 04/22/2022
                   </div>
                 </div>
-                <div className="mt-1 text-xs font-medium text-gray-400">Aug 29, 2023 10:40 AM (EST)</div>
+                <div className="mt-1 text-xs font-medium text-gray-400">{payment.unprocessed?.date}</div>
               </div>
             </div>
           </Accordion>
+          )}
 
           {payment.vendors && (
             <VendorsToPay/>

@@ -81,7 +81,6 @@ const VendorsToPay: React.FC = () => {
                   <CheckBox checked onClick={(e) => e.stopPropagation()} />
                 </div>
 
-                {/* ... остальная часть как была */}
                 <div className="grid w-full grid-cols-3 items-center">
                   <div className="flex flex-col gap-1 text-sm">
                     <h3 className="font-medium text-gray-900">{vendor.name}</h3>

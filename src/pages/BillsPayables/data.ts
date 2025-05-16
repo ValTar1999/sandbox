@@ -30,6 +30,9 @@ export interface Payment {
     price: string;
     amount: string;
   }[];
+  unprocessed?: {
+    date: string;
+  };
   vendors?: Vendor[];
 }
 
@@ -57,6 +60,9 @@ export const readyToPay: Payment[] = [
       { item: 'Bed Cover 1124FH8', quantity: 3, price: '$115.95', amount: '$347.80' },
     ],
     badgeVendors: '0',
+    unprocessed: {
+      date: 'Aug 29, 2023 10:40 AM (EST)'
+    },
   },
   {
     id: 'TY3-B',
