@@ -14,7 +14,7 @@ const Layout = ({ children, className }: LayoutProps) => {
       "flex h-screen bg-gray-100",
       className
     )}>
-      <aside className="hidden lg:block">
+      <aside className="">
         <Sidebar />
       </aside>
 

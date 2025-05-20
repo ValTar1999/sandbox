@@ -3,7 +3,7 @@ import Layout from "./layout/Layout";
 
 // Page
 import BillsPayables from './pages/BillsPayables/BillsPayables';
-import PaymentPage from './pages/BillsPayables/PaymentPage';
+import PaymentPage from './pages/PaymentPage';
 
 const Dashboard = () => <div className="p-4">Dashboard Page</div>;
 const Vendors = () => <div className="p-4">Vendors Page</div>;

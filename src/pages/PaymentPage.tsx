@@ -1,16 +1,20 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { payments, Payment } from "./data";
-import Button from "../../component/base/Button";
-import Badge from "../../component/base/Badge";
-import Icon from "../../component/base/Icon";
-import { RefreshButton } from "../../component/base/RefreshButton";
-import Box from "../../component/layout/Box";
-import Accordion from "../../component/dropdowns/Accordion";
-import DropdownCalendar from "../../component/dropdowns/DropdownCalendar";
-import WrapSelect from "../../component/base/WrapSelect";
-import InfoBox from '../../component/base/InfoBox';
-import VendorsToPay from '../../component/dropdowns/VendorsToPay';
+import { payments, Payment } from "./BillsPayables/data";
+import Button from "../component/base/Button";
+import Badge from "../component/base/Badge";
+import Icon from "../component/base/Icon";
+import { RefreshButton } from "../component/base/RefreshButton";
+import Box from "../component/layout/Box";
+import Accordion from "../component/dropdowns/Accordion";
+import DropdownCalendar from "../component/dropdowns/DropdownCalendar";
+import WrapSelect from "../component/base/WrapSelect";
+// import InfoBox from '../component/base/InfoBox';
+import VendorsToPay from '../component/dropdowns/VendorsToPay';
+
+// Modal
+import PayModal from "../modals/PayModal";
+import PaymentSubmittedModal from "../modals/PaymentSubmittedModal";
 
 
 interface PayableSummaryItem {
@@ -29,6 +33,10 @@ const PaymentPage = () => {
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [isPayModalOpen, setIsPayModalOpen] = useState(false);
+  const [isPaymentSubmittedModalOpen, setIsPaymentSubmittedModalOpen] = useState(false);
+  const [isChooseDataModalOpen, setIsChooseDataModalOpen] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState<typeof payments[0] | null>(null);
   
   const payment = payments.find(p => p.id === id);
 
@@ -44,8 +52,56 @@ const PaymentPage = () => {
 
   const handleBack = () => {
     navigate(-1);
-  };  
-  
+  };
+
+  // PAy Modal
+  const handlePayClick = (payment: typeof payments[0]) => {
+    setSelectedPayment(payment);
+    setIsPayModalOpen(true);
+  };
+
+  const handlePayConfirm = () => {
+    console.log('Processing payment:', selectedPayment);
+    setIsPayModalOpen(false);
+    setIsPaymentSubmittedModalOpen(true);
+  };
+
+  const handlePayClose = () => {
+    setIsPayModalOpen(false);
+    setSelectedPayment(null);
+  };
+  // --------------------------------------------------
+
+  // Payment Submitted Modal
+  const handlePaymentSubmittedConfirm = () => {
+    console.log('Cancelling payment:', selectedPayment);
+    setIsPaymentSubmittedModalOpen(false);
+    setSelectedPayment(null);
+  };
+
+  const handlePaymentSubmittedClose = () => {
+    setIsPaymentSubmittedModalOpen(false);
+    setSelectedPayment(null);
+  };
+  // --------------------------------------------------
+
+  // Choose Data Modal
+  const handleChooseDataClick = (payment: typeof payments[0]) => {
+    setSelectedPayment(payment);
+    setIsChooseDataModalOpen(true);
+  };
+
+  const handleChooseDataModalConfirm = () => {
+    console.log('Processing payment:', selectedPayment);
+    setIsChooseDataModalOpen(false);
+    setSelectedPayment(null);
+  };
+
+  const handleChooseDataModalClose = () => {
+    setIsChooseDataModalOpen(false);
+    setSelectedPayment(null);
+  };
+  // --------------------------------------------------
 
   return (
     <Box
@@ -53,7 +109,7 @@ const PaymentPage = () => {
       header={
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center">
-            <Button variant="add_on" icon="arrow-left" onClick={handleBack} ></Button>
+            <Button variant="add_on" icon="arrow-left" onClick={handleBack}></Button>
             <span className="text-lg font-medium text-gray-900 ml-4">Initiate a Payment</span>
           </div>
           <RefreshButton/>
@@ -61,7 +117,12 @@ const PaymentPage = () => {
       }
       footer={
         <div className="flex items-center gap-2 w-full justify-end">
-          <Button size="md">Pay: {payment.totalAmount}</Button>
+          <Button 
+            size="md"
+            onClick={() => handlePayClick(payment)}
+          >
+            Pay: {payment.totalAmount}
+          </Button>
           <DropdownCalendar 
             dueDate={payment.dueDate} 
             onSelectDate={setSelectedDate} 
@@ -101,7 +162,11 @@ const PaymentPage = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <Button size="md">Pay: {payment.totalAmount}</Button>
+              <Button 
+                size="md"
+                onClick={() => handlePayClick(payment)}
+              >
+                Pay: {payment.totalAmount}</Button>
               <DropdownCalendar
                 notification
                 dueDate={payment.dueDate} 
@@ -175,13 +240,13 @@ const PaymentPage = () => {
               </div>            
               <WrapSelect/>
             </div>
-            <InfoBox
+            {/* <InfoBox
               title='Insufficient Funds'
-              text="Your selected bank account does not have enough funds to complete this payable with the sum of $(2,553.68) USD or the balance for the bank account cannot be checked. You can choose a different bank account or you’ll need to ensure sufficient funds when the check payment clears."
+              text="Your selected bank account does not have enough funds to complete this payable with the sum of $(2,553.68) USD or the balance for the bank account cannot be checked. You can choose a different bank account or you'll need to ensure sufficient funds when the check payment clears."
               color="yellow"
               icon="exclamation"
             >
-            </InfoBox>
+            </InfoBox> */}
           </div>
           <div className="mt-6 flex justify-center items-center min-w-10 h-10 w-10 rounded-full bg-gray-50 ring-2 ring-inset ring-gray-200">
             <Icon icon="arrow-right"/>
@@ -193,15 +258,14 @@ const PaymentPage = () => {
               </div>      
               <WrapSelect/>
             </div>
-            <InfoBox
+            {/* <InfoBox
               title='If your Routing Number, Account Number or Address records (as registered under the bank account) are no longer accurate, please update the details in your ERP. Once your details are updated, please "Refresh" to reflect the changes.'
               color="blue"
               icon="information-circle"
             >
-            </InfoBox>
+            </InfoBox> */}
           </div>
         </div>
-
 
         <div className="flex flex-col">
           {hasPayableSummary(payment) && (
@@ -269,9 +333,25 @@ const PaymentPage = () => {
           {payment.vendors && (
             <VendorsToPay/>
           )}
-
         </div>
-
+        
+        <div className="">
+          <PayModal
+            open={isPayModalOpen}
+            onClose={handlePayClose}
+            onConfirm={handlePayConfirm}
+          />
+          <PaymentSubmittedModal
+            open={isPaymentSubmittedModalOpen}
+            onClose={handlePaymentSubmittedClose}
+            handlePaymentSubmittedClick={handlePaymentSubmittedConfirm}
+          />
+          <ChooseDataModal
+            open={isChooseDataModalOpen}
+            onClose={handleChooseDataModalClose}
+            onConfirm={handleChooseDataModalConfirm}
+          />
+        </div>
 
       </div>
     </Box>

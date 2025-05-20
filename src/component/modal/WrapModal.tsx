@@ -45,13 +45,15 @@ const WrapModal: React.FC<Props> = ({
                   {header}
                 </div>
               )}
-              <Button
-                icon="x"
-                size="xl"
-                variant="linkSecondary"
-                className='my-3 ml-auto mr-4'
-                onClick={onClose}
-              />
+              {onClose && (
+                <Button
+                  icon="x"
+                  size="xl"
+                  variant="linkSecondary"
+                  className='my-3 ml-auto mr-4'
+                  onClick={onClose}
+                />
+              )}
             </div>
           )}
         </div>

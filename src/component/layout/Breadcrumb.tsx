@@ -30,7 +30,7 @@ const BreadcrumbSegment: React.FC<BreadcrumbSegmentProps> = ({ segment, pathTo, 
       to={pathTo} // Путь к этому сегменту
       className={clsx(
         "text-gray-500 text-sm font-medium hover:text-gray-700 transition-all duration-300 capitalize", // Стилизация ссылки
-        focusButton('focus-visible:ring-blue-600') // Добавляем стили для фокуса
+        focusButton() // Добавляем стили для фокуса
       )}
     >
       {formattedSegment}
@@ -55,7 +55,7 @@ const Breadcrumb: React.FC = () => {
           Current location
         </div>
 
-        <div className="mx-6 flex h-5 w-[1px] bg-gray-300" />
+        <hr className="mx-6 flex h-5 w-[1px] bg-gray-300 border-transparent"/>
 
         <Link
           to="/" // Ссылка на главную страницу
