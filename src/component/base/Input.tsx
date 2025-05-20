@@ -25,7 +25,6 @@ const Input: React.FC<InputProps> = ({
   readOnly,
   ...attrs
 }) => {
-  // Составляем классы для разных частей компонента
   const rootClasses = clsx(
     'relative shadow-sm flex h-8', 
     rounded && 'rounded-md', 

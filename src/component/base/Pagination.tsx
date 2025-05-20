@@ -1,5 +1,5 @@
 import React from 'react';
-import Button from './Button'; // Импорт компонента Button
+import Button from './Button';
 
 interface PaginationProps {
   currentPage: number;

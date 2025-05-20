@@ -85,7 +85,7 @@ const Calendar: React.FC<Props> = ({
 
   return (
     <div className={clsx("w-full text-center", className)} {...props}>
-      <div className="flex items-center border-b px-6 py-2 text-gray-900">
+      <div className="flex items-center border-b border-gray-200 px-6 py-2 text-gray-900">
         <div className="flex items-center">
           <Button iconVariant="bicolor" icon="angle-double-left" size="lg" variant="linkSecondary" />
           <Button iconVariant="bicolor" icon="angle-left" size="lg" variant="linkSecondary" />

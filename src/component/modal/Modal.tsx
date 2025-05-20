@@ -5,9 +5,9 @@ import WrapModal from '../modal/WrapModal';
 interface Props extends React.HTMLAttributes<HTMLDivElement> {
   title?: string;
   description?: string;
-  children?: ReactNode;  // Это дети, в том числе и иконки
+  children?: ReactNode;
   footer?: ReactNode;
-  icon?: ReactNode; // Пропс для передачи иконки
+  icon?: ReactNode;
   onClose?: () => void;
 }
 

@@ -39,6 +39,4 @@ const Box = memo<BoxProps>(({
   );
 });
 
-Box.displayName = 'Box';
-
 export default Box;

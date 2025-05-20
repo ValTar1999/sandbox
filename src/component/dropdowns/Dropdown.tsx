@@ -54,31 +54,30 @@ export const Dropdown = ({
   return (
     <div 
       ref={dropdownRef} 
-      className={clsx('relative inline-block', className)} // Применяем дополнительные стили, если они есть
+      className={clsx('relative inline-block', className)}
     >
       <div
-        onClick={toggleDropdown} // Переключаем состояние меню при клике
-        role="button" // Указываем, что это элемент, который выполняет действие
-        aria-haspopup="true" // Указываем, что элемент вызывает меню
-        aria-expanded={isOpen} // Указываем, что меню открыто
+        onClick={toggleDropdown}
+        role="button" 
+        aria-haspopup="true"
+        aria-expanded={isOpen}
         className="w-full cursor-pointer"
       >
-        {trigger} {/* Вставляем триггерный элемент */}
+        {trigger} 
       </div>
 
-      {/* Отображаем меню только если оно открыто */}
       {isOpen && (
         <div 
           className={clsx(
             'absolute z-10 mt-1 rounded-md shadow-lg right-0',
             'bg-white border border-gray-200 transition-opacity duration-300 ease-out',
             isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95',
-            menuClass // Применяем дополнительные стили для меню
+            menuClass
           )}
           role="menu"
-          aria-orientation="vertical" // Указываем вертикальное расположение элементов в меню
+          aria-orientation="vertical" 
         >
-          {typeof menu === 'function' ? menu({ closeDropdown }) : menu} {/* Вставляем элементы меню */}
+          {typeof menu === 'function' ? menu({ closeDropdown }) : menu}
         </div>
       )}
     </div>

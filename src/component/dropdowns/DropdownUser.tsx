@@ -1,27 +1,25 @@
 import clsx from 'clsx';
 import { focusButton, focusItem } from '../../config/commonStyles';
 
-// Компоненты
-import { Dropdown } from './Dropdown'; // Импорт компонента Dropdown
-import { Avatar } from '../base/Avatar'; // Импорт компонента Avatar
-import Icon from '../base/Icon'; // Импорт компонента Icon
+import { Dropdown } from './Dropdown';
+import { Avatar } from '../base/Avatar';
+import Icon from '../base/Icon'; 
 
-// Активы
-import avatarImg from "../../assets/image/layout/avatar-example.jpeg"; // Импорт изображения аватара
+// Img
+import avatarImg from "../../assets/image/layout/avatar-example.jpeg";
 
 interface DropdownItem {
-  icon: string; // Иконка для элемента меню
-  title: string; // Заголовок элемента меню
-  href: string; // Ссылка элемента меню
+  icon: string; 
+  title: string;
+  href: string;
 }
 
 interface UserInfo {
-  name: string; // Имя пользователя
-  role: string; // Роль пользователя
-  avatar: string; // Ссылка на изображение аватара
+  name: string;
+  role: string;
+  avatar: string;
 }
 
-// Массив элементов для выпадающего меню
 const dropdownItems: DropdownItem[] = [
   {
     icon: 'user', // Иконка профиля
@@ -35,15 +33,13 @@ const dropdownItems: DropdownItem[] = [
   },
 ];
 
-// Информация о пользователе
 const userInfo: UserInfo = {
-  name: 'Emil Schaefer', // Имя пользователя
-  role: 'Role', // Роль пользователя
-  avatar: avatarImg, // Ссылка на изображение аватара
+  name: 'Emil Schaefer', 
+  role: 'Role',
+  avatar: avatarImg,
 };
 
 export const DropdownUser: React.FC = () => {
-  // Контент меню
   const menuContent = (
     <>
       <div className="px-4 py-4">
@@ -72,9 +68,8 @@ export const DropdownUser: React.FC = () => {
     </>
   );
 
-  // Обработчик клика для открытия меню
   const handleClick = () => {
-    console.log('Menu clicked'); // Логика для открытия меню, добавьте нужную логику
+    console.log('Menu clicked');
   };
 
   return (

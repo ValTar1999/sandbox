@@ -7,22 +7,16 @@ interface TooltipDarkProps {
   className?: string;
   menuClass?: string;
   onStateChange?: (isOpen: boolean) => void;
-  [key: string]: any; // поддержка data-* атрибутов
+  [key: string]: any;
 }
 
-export const TooltipDark = ({
-  children,
-  className,
-  menuClass,
-  onStateChange,
-  ...rest
-}: TooltipDarkProps): JSX.Element => {
+const TooltipDark = ({children, className, menuClass, onStateChange, ...props}: TooltipDarkProps): JSX.Element => {
   let trigger: ReactElement | null = null;
   let menu: ReactElement | null = null;
 
   Children.forEach(children, (child) => {
     if (isValidElement(child)) {
-      const slot = (child.props as any).slot; // 👈 приводим props к типу any
+      const slot = (child.props as any).slot;
       if (slot === 'trigger') {
         trigger = child;
       } else {
@@ -41,7 +35,9 @@ export const TooltipDark = ({
         menuClass
       )}
       onStateChange={onStateChange}
-      {...rest}
+      {...props}
     />
   );
 };
+
+export default TooltipDark;

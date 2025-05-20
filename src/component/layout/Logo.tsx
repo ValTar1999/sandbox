@@ -34,6 +34,4 @@ const Logo: React.FC<LogoProps> = memo(({
   );
 });
 
-Logo.displayName = 'Logo';
-
 export default Logo;
