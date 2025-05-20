@@ -15,6 +15,7 @@ import VendorsToPay from '../component/dropdowns/VendorsToPay';
 // Modal
 import PayModal from "../modals/PayModal";
 import PaymentSubmittedModal from "../modals/PaymentSubmittedModal";
+import ChooseDataModal from "../modals/ChooseDataModal";
 
 
 interface PayableSummaryItem {
@@ -127,7 +128,8 @@ const PaymentPage = () => {
             dueDate={payment.dueDate} 
             onSelectDate={setSelectedDate} 
             selectedIndex={selectedIndex} 
-            setSelectedIndex={setSelectedIndex} 
+            setSelectedIndex={setSelectedIndex}
+            handleChooseDataClick={() => handleChooseDataClick(payment)}
           />
         </div>
       }
@@ -172,7 +174,8 @@ const PaymentPage = () => {
                 dueDate={payment.dueDate} 
                 onSelectDate={setSelectedDate} 
                 selectedIndex={selectedIndex} 
-                setSelectedIndex={setSelectedIndex} 
+                setSelectedIndex={setSelectedIndex}
+                handleChooseDataClick={() => handleChooseDataClick(payment)}
               />
             </div>
           </div>
@@ -346,11 +349,11 @@ const PaymentPage = () => {
             onClose={handlePaymentSubmittedClose}
             handlePaymentSubmittedClick={handlePaymentSubmittedConfirm}
           />
-          {/* <ChooseDataModal
+          <ChooseDataModal
             open={isChooseDataModalOpen}
             onClose={handleChooseDataModalClose}
             onConfirm={handleChooseDataModalConfirm}
-          /> */}
+          />
         </div>
 
       </div>

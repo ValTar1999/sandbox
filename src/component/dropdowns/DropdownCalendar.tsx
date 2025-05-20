@@ -9,7 +9,7 @@ interface DropdownCalendarProps {
   selectedIndex: number | null;
   setSelectedIndex: (index: number | null) => void;
   notification?: boolean;
-  // handleChooseDataClick: () => void;
+  handleChooseDataClick: () => void;
 }
 
 const scheduleOptions = (dueDate: string) => [
@@ -18,7 +18,7 @@ const scheduleOptions = (dueDate: string) => [
   { label: 'Due date', date: dueDate ? new Date(dueDate) : new Date() },
 ];
 
-const DropdownCalendar = ({ dueDate, onSelectDate, selectedIndex, setSelectedIndex, notification }: DropdownCalendarProps) => {
+const DropdownCalendar = ({ dueDate, onSelectDate, selectedIndex, setSelectedIndex, notification, handleChooseDataClick }: DropdownCalendarProps) => {
   return (
     <Dropdown
       trigger={
@@ -52,7 +52,7 @@ const DropdownCalendar = ({ dueDate, onSelectDate, selectedIndex, setSelectedInd
           ))}
           <div className="flex flex-col border-t border-gray-200">
             <button 
-              // onClick={() => handleChooseDataClick()}
+              onClick={() => handleChooseDataClick()}
               className="flex px-4 py-2 text-smart-main cursor-pointer text-sm font-medium hover:bg-gray-50 transition-all duration-300"
             >
               Choose another date
