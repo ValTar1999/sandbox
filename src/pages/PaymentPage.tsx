@@ -346,11 +346,11 @@ const PaymentPage = () => {
             onClose={handlePaymentSubmittedClose}
             handlePaymentSubmittedClick={handlePaymentSubmittedConfirm}
           />
-          <ChooseDataModal
+          {/* <ChooseDataModal
             open={isChooseDataModalOpen}
             onClose={handleChooseDataModalClose}
             onConfirm={handleChooseDataModalConfirm}
-          />
+          /> */}
         </div>
 
       </div>
