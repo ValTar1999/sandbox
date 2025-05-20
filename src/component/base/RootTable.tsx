@@ -194,7 +194,7 @@ const RootTable: React.FC<RootTableProps> = ({ payments, onCancelClick, onReRunC
                       {payment.badgeVendors && payment.badgeVendors !== "0" && (
                         <Badge size="lg" rounded color="gray">{payment.badgeVendors}</Badge>
                       )}
-                      <div className="text-sm text-gray-900 ">
+                      <div className="text-sm text-gray-900 font-medium">
                         {payment.payee}
                       </div>
                     </div>
@@ -216,7 +216,7 @@ const RootTable: React.FC<RootTableProps> = ({ payments, onCancelClick, onReRunC
                   )}
 
                   <td className={clsx(classConstructor.td)}>
-                    <div className={clsx('text-sm text-gray-900 flex', `justify-${flexAlignMap.start}`)}>
+                    <div className={clsx('text-sm text-gray-900 flex font-medium', `justify-${flexAlignMap.start}`)}>
                       {payment.source}
                     </div>
                   </td>

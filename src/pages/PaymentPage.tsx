@@ -55,7 +55,7 @@ const PaymentPage = () => {
     navigate(-1);
   };
 
-  // PAy Modal
+  // Pay Modal
   const handlePayClick = (payment: typeof payments[0]) => {
     setSelectedPayment(payment);
     setIsPayModalOpen(true);
@@ -353,6 +353,10 @@ const PaymentPage = () => {
             open={isChooseDataModalOpen}
             onClose={handleChooseDataModalClose}
             onConfirm={handleChooseDataModalConfirm}
+            dueDate={payment.dueDate || ''}
+            selectedIndex={selectedIndex}
+            setSelectedIndex={setSelectedIndex}
+            onSelectDate={setSelectedDate}
           />
         </div>
 
