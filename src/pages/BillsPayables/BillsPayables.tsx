@@ -126,23 +126,21 @@ const BillsPayables = () => {
         })}
         </div>
       </div>
-      <div className="">
-        <RootTable 
-          payments={currentData} 
-          onCancelClick={handleCancelClick}
-          onReRunClick={handleReRunClick}
-        />
-        <CancelPaymentModal 
-          open={isCancelModalOpen}
-          onClose={handleCancelClose}
-          onConfirm={handleCancelConfirm}
-        />
-        <ReRunPaymentModal
-          open={isReRunModalOpen}
-          onClose={handleReRunClose}
-          onConfirm={handleReRunConfirm}
-        />
-      </div>
+      <RootTable 
+        payments={currentData} 
+        onCancelClick={handleCancelClick}
+        onReRunClick={handleReRunClick}
+      />
+      <CancelPaymentModal 
+        open={isCancelModalOpen}
+        onClose={handleCancelClose}
+        onConfirm={handleCancelConfirm}
+      />
+      <ReRunPaymentModal
+        open={isReRunModalOpen}
+        onClose={handleReRunClose}
+        onConfirm={handleReRunConfirm}
+      />
     </Box>
   );
 };

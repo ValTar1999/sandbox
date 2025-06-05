@@ -42,7 +42,7 @@ export const readyToPay: Payment[] = [
     totalAmount: '$90,365.80',
     amountValute: 'USD',
     billReference: 'XZ1-A',
-    payee: 'Liam Stone',
+    payee: 'Hubert Blaine Wolfeschlegelsteinhausenbergerdorff Sr.',
     source: 'Sage (ERP)',
     dueDate: 'Aug 17, 2023',
     status: 'unprocessed',   

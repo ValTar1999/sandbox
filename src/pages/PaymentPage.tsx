@@ -104,6 +104,37 @@ const PaymentPage = () => {
   };
   // --------------------------------------------------
 
+
+  // WrapSelect
+  const [selectedAccount, setSelectedAccount] = useState("");
+  const [selectedMethod, setSelectedMethod] = useState("");
+
+  const bankAccounts = [
+    {
+      label: "Main Bank Account",
+      value: "main",
+      description: "Bank AG ••••4513 – $180,000.06",
+    },
+    {
+      label: "Secondary Bank Account",
+      value: "secondary",
+      description: "Bank AG ••••1010 – $111,921.02",
+    },
+    {
+      label: "Insurance Bank Account",
+      value: "insurance",
+      description: "Bank AG ••••1911 – $56,921.02",
+      inactive: true,
+    },
+  ];
+
+  const paymentMethods = [
+    { label: "ACH", value: "ach", description: "1–3 business days" },
+    { label: "Wire", value: "wire", description: "Same business day" },
+    { label: "SMART Exchange", value: "smart", inactive: true },
+  ];
+  // --------------------------------------------------
+
   return (
     <Box
       className="max-w-7xl mx-auto"
@@ -237,11 +268,13 @@ const PaymentPage = () => {
 
         <div className="pt-6 pb-9 flex space-x-6">
           <div className="w-full">
-            <div className="mb-4">
-              <div className="mb-1 text-sm font-medium text-gray-700">
-                Origination Account
-              </div>            
-              <WrapSelect/>
+            <div className="mb-4">           
+              <WrapSelect
+                label="Origination Account"
+                options={bankAccounts}
+                selectedValue={selectedAccount}
+                onSelect={setSelectedAccount}
+              />
             </div>
             {/* <InfoBox
               title='Insufficient Funds'
@@ -255,11 +288,13 @@ const PaymentPage = () => {
             <Icon icon="arrow-right"/>
           </div>
           <div className="w-full">
-            <div className="mb-4">              
-              <div className="mb-1 text-sm font-medium text-gray-700">
-                Method of Payment
-              </div>      
-              <WrapSelect/>
+            <div className="mb-4">                  
+              <WrapSelect
+                label="Method of Payment"
+                options={paymentMethods}
+                selectedValue={selectedMethod}
+                onSelect={setSelectedMethod}
+              />
             </div>
             {/* <InfoBox
               title='If your Routing Number, Account Number or Address records (as registered under the bank account) are no longer accurate, please update the details in your ERP. Once your details are updated, please "Refresh" to reflect the changes.'

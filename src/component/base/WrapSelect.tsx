@@ -1,88 +1,86 @@
 import { useState } from "react";
-import clsx from "clsx";
-import Icon from "./Icon";
-import Button from "./Button";
+import { clsx } from "clsx";
 
-const options = ["aaa", "bbb", "ccc"];
+interface Option {
+  label: string;
+  value: string;
+  description?: string;
+  inactive?: boolean;
+}
 
-const WrapSelect = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [selected, setSelected] = useState("Select account");
+interface WrapSelectProps {
+  label: string;
+  options: Option[];
+  selectedValue: string;
+  onSelect: (value: string) => void;
+}
 
-  const toggleDropdown = () => {
-    setIsOpen(!isOpen);
-  };
+function WrapSelect({
+  label,
+  options,
+  selectedValue,
+  onSelect,
+}: WrapSelectProps) {
+  const [open, setOpen] = useState(false);
 
-  const handleSelect = (option: string) => {
-    setSelected(option);
-    setIsOpen(false);
-  };
+  const selectedOption = options.find((o) => o.value === selectedValue);
 
   return (
-    <div className="relative w-full">
+    <div className="relative">
+      <div className="text-sm font-medium text-gray-700 mb-1">{label}</div>
       <button
-        onClick={toggleDropdown}
-        className="w-full cursor-pointer flex items-center justify-between px-3 py-2 shadow-sm rounded-md border border-gray-300 bg-white hover:bg-gray-50 transition-colors duration-300 focus:border-smart-main focus:outline-none focus:ring-1 focus:ring-smart-main"
+        onClick={() => setOpen(!open)}
+        className={clsx(
+          "w-full px-4 py-2 border rounded-md text-left bg-white shadow-sm",
+          open && "ring-2 ring-blue-500"
+        )}
       >
-        <div className={clsx("text-base", { "text-gray-400": selected === "Select account", "text-gray-900": selected !== "Select account" })}>{selected}</div>
-        <Icon className="text-gray-400" icon="selector" />
+        {selectedOption ? (
+          <div>
+            <div className="font-semibold">{selectedOption.label}</div>
+            {selectedOption.description && (
+              <div className="text-sm text-gray-500">
+                {selectedOption.description}
+              </div>
+            )}
+          </div>
+        ) : (
+          <span className="text-gray-400">Select option</span>
+        )}
       </button>
 
-      {isOpen && (
-        <div className="absolute mt-1 w-full bg-white shadow-sm rounded-md border border-gray-300 z-10 overflow-hidden">
-          <div className="divide-y divide-gray-200">
-            {options.map((option) => (
-              <div
-                key={option}
-                className={clsx(
-                  "px-4 py-3 cursor-pointer flex items-center gap-2 hover:bg-gray-50 transition-colors duration-300",
-                  { "bg-gray-100": option === selected }
-                )}
-                onClick={() => handleSelect(option)}
-              >
-                <div className="w-full flex flex-col gap-3">
-                  <div className="flex items-start w-full gap-2">
-                    <Icon className="w-6 h-6 text-gray-500" icon="library"/>
-                    <div className="flex flex-col w-full">
-                      <div className="flex w-full justify-between">
-
-                        <div className="flex flex-col gap-0.5">
-                          <div className="text-sm font-semibold">
-                            Secondary Bank Account
-                          </div>
-                          <div className="text-gray-500">
-                            Bank AG ••••1010
-                          </div>
-                        </div>
-
-                        <div className="flex flex-col items-end text-sm gap-0.5">
-                          <div className="text-right text-gray-500">Balance</div>
-                          <div className="font-medium text-gray-900">
-                            $111,921.02
-                          </div>
-                        </div>
-
-                      </div>
-                    </div>
-                  </div>
-                  <div className="rounded-md border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-700">
-                    This bank account is inactive. <a href="#" className="font-semibold hover:text-yellow-800">Click here</a> to resolve this issue.
-                  </div>
+      {open && (
+        <ul className="absolute z-10 w-full mt-2 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
+          {options.map((option) => (
+            <li
+              key={option.value}
+              className={clsx(
+                "px-4 py-2 cursor-pointer",
+                option.inactive ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "hover:bg-gray-100",
+                selectedValue === option.value && "bg-blue-50 font-semibold"
+              )}
+              onClick={() => {
+                if (!option.inactive) {
+                  onSelect(option.value);
+                  setOpen(false);
+                }
+              }}
+            >
+              <div>{option.label}</div>
+              {option.description && (
+                <div className="text-sm text-gray-500">{option.description}</div>
+              )}
+              {option.inactive && (
+                <div className="text-xs text-orange-500 mt-1">
+                  Not available
                 </div>
-
-                <span>{option}</span>
-
-                {option === selected && <Icon className="text-green-500" icon="check" />}
-              </div>
-            ))}
-            <div className="flex justify-center py-1.5">
-              <Button className="w-full" size="sm" variant="linkPrimary" icon="plus" iconDirection="left">Add new bank account</Button>
-            </div>
-          </div>
-        </div>
+              )}
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );
-};
+}
 
 export default WrapSelect;
