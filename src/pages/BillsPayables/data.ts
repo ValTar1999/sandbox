@@ -70,7 +70,7 @@ export const readyToPay: Payment[] = [
     totalAmount: '$30,100.00',
     amountValute: 'USD',
     billReference: 'TY3-B',
-    payee: 'Sophia Nguyen',
+    payee: 'Nichol Nickel Mining, Liam Anderson, Ava Martinez, Ethan Sullivan',
     source: 'Sage (ERP)',
     dueDate: 'Aug 21, 2023',
     status: 'unprocessed',

@@ -27,7 +27,7 @@ const RootTable: React.FC<RootTableProps> = ({ payments, onCancelClick, onReRunC
   
   const classConstructor = {
     th: ['p-4'],
-    thText: ['flex items-center text-gray-500 text-xs uppercase tracking-wider font-medium whitespace-nowrap'],
+    thText: ['flex items-center text-start text-gray-500 text-xs uppercase tracking-wider font-medium'],
     td: ['p-4']
   };
 
@@ -51,8 +51,8 @@ const RootTable: React.FC<RootTableProps> = ({ payments, onCancelClick, onReRunC
   });
 
   return (
-    <div className="px-6 pb-4">
-      <table className="w-full">
+    <div className="overflow-x-auto w-full px-6 grid">
+      <table className="min-w-full">
         <thead>
           <tr className="border-b border-dashed border-gray-200">
             <th className="w-[52px] max-w-[52px] min-w-[52px]"></th>
@@ -128,7 +128,7 @@ const RootTable: React.FC<RootTableProps> = ({ payments, onCancelClick, onReRunC
 
             <th className={clsx(classConstructor.th)}>
               <div className={clsx('flex items-center gap-1', `justify-${flexAlignMap.start}`)}>
-                <div className={clsx(classConstructor.thText)}>
+                <div className={clsx(`text-nowrap` ,`${classConstructor.thText}`)}>
                   Due Date
                 </div>
                 <Icon icon="selector" className="text-gray-400" />
@@ -188,7 +188,7 @@ const RootTable: React.FC<RootTableProps> = ({ payments, onCancelClick, onReRunC
                   </div>
                 </td>
 
-                <td className={clsx(`max-w-sm overflow-hidden`,`${classConstructor.td}`)}>
+                <td className={clsx(`min-w-0 max-w-xs overflow-hidden`,`${classConstructor.td}`)}>
                   <div className={clsx('flex items-center gap-2', `justify-${flexAlignMap.start}`)}> 
                     {payment.badgeVendors && payment.badgeVendors !== "0" && (
                       <Badge size="lg" rounded color="gray">{payment.badgeVendors}</Badge>
@@ -224,11 +224,11 @@ const RootTable: React.FC<RootTableProps> = ({ payments, onCancelClick, onReRunC
                   <div className={clsx('text-sm  flex', `justify-${flexAlignMap.start}`)}>
                     {payment.status === "pastDue" ? (
                       <div className="flex items-center gap-1">
-                        <div className="text-yellow-600">{payment.dueDate}</div>
+                        <div className="text-yellow-600 text-nowrap">{payment.dueDate}</div>
                         <Icon className="text-yellow-500" icon="exclamation-circle"/>
                       </div>
                     ) : (
-                      <div className="text-gray-500">
+                      <div className="text-gray-500 text-nowrap">
                         {payment.dueDate}
                       </div>
                     )}
