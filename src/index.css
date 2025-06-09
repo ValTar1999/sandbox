@@ -3,7 +3,6 @@ body {
 }
 
 @import 'tailwindcss';
-
 @tailwind utilities;
 
 @theme {
@@ -16,4 +15,17 @@ body {
 
   /* container */
   --container-9xl: 1536px;
+}
+
+@layer utilities {
+  .animate-fade-in {
+    @apply opacity-0;
+    animation: fadeIn 0.4s ease-in-out forwards;
+  }
+
+  @keyframes fadeIn {
+    to {
+      opacity: 1;
+    }
+  }
 }
