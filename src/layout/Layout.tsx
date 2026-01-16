@@ -5,7 +5,7 @@ import Header from "../component/layout/Header";
 import Sidebar from "../component/layout/Sidebar";
 
 interface LayoutProps {
-  children: ReactNode;
+  children?: ReactNode;
   className?: string;
 }
 

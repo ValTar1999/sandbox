@@ -1,3 +1,4 @@
+import type React from 'react';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import clsx from 'clsx';
 
@@ -15,7 +16,7 @@ export const Dropdown = ({
   className,
   menuClass,
   onStateChange,
-}: DropdownProps): JSX.Element => {
+}: DropdownProps): React.ReactElement => {
   const [isOpen, setIsOpen] = useState(false); // Состояние открытости меню
   const dropdownRef = useRef<HTMLDivElement>(null); // Ссылка на корневой элемент компонента
 
