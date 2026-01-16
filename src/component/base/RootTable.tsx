@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import clsx from "clsx";
 import CheckBox from "./CheckBox";
@@ -17,6 +17,18 @@ interface RootTableProps {
   onReRunClick: (payment: Payment) => void;
 }
 
+const classConstructor = {
+  th: ['p-4'],
+  thText: ['flex items-center text-start text-gray-500 text-xs uppercase tracking-wider font-medium'],
+  td: ['p-4']
+};
+
+const flexAlignMap = {
+  start: 'start',
+  center: 'center',
+  end: 'end',
+};
+
 const RootTable: React.FC<RootTableProps> = ({ payments, onCancelClick, onReRunClick }) => {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -24,31 +36,16 @@ const RootTable: React.FC<RootTableProps> = ({ payments, onCancelClick, onReRunC
   const toggleExpand = (id: string) => {
     setExpandedRow(prev => (prev === id ? null : id));
   };
-  
-  const classConstructor = {
-    th: ['p-4'],
-    thText: ['flex items-center text-start text-gray-500 text-xs uppercase tracking-wider font-medium'],
-    td: ['p-4']
-  };
 
-  const flexAlignMap = {
-    start: 'start',
-    center: 'center',
-    end: 'end',
-  };
-
-  const hasPaymentType = payments.some(payment => payment.paymentType);
+  const hasPaymentType = useMemo(
+    () => payments.some(payment => payment.paymentType),
+    [payments]
+  );
 
   const handleCancelClick = (payment: Payment, e: React.MouseEvent) => {
     e.stopPropagation();
     onCancelClick(payment);
   };
-
-  payments.forEach(payment => {
-    if (payment.vendors) {
-      payment.badgeVendors = payment.vendors.length.toString();
-    }
-  });
 
   return (
     <div className="overflow-x-auto w-full px-6 grid">
@@ -190,8 +187,10 @@ const RootTable: React.FC<RootTableProps> = ({ payments, onCancelClick, onReRunC
 
                 <td className={clsx(`min-w-0 max-w-xs overflow-hidden`,`${classConstructor.td}`)}>
                   <div className={clsx('flex items-center gap-2', `justify-${flexAlignMap.start}`)}> 
-                    {payment.badgeVendors && payment.badgeVendors !== "0" && (
-                      <Badge size="lg" rounded color="gray">{payment.badgeVendors}</Badge>
+                    {payment.vendors && payment.vendors.length > 0 && (
+                      <Badge size="lg" rounded color="gray">
+                        {payment.vendors.length}
+                      </Badge>
                     )}
                     <div className="text-sm text-gray-900 font-medium truncate">
                       {payment.payee}
@@ -204,7 +203,13 @@ const RootTable: React.FC<RootTableProps> = ({ payments, onCancelClick, onReRunC
                     <div className={clsx('flex items-center gap-2', `justify-${flexAlignMap.start}`)}> 
                       {payment.paymentType === 'sd' ? (
                         <>
-                          <img className="w-4.5 h-4.5" src={SD} alt="icon-sd" />
+                          <img
+                            className="w-4.5 h-4.5"
+                            src={SD}
+                            alt="icon-sd"
+                            loading="lazy"
+                            decoding="async"
+                          />
                           <div className="text-sm text-gray-900">SMART Disburse</div>
                         </>
                       ) : (

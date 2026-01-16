@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { payments, Payment } from "./BillsPayables/data";
 import Button from "../component/base/Button";
@@ -9,6 +9,7 @@ import Box from "../component/layout/Box";
 import Accordion from "../component/dropdowns/Accordion";
 import DropdownCalendar from "../component/dropdowns/DropdownCalendar";
 import WrapSelect from "../component/base/WrapSelect";
+import SmartDisburseIcon from "../assets/image/SMART-Disburse.svg";
 // import InfoBox from '../component/base/InfoBox';
 import VendorsToPay from '../component/dropdowns/VendorsToPay';
 
@@ -29,6 +30,64 @@ function hasPayableSummary(payment: Payment): payment is Payment & { payableSumm
   return payment.payableSummary !== undefined;
 }
 
+const bankAccounts = [
+  {
+    label: "Secondary Bank Account",
+    value: "secondary",
+    description: "Bank AG ••••1010",
+    descriptionPosition: "below" as const,
+    rightValue: "$111,921.02",
+  },
+  {
+    label: "Main Bank Account",
+    value: "main",
+    description: "Bank AG ••••1010",
+    descriptionPosition: "below" as const,
+    rightValue: "$111,921.02",
+  },
+  {
+    label: "Insurance Bank Account",
+    value: "insurance",
+    description: "Bank AG ••••1911",
+    descriptionPosition: "below" as const,
+    rightValue: "$56,921.02",
+    inactive: true,
+  },
+];
+
+const paymentMethods = [
+  { label: "ACH", value: "ach", description: "1–3 business days", badge: "Recommended" },
+  { label: "Wire", value: "wire", description: "Same business day" },
+  { label: "Pay with Card", value: "card" },
+  {
+    label: "SMART Disburse",
+    value: "smart-disburse",
+    iconImageSrc: SmartDisburseIcon,
+    iconImageAlt: "SMART Disburse",
+  },
+  {
+    label: "RTP",
+    value: "rtp",
+    inactive: true,
+    inactiveDescription:
+      "Payment method is not available for this bank account. Please select another bank account or contact support for more information.",
+  },
+  {
+    label: "Check",
+    value: "check",
+    inactive: true,
+    inactiveDescription:
+      "Payment method is not available for this bank account. Please select another bank account or contact support for more information.",
+  },
+  {
+    label: "SMART Exchange",
+    value: "smart",
+    inactive: true,
+    inactiveDescription:
+      "Payment method is not available for this bank account. Please select another bank account or contact support for more information.",
+  },
+];
+
 const PaymentPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -38,8 +97,10 @@ const PaymentPage = () => {
   const [isPaymentSubmittedModalOpen, setIsPaymentSubmittedModalOpen] = useState(false);
   const [isChooseDataModalOpen, setIsChooseDataModalOpen] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<typeof payments[0] | null>(null);
+  const [selectedAccount, setSelectedAccount] = useState("");
+  const [selectedMethod, setSelectedMethod] = useState("");
   
-  const payment = payments.find(p => p.id === id);
+  const payment = useMemo(() => payments.find(p => p.id === id), [id]);
 
   if (!payment) {
     return <div className="p-6 text-red-500">Payment not found</div>;
@@ -106,33 +167,6 @@ const PaymentPage = () => {
 
 
   // WrapSelect
-  const [selectedAccount, setSelectedAccount] = useState("");
-  const [selectedMethod, setSelectedMethod] = useState("");
-
-  const bankAccounts = [
-    {
-      label: "Main Bank Account",
-      value: "main",
-      description: "Bank AG ••••4513 – $180,000.06",
-    },
-    {
-      label: "Secondary Bank Account",
-      value: "secondary",
-      description: "Bank AG ••••1010 – $111,921.02",
-    },
-    {
-      label: "Insurance Bank Account",
-      value: "insurance",
-      description: "Bank AG ••••1911 – $56,921.02",
-      inactive: true,
-    },
-  ];
-
-  const paymentMethods = [
-    { label: "ACH", value: "ach", description: "1–3 business days" },
-    { label: "Wire", value: "wire", description: "Same business day" },
-    { label: "SMART Exchange", value: "smart", inactive: true },
-  ];
   // --------------------------------------------------
 
   return (
@@ -241,14 +275,14 @@ const PaymentPage = () => {
             <span className="text-base font-gray-700">{payment.dueDate}</span>  
           </div>
 
-          <hr className="flex h-auto w-px bg-gray-300" />
+          <div className="flex h-auto w-px bg-gray-300" />
 
           <div className="font-medium">
             <div className="text-xs uppercase text-gray-500 mb-1 tracking-wider">VENDOR</div>
             <span className="text-base font-gray-700">{payment.payee}</span>  
           </div>
 
-          <hr className="flex h-auto w-px bg-gray-300" />
+          <div className="flex h-auto w-px bg-gray-300" />
 
           <div className="font-medium">
             <div className="text-xs uppercase text-gray-500 mb-1 tracking-wider">Bill reference</div>
@@ -258,7 +292,7 @@ const PaymentPage = () => {
             </div>
           </div>
 
-          <hr className="flex h-auto w-px bg-gray-300" />
+          <div className="flex h-auto w-px bg-gray-300" />
 
           <div className="font-medium">
             <div className="text-xs uppercase text-gray-500 mb-1 tracking-wider">Attachments</div>
@@ -271,9 +305,14 @@ const PaymentPage = () => {
             <div className="mb-4">           
               <WrapSelect
                 label="Origination Account"
+                labelIcon="information-circle"
+                placeholder="Select account"
                 options={bankAccounts}
                 selectedValue={selectedAccount}
                 onSelect={setSelectedAccount}
+                footerActionLabel="Add New Bank Account"
+                showInactiveBadge={false}
+                showInactiveNotice
               />
             </div>
             {/* <InfoBox
@@ -285,12 +324,13 @@ const PaymentPage = () => {
             </InfoBox> */}
           </div>
           <div className="mt-6 flex justify-center items-center min-w-10 h-10 w-10 rounded-full bg-gray-50 ring-2 ring-inset ring-gray-200">
-            <Icon icon="arrow-right"/>
+            <Icon icon="arrow-right" className="w-5 h-5 text-gray-400" />
           </div>
           <div className="w-full">
             <div className="mb-4">                  
               <WrapSelect
                 label="Method of Payment"
+                placeholder="Select payment method"
                 options={paymentMethods}
                 selectedValue={selectedMethod}
                 onSelect={setSelectedMethod}

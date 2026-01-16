@@ -34,12 +34,30 @@ const BillsPayables = () => {
 
     const timeout = setTimeout(() => {
       setActiveTab(nextTab);
+      setCurrentPage(1);
       setNextTab(null);
       setIsLoading(false);
     }, 1000); // время исчезновения
 
     return () => clearTimeout(timeout);
   }, [isLoading, nextTab]);
+
+  const tabCounts = useMemo(() => {
+    const labels = Object.keys(statusMap) as StatusLabel[];
+    const counts = {} as Record<StatusLabel, number>;
+
+    labels.forEach((label) => {
+      const status = statusMap[label];
+      counts[label] = payments.reduce((acc, payment) => {
+        const matches = Array.isArray(status)
+          ? status.includes(payment.status)
+          : payment.status === status;
+        return acc + (matches ? 1 : 0);
+      }, 0);
+    });
+
+    return counts;
+  }, []);
 
   const handleTabClick = (tab: StatusLabel) => {
     if (tab === activeTab) return;
@@ -54,10 +72,16 @@ const BillsPayables = () => {
     );
   }, [activeTab]);
 
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentData = filteredPayments.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredPayments.length / itemsPerPage);
+  const currentData = useMemo(() => {
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    return filteredPayments.slice(indexOfFirstItem, indexOfLastItem);
+  }, [currentPage, itemsPerPage, filteredPayments]);
+
+  const totalPages = useMemo(
+    () => Math.ceil(filteredPayments.length / itemsPerPage),
+    [filteredPayments.length, itemsPerPage]
+  );
 
   const handlePageChange = (page: number) => setCurrentPage(page);
 
@@ -117,24 +141,17 @@ const BillsPayables = () => {
     >
       <div className="px-6 py-4">
         <div className="flex gap-9">
-          {(Object.keys(statusMap) as StatusLabel[]).map(label => {
-            const status = statusMap[label];
-            const tabCount = payments.filter(d =>
-              Array.isArray(status) ? status.includes(d.status) : d.status === status
-            ).length;
-
-            return (
-              <ButtonTab
-                key={label}
-                active={activeTab === label}
-                onClick={() => handleTabClick(label)}
-                count={`${tabCount || 0}`}
-                variant={label === "Exceptions" ? "red" : undefined}
-              >
-                {label}
-              </ButtonTab>
-            );
-          })}
+          {(Object.keys(statusMap) as StatusLabel[]).map(label => (
+            <ButtonTab
+              key={label}
+              active={activeTab === label}
+              onClick={() => handleTabClick(label)}
+              count={`${tabCounts[label] || 0}`}
+              variant={label === "Exceptions" ? "red" : undefined}
+            >
+              {label}
+            </ButtonTab>
+          ))}
         </div>
       </div>
 

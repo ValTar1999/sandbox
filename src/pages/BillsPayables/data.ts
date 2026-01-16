@@ -212,9 +212,3 @@ export const payments: Payment[] = [
   ...exceptions,
 ];
 
-payments.forEach(payment => {
-  if (payment.vendors) {
-    payment.badgeVendors = payment.vendors.length.toString();
-    payment.badgeVendors = "0";
-  }
-});
