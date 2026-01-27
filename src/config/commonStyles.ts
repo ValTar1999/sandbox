@@ -1,11 +1,11 @@
 export const focusButton = (focusColorClass?: string) => {
-  return `focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white ${focusColorClass || 'focus-visible:ring-smart-secondary'}`
+  return `focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white ${focusColorClass || 'focus-visible:ring-blue-600'}`
 }
 
 export const focusItem = (focusColorClass?: string) => {
-  return `focus:outline-none focus-visible:ring-2 focus-visible:ring-smart-secondary ${focusColorClass || 'focus-visible:border-smart-secondary'}`
+  return `focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${focusColorClass || 'focus-visible:border-blue-600'}`
 }
 
 export const link = () => {
-  return `focus:outline-none text-smart-main hover:text-smart-main-darken hover:underline`
+  return `focus:outline-none text-blue-600 hover:text-blue-700 hover:underline`
 }

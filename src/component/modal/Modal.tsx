@@ -22,7 +22,7 @@ const Modal: React.FC<Props> = ({
 }) => {
   return (
     <WrapModal className={clsx('modal-container', className)} onClose={onClose}>
-      <div className="flex flex-col items-center gap-8 px-6 pb-6 text-center">
+      <div className="flex flex-col items-center gap-8 px-6 pb-6">
         {icon && <div>{icon}</div>}
         
         <div className="flex flex-col gap-2">

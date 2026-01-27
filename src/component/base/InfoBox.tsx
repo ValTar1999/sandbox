@@ -62,13 +62,15 @@ const InfoBox: React.FC<InfoBoxProps> = ({
           />
         )}
         <div className="flex w-full flex-col justify-between lg:flex-row lg:items-start">
-          <div className="space-y-1 text-sm font-medium lg:mr-10">
+          <div className="space-y-1 text-sm font-medium">
             <div className={titleClass}>{title}</div>
             {text && <div className={textClass}>{text}</div>}
           </div>
-          <div className="mt-2 flex gap-1 lg:-mt-1">
-            {children}
-          </div>
+          {children && (
+            <div className="mt-2 flex gap-1 lg:-mt-1 lg:ml-10">
+              {children}
+            </div>
+          )}
         </div>
       </div>
       {closeIcon && (

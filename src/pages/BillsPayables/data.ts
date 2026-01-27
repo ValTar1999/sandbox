@@ -39,7 +39,7 @@ export interface Payment {
 export const readyToPay: Payment[] = [
   {
     id: 'XZ1-A',
-    totalAmount: '$90,365.80',
+    totalAmount: '$20,100.00',
     amountValute: 'USD',
     billReference: 'XZ1-A',
     payee: 'Hubert Blaine Wolfeschlegelsteinhausenbergerdorff Sr.',

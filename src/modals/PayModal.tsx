@@ -5,15 +5,37 @@ import Button from "../component/base/Button";
 import Icon from "../component/base/Icon";
 import CheckboxField from "../component/modules/CheckboxField";
 import { payments } from "../pages/BillsPayables/data";
+import AccountDetails from '../component/modules/AccountDetails';
+import InfoBox from '../component/base/InfoBox';
 
 interface PayModalProps {
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  paymentMethod?: string;
+  sendingMethod?: string;
+  contactEmail?: string;
+  smartDisburseContacts?: {
+    id: string;
+    type: "email" | "phone";
+    value: string;
+    label?: string;
+    subLabel?: string;
+  }[];
 }
 
-const PayModal: React.FC<PayModalProps> = ({ open, onClose, onConfirm }) => {
+const PayModal: React.FC<PayModalProps> = ({
+  open,
+  onClose,
+  onConfirm,
+  paymentMethod,
+  sendingMethod,
+  contactEmail,
+  smartDisburseContacts,
+}) => {
   if (!open) return null;
+  const isCardMethod = paymentMethod === "card";
+  const isSmartDisburse = paymentMethod === "smart-disburse";
   return (
     <LayoutModal>
       <Modal
@@ -21,7 +43,7 @@ const PayModal: React.FC<PayModalProps> = ({ open, onClose, onConfirm }) => {
         footer={
           <div className="flex items-center justify-end gap-6">
             <Button variant="secondary" size="lg" onClick={onClose}>Cancel</Button>
-            <Button size="lg" onClick={onConfirm}>Pay Now</Button>
+            <Button size="lg" onClick={isCardMethod ? onClose : onConfirm}>Pay Now</Button>
           </div>
         }
       >
@@ -45,6 +67,32 @@ const PayModal: React.FC<PayModalProps> = ({ open, onClose, onConfirm }) => {
                 />
               </div>
             </div>
+
+            <AccountDetails
+              variant={isSmartDisburse ? "smart-disburse" : isCardMethod ? "card" : "bank"}
+              smartDisburseContacts={smartDisburseContacts}
+            />
+            {!isCardMethod && !isSmartDisburse && (
+              <InfoBox
+                color="blue"
+                icon="information-circle"
+                title='If your Routing Number, Account Number or Address records (as registered under the bank account) are no longer accurate, please update the details in your ERP. Once your details are updated, please "Refresh" to reflect the changes.'
+              />
+            )}
+            {isCardMethod && sendingMethod === "delivery" && !!contactEmail && (
+              <div className="mt-4 rounded-lg border border-gray-200 bg-white">
+                <div className="border-b border-gray-200 bg-gray-100 px-4 py-2">
+                  <div className="text-sm font-semibold text-gray-900 leading-5">Contact Details</div>
+                </div>
+                <div className="px-4 py-4 bg-gray-50">
+                  <div className="grid grid-cols-2 gap-y-2 text-sm leading-5">
+                    <div className="text-gray-900 font-medium">Email</div>
+                    <div className="text-gray-700">{contactEmail}</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
           </div>
           <CheckboxField
             title="Make default payment method"
