@@ -27,7 +27,7 @@ interface Option {
 }
 
 interface WrapSelectProps {
-  label: string;
+  label?: string;
   options: Option[];
   selectedValue: string;
   onSelect: (value: string) => void;

@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import clsx from "clsx";
 import Box from "../../component/layout/Box";
 import Pagination from "../../component/base/Pagination";
@@ -20,6 +21,7 @@ const statusMap = {
 type StatusLabel = keyof typeof statusMap;
 
 const BillsPayables = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<StatusLabel>('Ready to Pay');
   const [nextTab, setNextTab] = useState<StatusLabel | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -28,6 +30,7 @@ const BillsPayables = () => {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isReRunModalOpen, setIsReRunModalOpen] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<typeof payments[0] | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (!isLoading || !nextTab) return;
@@ -125,7 +128,18 @@ const BillsPayables = () => {
   return (
     <Box
       className="max-w-9xl mx-auto"
-      header={<BoxHeader />}
+      header={
+        <BoxHeader
+          description={`${filteredPayments.length} Payments`}
+          selectedCount={selectedIds.length}
+          onDeselect={() => setSelectedIds([])}
+          onPay={() => {
+            if (selectedIds.length > 0) {
+              navigate("/payables/multiple", { state: { selectedIds } });
+            }
+          }}
+        />
+      }
       footer={
         <div className="w-full flex justify-end">
           <Pagination
@@ -164,6 +178,8 @@ const BillsPayables = () => {
         >
           <RootTable
             payments={currentData}
+            selectedIds={selectedIds}
+            onSelectionChange={setSelectedIds}
             onCancelClick={handleCancelClick}
             onReRunClick={handleReRunClick}
           />

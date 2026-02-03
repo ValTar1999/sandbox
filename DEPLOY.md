@@ -31,7 +31,7 @@
    ```bash
    npm install
    ```
-
+   
 2. **Соберите проект:**
    ```bash
    npm run build

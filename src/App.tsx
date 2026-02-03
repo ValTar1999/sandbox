@@ -6,6 +6,7 @@ import Loading from "./component/base/Loading";
 // Page
 const BillsPayables = lazy(() => import('./pages/BillsPayables/BillsPayables'));
 const PaymentPage = lazy(() => import('./pages/PaymentPage'));
+const MultiplePaymentPage = lazy(() => import('./pages/Payment/MultiplePaymentPage'));
 
 const Dashboard = () => <div className="p-4">Dashboard Page</div>;
 const Vendors = () => <div className="p-4">Vendors Page</div>;
@@ -23,6 +24,7 @@ function App() {
         <Route element={<Layout />}>
           <Route path="/" element={<Dashboard />} />
           <Route path="/payables" element={<BillsPayables />} />
+          <Route path="/payables/multiple" element={<MultiplePaymentPage />} />
           <Route path="/payables/:id" element={<PaymentPage />} />
           <Route path="/vendors" element={<Vendors />} />
           <Route path="/receivables" element={<InvoicesReceivables />} />

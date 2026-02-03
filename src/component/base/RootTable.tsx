@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import clsx from "clsx";
 import CheckBox from "./CheckBox";
@@ -13,6 +13,8 @@ import SD from '../../assets/image/SMART-Disburse.svg';
 
 interface RootTableProps {
   payments: Payment[];
+  selectedIds?: string[];
+  onSelectionChange?: (ids: string[]) => void;
   onCancelClick: (payment: Payment) => void;
   onReRunClick: (payment: Payment) => void;
 }
@@ -29,12 +31,48 @@ const flexAlignMap = {
   end: 'end',
 };
 
-const RootTable: React.FC<RootTableProps> = ({ payments, onCancelClick, onReRunClick }) => {
+const RootTable: React.FC<RootTableProps> = ({
+  payments,
+  selectedIds = [],
+  onSelectionChange,
+  onCancelClick,
+  onReRunClick,
+}) => {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  const masterCheckboxRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
+  const currentIds = useMemo(() => payments.map((p) => p.id), [payments]);
+  const allCurrentSelected =
+    currentIds.length > 0 && currentIds.every((id) => selectedSet.has(id));
+  const someCurrentSelected = currentIds.some((id) => selectedSet.has(id));
+
+  useEffect(() => {
+    const el = masterCheckboxRef.current;
+    if (el) el.indeterminate = someCurrentSelected && !allCurrentSelected;
+  }, [someCurrentSelected, allCurrentSelected]);
 
   const toggleExpand = (id: string) => {
     setExpandedRow(prev => (prev === id ? null : id));
+  };
+
+  const handleMasterCheckboxChange = () => {
+    if (!onSelectionChange) return;
+    if (allCurrentSelected) {
+      onSelectionChange(selectedIds.filter((id) => !currentIds.includes(id)));
+    } else {
+      const toAdd = currentIds.filter((id) => !selectedSet.has(id));
+      onSelectionChange([...selectedIds, ...toAdd]);
+    }
+  };
+
+  const handleRowCheckboxChange = (paymentId: string, checked: boolean) => {
+    if (!onSelectionChange) return;
+    if (checked) {
+      onSelectionChange([...selectedIds, paymentId]);
+    } else {
+      onSelectionChange(selectedIds.filter((id) => id !== paymentId));
+    }
   };
 
   const hasPaymentType = useMemo(
@@ -55,7 +93,11 @@ const RootTable: React.FC<RootTableProps> = ({ payments, onCancelClick, onReRunC
             <th className="w-[52px] max-w-[52px] min-w-[52px]"></th>
             <th className={clsx(`w-8 max-w-8 min-w-8` ,`${classConstructor.td}`)}>
               <div className={clsx('flex', `justify-${flexAlignMap.center}`)}>
-                <CheckBox />
+                <CheckBox
+                  ref={masterCheckboxRef}
+                  checked={payments.length > 0 ? allCurrentSelected : false}
+                  onChange={() => handleMasterCheckboxChange()}
+                />
               </div>
             </th>
 
@@ -150,14 +192,16 @@ const RootTable: React.FC<RootTableProps> = ({ payments, onCancelClick, onReRunC
                 onClick={() => toggleExpand(payment.id)}
                 className={clsx(
                   'hover:bg-gray-50 cursor-pointer transition-all duration-500',
-                  expandedRow === payment.id  && "bg-gray-100"
+                  expandedRow === payment.id && "bg-gray-100",
+                  selectedSet.has(payment.id) && "bg-blue-50"
                 )}
               >
                 <td className="w-[52px] max-w-[52px] min-w-[52px]">
-                  <Icon 
-                    icon="chevron-right" 
+                  <Icon
+                    icon="chevron-right"
                     className={clsx(
-                      'text-gray-500 ml-4',
+                      'ml-4',
+                      selectedSet.has(payment.id) ? "text-blue-500" : "text-gray-500",
                       expandedRow === payment.id && "rotate-90"
                     )}
                   />
@@ -165,7 +209,13 @@ const RootTable: React.FC<RootTableProps> = ({ payments, onCancelClick, onReRunC
 
                 <td className={clsx(`w-8 max-w-8 min-w-8` ,`${classConstructor.td}`)}>
                   <div className={clsx('flex', `justify-${flexAlignMap.center}`)}>
-                    <CheckBox onClick={(e) => e.stopPropagation()} />
+                    <CheckBox
+                      checked={selectedSet.has(payment.id)}
+                      onClick={(e) => e.stopPropagation()}
+                      onChange={(e) =>
+                        handleRowCheckboxChange(payment.id, e.target.checked)
+                      }
+                    />
                   </div>
                 </td>
 

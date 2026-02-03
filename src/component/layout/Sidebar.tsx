@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import clsx from "clsx";
 import {
@@ -50,10 +50,30 @@ const menuItems: MenuItem[] = [
   },
 ];
 
+const SIDEBAR_BREAKPOINT = 1280;
+
 const Sidebar: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(() => localStorage.getItem("sidebarOpen") === "true");
+  const [isOpen, setIsOpen] = useState(() => {
+    if (typeof window === "undefined") return false;
+    if (window.innerWidth <= SIDEBAR_BREAKPOINT) return false;
+    return localStorage.getItem("sidebarOpen") === "true";
+  });
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
   const location = useLocation();
+
+  useEffect(() => {
+    const mql = window.matchMedia(`(max-width: ${SIDEBAR_BREAKPOINT}px)`);
+    const handleChange = (e: MediaQueryListEvent) => {
+      if (e.matches) {
+        setIsOpen(false);
+        localStorage.setItem("sidebarOpen", "false");
+      } else {
+        setIsOpen(localStorage.getItem("sidebarOpen") === "true");
+      }
+    };
+    mql.addEventListener("change", handleChange);
+    return () => mql.removeEventListener("change", handleChange);
+  }, []);
 
   const toggleSidebar = () => {
     setIsOpen((prev) => {

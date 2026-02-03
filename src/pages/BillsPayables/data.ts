@@ -67,7 +67,7 @@ export const readyToPay: Payment[] = [
   {
     id: 'TY3-B',
     lock: true,
-    totalAmount: '$30,100.00',
+    totalAmount: '$12,829.00',
     amountValute: 'USD',
     billReference: 'TY3-B',
     payee: 'Nichol Nickel Mining, Liam Anderson, Ava Martinez, Ethan Sullivan',
@@ -79,30 +79,44 @@ export const readyToPay: Payment[] = [
     vendors: [
       {
         name: 'Nichol Nickel Mining',
-        paymentMethod: 'ACH - Bank of America ••••1728',
+        paymentMethod: 'ACH · Bank of America ••••1728',
         payables: [
           { id: 'LC7-A', dueDate: 'Jul 27, 2023', amount: '2,459.00' },
-          { id: 'LC7-B', dueDate: 'Jun 22, 2023', amount: '500.00' },
-          { id: 'LC7-A', dueDate: 'Jul 27, 2023', amount: '2,459.00' },
-          { id: 'LC7-B', dueDate: 'Jun 22, 2023', amount: '500.00' },
-          { id: 'LC7-A', dueDate: 'Jul 27, 2023', amount: '2,459.00' },
-          { id: 'LC7-B', dueDate: 'Jun 22, 2023', amount: '500.00' },
-          { id: 'LC7-A', dueDate: 'Jul 27, 2023', amount: '2,459.00' },
-          { id: 'LC7-B', dueDate: 'Jun 22, 2023', amount: '500.00' }
+          { id: 'LC7-B', dueDate: 'Jun 22, 2023', amount: '547.00' }
         ]
       },
       {
         name: 'Liam Anderson',
-        paymentMethod: 'SMART Disburse • comas@tequila.me',
+        paymentMethod: 'SMART Disburse · comas@tequila.me',
         payables: [
           { id: 'LC7-C', dueDate: 'May 15, 2023', amount: '575.00' },
-          { id: 'LC7-D', dueDate: 'Apr 12, 2023', amount: '988.00' }
+          { id: 'LC7-D', dueDate: 'Apr 12, 2023', amount: '988.00' },
+          { id: 'LC7-C2', dueDate: 'May 20, 2023', amount: '600.00' },
+          { id: 'LC7-D2', dueDate: 'Apr 18, 2023', amount: '700.00' },
+          { id: 'LC7-C3', dueDate: 'May 25, 2023', amount: '650.00' },
+          { id: 'LC7-D3', dueDate: 'Apr 25, 2023', amount: '748.00' },
+          { id: 'LC7-C4', dueDate: 'Jun 01, 2023', amount: '810.00' },
+          { id: 'LC7-D4', dueDate: 'May 01, 2023', amount: '809.00' }
         ]
       },
       {
         name: 'Ava Martinez',
         paymentMethod: '',
-        payables: []
+        payables: [
+          { id: 'LC7-E', dueDate: 'Jun 10, 2023', amount: '406.00' },
+          { id: 'LC7-F', dueDate: 'Jun 15, 2023', amount: '400.00' },
+          { id: 'LC7-G', dueDate: 'Jun 20, 2023', amount: '400.00' },
+          { id: 'LC7-H', dueDate: 'Jun 25, 2023', amount: '400.00' },
+          { id: 'LC7-I', dueDate: 'Jun 30, 2023', amount: '400.00' }
+        ]
+      },
+      {
+        name: 'Ethan Sullivan',
+        paymentMethod: 'ACH · Bank of America ••••1018',
+        payables: [
+          { id: 'LC7-J', dueDate: 'Jul 05, 2023', amount: '968.50' },
+          { id: 'LC7-K', dueDate: 'Jul 12, 2023', amount: '968.50' }
+        ]
       }
     ],
     badgeVendors: '0',
@@ -211,4 +225,3 @@ export const payments: Payment[] = [
   ...paid,
   ...exceptions,
 ];
-

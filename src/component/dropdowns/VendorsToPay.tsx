@@ -3,7 +3,7 @@ import clsx from "clsx";
 import CheckBox from "../base/CheckBox";
 import Icon from "../base/Icon";
 import Button from "../base/Button";
-import { payments, PayableItem, Vendor } from "../../pages/BillsPayables/data";
+import { payments, Payment, PayableItem, Vendor } from "../../pages/BillsPayables/data";
 
 const calculateTotalAmount = (payables: PayableItem[]): number => {
   return payables.reduce((acc, payable) => {
@@ -12,7 +12,18 @@ const calculateTotalAmount = (payables: PayableItem[]): number => {
   }, 0);
 };
 
-const VendorsToPay: React.FC = () => {
+interface VendorsToPayProps {
+  payment?: Payment | null;
+  /** Selected payment method label per vendor name (overrides payment.vendors[].paymentMethod when set) */
+  vendorPaymentMethods?: Record<string, string>;
+  onSelectPaymentMethodClick?: (vendorName: string) => void;
+}
+
+const VendorsToPay: React.FC<VendorsToPayProps> = ({
+  payment: paymentProp,
+  vendorPaymentMethods: vendorPaymentMethodsProp,
+  onSelectPaymentMethodClick,
+}) => {
   const [openVendors, setOpenVendors] = useState<string[]>([]);
 
   const toggleVendor = (vendorName: string) => {
@@ -23,7 +34,7 @@ const VendorsToPay: React.FC = () => {
     );
   };
 
-  const paymentWithVendors = payments.find((p) => p.vendors);
+  const paymentWithVendors = paymentProp ?? payments.find((p) => p.vendors);
   const vendors: Vendor[] = paymentWithVendors?.vendors || [];
 
   const totalVendors = vendors.length;
@@ -45,7 +56,7 @@ const VendorsToPay: React.FC = () => {
             {totalVendors} vendors with a total of {totalVendorsPayables} payables.
           </div>
         </div>
-        <div className="flex flex-col items-end gap-1">
+        <div className="flex flex-col items-end gap-1 mr-4">
           <div className="text-xs text-gray-500">Total amount</div>
           <div className="text-sm font-medium text-gray-900">
             ${totalAmount} <span className="text-gray-500">USD</span>
@@ -56,7 +67,12 @@ const VendorsToPay: React.FC = () => {
       <div>
         {vendors.map((vendor) => {
           const vendorTotalAmount = calculateTotalAmount(vendor.payables).toFixed(2);
-          const hasPaymentMethod = vendor.paymentMethod && vendor.paymentMethod.trim() !== "";
+          const selectedMethod = (
+            vendorPaymentMethodsProp?.[vendor.name] ??
+            vendor.paymentMethod ??
+            ""
+          ).trim();
+          const hasPaymentMethod = selectedMethod !== "";
 
           return (
             <div key={vendor.name}>
@@ -89,20 +105,27 @@ const VendorsToPay: React.FC = () => {
 
                   <div>
                     <div className="text-xs font-medium uppercase text-gray-500 mb-1">
-                      Payment method
+                      PAYMENT METHOD
                     </div>
                     {hasPaymentMethod ? (
-                      <div className="inline-flex items-center gap-2 rounded border border-gray-200 bg-gray-100 py-0.5 pl-2.5 pr-2">
-                        <div className="text-sm font-medium">{vendor.paymentMethod}</div>
+                      <div className="inline-flex items-center gap-2 rounded-md border border-gray-200 bg-gray-100 py-0.5 px-2.5">
+                        <div className="text-sm font-medium text-gray-900">{selectedMethod}</div>
                         <Button
                           variant="linkSecondary"
                           icon="pencil"
                           size="xs"
-                          onClick={(e) => e.stopPropagation()}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSelectPaymentMethodClick?.(vendor.name);
+                          }}
                         />
                       </div>
                     ) : (
-                      <button className="inline-flex py-1.5 text-sm font-semibold cursor-pointer text-blue-600 hover:text-blue-700 transition-colors duration-300">
+                      <button
+                        type="button"
+                        onClick={() => onSelectPaymentMethodClick?.(vendor.name)}
+                        className="inline-flex py-1.5 text-sm font-semibold cursor-pointer text-blue-600 hover:text-blue-700 transition-colors duration-300"
+                      >
                         Select Payment Method
                       </button>
                     )}

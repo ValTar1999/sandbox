@@ -16,12 +16,12 @@ import SmartDisburseIcon from "../assets/image/SMART-Disburse.svg";
 import MastercardIcon from "../assets/image/mastercard-flag.svg";
 import InfoBox from '../component/base/InfoBox';
 import VendorsToPay from '../component/dropdowns/VendorsToPay';
+import MultiPartyPaymentPage from "./Payment/MultiPartyPaymentPage";
 
 // Modal
 import PayModal from "../modals/PayModal";
 import PaymentSubmittedModal from "../modals/PaymentSubmittedModal";
 import ChooseDataModal from "../modals/ChooseDataModal";
-
 
 interface PayableSummaryItem {
   item: string;
@@ -524,7 +524,11 @@ const PaymentPage = () => {
     return <div className="p-6 text-red-500">Payment not found</div>;
   }
 
-  // WrapSelect
+  if (payment.vendors && payment.vendors.length > 0) {
+    return <MultiPartyPaymentPage payment={payment} />;
+  }
+
+  // Single bill payment (BillsPayables flow)
   // --------------------------------------------------
 
   return (
@@ -1120,11 +1124,11 @@ const PaymentPage = () => {
           )}
 
           {payment.vendors && (
-            <VendorsToPay/>
+            <VendorsToPay payment={payment} />
           )}
         </div>
         
-        <div className="">
+        <div>
           <PayModal
             open={isPayModalOpen}
             onClose={handlePayClose}
@@ -1156,3 +1160,5 @@ const PaymentPage = () => {
 };
 
 export default PaymentPage;
+
+

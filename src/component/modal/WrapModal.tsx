@@ -26,7 +26,7 @@ const WrapModal: React.FC<Props> = ({
   return (
     <div
       className={clsx(
-        'rounded-md bg-white',
+        'rounded-md bg-white m-auto',
         noCross && 'pt-10',
         className
       )}
