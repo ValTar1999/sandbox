@@ -611,7 +611,7 @@ const Sidebar: React.FC = () => {
                 <Menu.Trigger
                   as="button"
                   className={clsx(
-                    "group cursor-pointer inline-flex items-center transition-all duration-300",
+                    "group cursor-pointer inline-flex items-center transition-all duration-300 w-full",
                     "px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 rounded-md"
                   )}
                 >
