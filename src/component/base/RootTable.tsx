@@ -5,6 +5,8 @@ import CheckBox from "./CheckBox";
 import Icon from "./Icon";
 import Button from "./Button";
 import Badge from "./Badge";
+import Menu, { useMenuContext } from "./Menu";
+import Input from "./Input";
 import { Payment } from "../../pages/BillsPayables/data";
 // import { focusButton } from '../../config/commonStyles';
 
@@ -38,11 +40,32 @@ const RootTable: React.FC<RootTableProps> = ({
   onCancelClick,
   onReRunClick,
 }) => {
+  const [selectedPayees, setSelectedPayees] = useState<string[]>([]);
+  const [tempSelectedPayees, setTempSelectedPayees] = useState<string[]>([]);
+  const [payeeSearch, setPayeeSearch] = useState("");
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const masterCheckboxRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
-  const currentIds = useMemo(() => payments.map((p) => p.id), [payments]);
+
+  const allPayees = useMemo(
+    () => Array.from(new Set(payments.map((p) => p.payee).filter(Boolean))),
+    [payments]
+  );
+
+  const filteredPayments = useMemo(
+    () =>
+      selectedPayees.length === 0
+        ? payments
+        : payments.filter((p) => selectedPayees.includes(p.payee)),
+    [payments, selectedPayees]
+  );
+
+  const currentIds = useMemo(
+    () => filteredPayments.map((p) => p.id),
+    [filteredPayments]
+  );
+
   const allCurrentSelected =
     currentIds.length > 0 && currentIds.every((id) => selectedSet.has(id));
   const someCurrentSelected = currentIds.some((id) => selectedSet.has(id));
@@ -80,9 +103,103 @@ const RootTable: React.FC<RootTableProps> = ({
     [payments]
   );
 
+  const visiblePayees = useMemo(
+    () =>
+      payeeSearch
+        ? allPayees.filter((name) =>
+            name.toLowerCase().includes(payeeSearch.toLowerCase())
+          )
+        : allPayees,
+    [allPayees, payeeSearch]
+  );
+
+  const handleOpenPayeeFilter = () => {
+    setTempSelectedPayees(selectedPayees);
+    setPayeeSearch("");
+  };
+
+  const handleApplyPayeeFilter = () => {
+    setSelectedPayees(tempSelectedPayees);
+  };
+
+  const handleResetPayeeFilter = () => {
+    setTempSelectedPayees([]);
+  };
+
+  const toggleTempPayee = (name: string) => {
+    setTempSelectedPayees((prev) =>
+      prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]
+    );
+  };
+
   const handleCancelClick = (payment: Payment, e: React.MouseEvent) => {
     e.stopPropagation();
     onCancelClick(payment);
+  };
+
+  const PayeeFilterTooltipContent: React.FC = () => {
+    const { setOpen } = useMenuContext();
+
+    const handleClose = () => setOpen(false);
+
+    const handleApply = () => {
+      handleApplyPayeeFilter();
+      setOpen(false);
+    };
+
+    return (
+      <div className="w-[352px] rounded-lg border border-gray-200 bg-white shadow-sm divide-y divide-gray-200">
+        <div className="flex items-center justify-between pl-6 pr-4 py-3">
+          <div className="text-lg leading-6 font-medium text-gray-900">
+            Filter by Payee
+          </div>
+          <Button
+            variant="linkSecondary"
+            size="lg"
+            onClick={handleClose}
+            icon="x"
+          >
+          </Button>
+        </div>
+        <div className="px-6 py-4">
+          <div>
+            <div className="text-sm font-medium text-gray-700 mb-1">
+              Payee Name
+            </div>
+            <Input
+              placeholder="Search payee"
+              value={payeeSearch}
+              onChange={(e) => setPayeeSearch(e.target.value)}
+            />
+          </div>
+          <div className="mt-3 max-h-56 space-y-1 overflow-y-auto pr-1">
+            {visiblePayees.map((name) => (
+              <label
+                key={name}
+                className="flex cursor-pointer items-center gap-2 py-1 text-sm text-gray-900"
+              >
+                <CheckBox
+                  checked={tempSelectedPayees.includes(name)}
+                  onChange={() => toggleTempPayee(name)}
+                />
+                <span className="truncate">{name}</span>
+              </label>
+            ))}
+            {visiblePayees.length === 0 && (
+              <div className="py-2 text-xs text-gray-400">No payees found</div>
+            )}
+          </div>
+        </div>
+        <div className="px-6 py-5 flex items-center justify-between gap-4">
+          <Button className="w-full" variant="secondary" size="lg" onClick={handleResetPayeeFilter}>
+            Reset all
+          </Button>
+          <Button className="w-full" variant="primary" size="lg" onClick={handleApply}>
+            Apply
+          </Button>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -95,7 +212,7 @@ const RootTable: React.FC<RootTableProps> = ({
               <div className={clsx('flex', `justify-${flexAlignMap.center}`)}>
                 <CheckBox
                   ref={masterCheckboxRef}
-                  checked={payments.length > 0 ? allCurrentSelected : false}
+                  checked={filteredPayments.length > 0 ? allCurrentSelected : false}
                   onChange={() => handleMasterCheckboxChange()}
                 />
               </div>
@@ -135,11 +252,23 @@ const RootTable: React.FC<RootTableProps> = ({
                   </div>
                   <Icon icon="selector" className="text-gray-400" />
                 </button>
-                <Button
-                  icon="filter"
-                  size="xs"
-                  variant="linkSecondary"
-                />
+                <Menu.Root placement="bottom-end">
+                  <Menu.Trigger onClick={handleOpenPayeeFilter}>
+                    <Button
+                      icon="filter"
+                      size="xs"
+                      variant="linkSecondary"
+                    />
+                  </Menu.Trigger>
+                  <Menu.Portal>
+                    <Menu.Positioner>
+                      <Menu.Popup className="z-50">
+                        <Menu.Arrow className="fill-white text-gray-200" />
+                        <PayeeFilterTooltipContent />
+                      </Menu.Popup>
+                    </Menu.Positioner>
+                  </Menu.Portal>
+                </Menu.Root>
               </div>
             </th>
 
@@ -186,7 +315,7 @@ const RootTable: React.FC<RootTableProps> = ({
         </thead>
         
         <tbody>
-          {payments.map((payment) => (
+          {filteredPayments.map((payment) => (
             <React.Fragment key={payment.id}>
               <tr
                 onClick={() => toggleExpand(payment.id)}

@@ -68,7 +68,7 @@ const BoxHeader: React.FC<BoxHeaderProps> = ({
           onChange={handleSearch}
         />
         <Button
-          size="md"
+          size="lg"
           variant="secondary"
           icon="chevron-down"
         >

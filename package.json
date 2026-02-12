@@ -13,6 +13,7 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@floating-ui/react": "^0.27.17",
     "@heroicons/react": "^2.2.0",
     "@tailwindcss/vite": "^4.0.10",
     "clsx": "^2.1.1",

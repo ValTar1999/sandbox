@@ -26,7 +26,7 @@ const Input: React.FC<InputProps> = ({
   ...attrs
 }) => {
   const rootClasses = clsx(
-    'relative shadow-sm flex h-8', 
+    'relative shadow-sm flex h-10', 
     rounded && 'rounded-md', 
     className
   );
