@@ -2,11 +2,14 @@ export interface PayableItem {
   id: string;
   dueDate: string;
   amount: string;
+  bankAccounts?: string;
 }
 
 export interface Vendor {
   name: string;
   paymentMethod: string;
+  paymentMail?: string;
+  paymentPhone?: string;
   payables: PayableItem[];
 }
 
@@ -17,6 +20,7 @@ export interface Payment {
   amountValute: string;
   billReference: string;
   badgeVendors?: string;
+  bankAccounts?: string;
   payee: string;
   paymentType?: string;
   source: string;
@@ -65,12 +69,126 @@ export const readyToPay: Payment[] = [
     },
   },
   {
+    id: 'FX8-C',
+    totalAmount: '$7,500.00',
+    amountValute: 'USD',
+    lock: true,
+    billReference: 'FX8-C',
+    payee: 'Rad Roofing',
+    source: 'Batch Upload',
+    dueDate: 'Aug 15, 2023',
+    status: 'unprocessed',   
+    notes: 'Payment for Q2 consulting services. Urgent processing required.',
+    attachments: 'invoice_345.xml',
+    payableSummary: [
+      { item: 'Chair KS8671', quantity: 6, price: '$332.95', amount: '$1,997.70' },
+      { item: 'Pillow FT1241', quantity: 2, price: '$50.95', amount: '$101.90' },
+      { item: 'TV Unit OSK112', quantity: 1, price: '$1,250.50', amount: '$1,250.50' },
+      { item: 'Table VGY716', quantity: 1, price: '$1,725.25', amount: '$1,725.25' },
+      { item: 'Sofa OG00GY', quantity: 1, price: '$13,332.95', amount: '$13,332.95' },
+      { item: 'Sofa OG00GY', quantity: 1, price: '$13,332.95', amount: '$13,332.95' },
+      { item: 'Bed Frame 812HYG87', quantity: 1, price: '$9,125.95', amount: '$9,125.95' },
+      { item: 'Sliding Door Cupboard 0912GD712', quantity: 1, price: '$25,250.95', amount: '$25,250.95' },
+      { item: 'Bed Cover 1124FH8', quantity: 3, price: '$115.95', amount: '$347.80' },
+    ],
+    badgeVendors: '0',
+    unprocessed: {
+      date: 'Aug 29, 2023 10:40 AM (EST)'
+    },
+  },
+  // --------------------------------------ё
+  {
+    id: 'VS6-D',
+    totalAmount: '$2,123,829.00',
+    amountValute: 'USD',
+    billReference: 'VS6-D',
+    bankAccounts: 'Wells Fargo  ••••1728',
+    payee: 'Lily`s Flower Shop',
+    source: 'Batch Upload',
+    dueDate: 'Aug 06, 2023',
+    status: 'unprocessed',   
+    notes: 'Payment for Q2 consulting services. Urgent processing required.',
+    attachments: 'invoice_345.xml',
+    payableSummary: [
+      { item: 'Chair KS8671', quantity: 6, price: '$332.95', amount: '$1,997.70' },
+      { item: 'Pillow FT1241', quantity: 2, price: '$50.95', amount: '$101.90' },
+      { item: 'TV Unit OSK112', quantity: 1, price: '$1,250.50', amount: '$1,250.50' },
+      { item: 'Table VGY716', quantity: 1, price: '$1,725.25', amount: '$1,725.25' },
+      { item: 'Sofa OG00GY', quantity: 1, price: '$13,332.95', amount: '$13,332.95' },
+      { item: 'Sofa OG00GY', quantity: 1, price: '$13,332.95', amount: '$13,332.95' },
+      { item: 'Bed Frame 812HYG87', quantity: 1, price: '$9,125.95', amount: '$9,125.95' },
+      { item: 'Sliding Door Cupboard 0912GD712', quantity: 1, price: '$25,250.95', amount: '$25,250.95' },
+      { item: 'Bed Cover 1124FH8', quantity: 3, price: '$115.95', amount: '$347.80' },
+    ],
+    badgeVendors: '0',
+    unprocessed: {
+      date: 'Aug 29, 2023 10:40 AM (EST)'
+    },
+  },
+  {
+    id: 'IY8-C',
+    totalAmount: '$7,320.00',
+    amountValute: 'USD',
+    billReference: 'IY8-C',
+    bankAccounts: 'Wells Fargo  ••••1728',
+    payee: 'Lily`s Flower Shop',
+    source: 'Batch Upload',
+    dueDate: 'Jun 04, 2023',
+    status: 'unprocessed',   
+    notes: 'Payment for Q2 consulting services. Urgent processing required.',
+    attachments: 'invoice_345.xml',
+    payableSummary: [
+      { item: 'Chair KS8671', quantity: 6, price: '$332.95', amount: '$1,997.70' },
+      { item: 'Pillow FT1241', quantity: 2, price: '$50.95', amount: '$101.90' },
+      { item: 'TV Unit OSK112', quantity: 1, price: '$1,250.50', amount: '$1,250.50' },
+      { item: 'Table VGY716', quantity: 1, price: '$1,725.25', amount: '$1,725.25' },
+      { item: 'Sofa OG00GY', quantity: 1, price: '$13,332.95', amount: '$13,332.95' },
+      { item: 'Sofa OG00GY', quantity: 1, price: '$13,332.95', amount: '$13,332.95' },
+      { item: 'Bed Frame 812HYG87', quantity: 1, price: '$9,125.95', amount: '$9,125.95' },
+      { item: 'Sliding Door Cupboard 0912GD712', quantity: 1, price: '$25,250.95', amount: '$25,250.95' },
+      { item: 'Bed Cover 1124FH8', quantity: 3, price: '$115.95', amount: '$347.80' },
+    ],
+    badgeVendors: '0',
+    unprocessed: {
+      date: 'Aug 29, 2023 10:40 AM (EST)'
+    },
+  },
+  {
+    id: 'KQ5-B',
+    totalAmount: '$3,443.00',
+    amountValute: 'USD',
+    billReference: 'KQ5-B',
+    bankAccounts: 'Bank AG  ••••1728',
+    payee: 'Lily`s Flower Shop',
+    source: 'Batch Upload',
+    dueDate: 'Apr 11, 2023',
+    status: 'unprocessed',   
+    notes: 'Payment for Q2 consulting services. Urgent processing required.',
+    attachments: 'invoice_345.xml',
+    payableSummary: [
+      { item: 'Chair KS8671', quantity: 6, price: '$332.95', amount: '$1,997.70' },
+      { item: 'Pillow FT1241', quantity: 2, price: '$50.95', amount: '$101.90' },
+      { item: 'TV Unit OSK112', quantity: 1, price: '$1,250.50', amount: '$1,250.50' },
+      { item: 'Table VGY716', quantity: 1, price: '$1,725.25', amount: '$1,725.25' },
+      { item: 'Sofa OG00GY', quantity: 1, price: '$13,332.95', amount: '$13,332.95' },
+      { item: 'Sofa OG00GY', quantity: 1, price: '$13,332.95', amount: '$13,332.95' },
+      { item: 'Bed Frame 812HYG87', quantity: 1, price: '$9,125.95', amount: '$9,125.95' },
+      { item: 'Sliding Door Cupboard 0912GD712', quantity: 1, price: '$25,250.95', amount: '$25,250.95' },
+      { item: 'Bed Cover 1124FH8', quantity: 3, price: '$115.95', amount: '$347.80' },
+    ],
+    badgeVendors: '0',
+    unprocessed: {
+      date: 'Aug 29, 2023 10:40 AM (EST)'
+    },
+  },
+  // --------------------------------------ё
+  {
     id: 'TY3-B',
     lock: true,
     totalAmount: '$12,829.00',
     amountValute: 'USD',
     billReference: 'TY3-B',
-    payee: 'Nichol Nickel Mining, Liam Anderson, Ava Martinez, Ethan Sullivan',
+    payee: 'Big Kahuna Burger Ltd., Liam Anderson, Ava Martinez, Ethan Sullivan',
     source: 'Sage (ERP)',
     dueDate: 'Aug 21, 2023',
     status: 'unprocessed',
@@ -78,16 +196,24 @@ export const readyToPay: Payment[] = [
     attachments: 'receipt_final.xml',
     vendors: [
       {
-        name: 'Nichol Nickel Mining',
-        paymentMethod: 'ACH · Bank of America ••••1728',
+        name: 'Big Kahuna Burger Ltd.',
+        paymentMethod: '',
+        paymentPhone: '+1 (555)123-4567',
         payables: [
           { id: 'LC7-A', dueDate: 'Jul 27, 2023', amount: '2,459.00' },
-          { id: 'LC7-B', dueDate: 'Jun 22, 2023', amount: '547.00' }
+          { id: 'LC7-B', dueDate: 'Jun 22, 2023', amount: '547.00' },
+          { id: 'LC7-C', dueDate: 'Feb 11, 2023', amount: '$7,320.00' },
+          { id: 'LC7-D', dueDate: 'Aug 06, 2023', amount: '$2,109.00' },
+          { id: 'LC7-E', dueDate: 'Oct 12, 2023', amount: '$$1,543.00' },
+          { id: 'LC7-F', dueDate: 'Dec 17, 2023', amount: '$$8,837.00' },
+          { id: 'LC7-G', dueDate: 'Sep 09, 2023', amount: '$$3,443.00' },
         ]
       },
       {
         name: 'Liam Anderson',
-        paymentMethod: 'SMART Disburse · comas@tequila.me',
+        paymentMethod: 'SMART Disburse',
+        paymentMail: 'comas@tequila.me',
+        paymentPhone: '+1 (555)123-4567',
         payables: [
           { id: 'LC7-C', dueDate: 'May 15, 2023', amount: '575.00' },
           { id: 'LC7-D', dueDate: 'Apr 12, 2023', amount: '988.00' },
@@ -112,7 +238,7 @@ export const readyToPay: Payment[] = [
       },
       {
         name: 'Ethan Sullivan',
-        paymentMethod: 'ACH · Bank of America ••••1018',
+        paymentMethod: 'ACH',
         payables: [
           { id: 'LC7-J', dueDate: 'Jul 05, 2023', amount: '968.50' },
           { id: 'LC7-K', dueDate: 'Jul 12, 2023', amount: '968.50' }

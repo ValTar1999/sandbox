@@ -22,6 +22,7 @@ export default {
     'ring-blue-200',
     'text-red-800',
     'text-blue-800',
+    'text-blue-700',
     'text-green-800',
     'text-yellow-800',
     'text-yellow-700',

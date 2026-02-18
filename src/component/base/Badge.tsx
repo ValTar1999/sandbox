@@ -31,22 +31,23 @@ const Badge: React.FC<BadgeProps> = ({
   const isIconDirectionMap = icon ? iconDirection : 'default';
 
   const rootClasses = clsx(
-    'inline-flex items-center py-0.5 whitespace-nowrap font-medium',
-    color !== 'custom' && `text-${color}-800 bg-${color}-100 ring-inset ring-1 ring-${color}-200`,
-    size === 'lg' ? 'text-sm' : 'text-xs',
+    'inline-flex items-center whitespace-nowrap font-medium',
+    size === 'xs' ? 'py-0' : 'py-0.5',
+    color !== 'custom' && `text-${color}-800 bg-${color}-100 ring-1 ring-${color}-200`,
+    size === 'lg' ? 'text-sm' : size === 'sm' ? 'text-xs' : 'text-[9.8px] leading-4',
     rounded ? 'rounded-full' : 'rounded',
     enumClasses[size]?.[isIconDirectionMap],
     className
   );
 
   const iconClasses = clsx(
-    'w-3.5 h-3.5',
+    size === 'xs' ? 'w-[9.8px] h-[9.8px]' : 'w-3.5 h-3.5',
     `text-${color}-400`,
-    !iconClickable && (iconDirection === 'right' ? 'ml-1' : 'mr-1')
+    !iconClickable && (iconDirection === 'right' ? (size === 'xs' ? 'ml-[1.4px]' : 'ml-1') : (size === 'xs' ? 'mr-[1.4px]' : 'mr-1'))
   );
 
   const iconButtonClasses = clsx(
-    iconDirection === 'right' ? 'ml-1' : 'mr-1',
+    iconDirection === 'right' ? (size === 'xs' ? 'ml-[1.4px]' : 'ml-1') : (size === 'xs' ? 'mr-[1.4px]' : 'mr-1'),
     rounded ? 'rounded-full' : 'rounded-1px',
     focusButton()
   );

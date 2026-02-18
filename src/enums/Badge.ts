@@ -14,6 +14,7 @@ export type TColors = (typeof Colors)[number]
 export const Sizes = [
   'lg',
   'sm',
+  'xs',
 ] as const
 export type TSizes = (typeof Sizes)[number]
 
@@ -27,5 +28,10 @@ export const classes = {
     default: 'px-2.5',
     left: 'pl-2 pr-2',
     right: 'pl-2 pr-2',
+  },
+  xs: {
+    default: 'px-1.5',
+    left: 'pl-[2.8px] pr-[5.6px]',
+    right: 'pl-[2.8px] pr-[5.6px]',
   },
 }

@@ -17,6 +17,7 @@ const CancelPaymentModal: React.FC<CancelPaymentModalProps> = ({ open, onClose, 
     <LayoutModal>
       <Modal
         className="w-128"
+        titleCenter={true}
         title="Cancel Payment"
         description="Are you sure you want to cancel payment?"
         icon={<Icon icon="exclamation" className="-mb-2 -mt-4 h-11 w-11 text-red-500" />}

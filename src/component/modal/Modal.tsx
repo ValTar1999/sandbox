@@ -9,6 +9,7 @@ interface Props extends React.HTMLAttributes<HTMLDivElement> {
   footer?: ReactNode;
   icon?: ReactNode;
   onClose?: () => void;
+  titleCenter?: boolean;
 }
 
 const Modal: React.FC<Props> = ({
@@ -19,17 +20,18 @@ const Modal: React.FC<Props> = ({
   footer,
   icon,
   onClose,
+  titleCenter = false,
 }) => {
   return (
     <WrapModal className={clsx('modal-container', className)} onClose={onClose}>
       <div className="flex flex-col items-center gap-8 px-6 pb-6">
-        {icon && <div>{icon}</div>}
+        {icon && <div className={clsx("flex items-center w-full", titleCenter && "justify-center")}>{icon}</div>}
         
-        <div className="flex flex-col gap-2">
-          {title && <div className="text-lg font-semibold text-gray-900">{title}</div>}
+        <div className={clsx("flex flex-col gap-2", titleCenter && "items-center")}>
+          {title && <div className={clsx("text-lg font-semibold text-gray-900", titleCenter && "text-center")}>{title}</div>}
           {description && (
             <div
-              className="text-sm text-gray-500"
+              className={clsx("text-sm text-gray-500", titleCenter && "text-center")}
               dangerouslySetInnerHTML={{ __html: description }}
             />
           )}

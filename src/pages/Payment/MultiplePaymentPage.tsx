@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Button from "../../component/base/Button";
 import Badge from "../../component/base/Badge";
@@ -9,7 +9,6 @@ import WrapSelect from "../../component/base/WrapSelect";
 import DropdownCalendar from "../../component/dropdowns/DropdownCalendar";
 import VendorsToPay from "../../component/dropdowns/VendorsToPay";
 import SelectPaymentMethodModal from "../../modals/SelectPaymentMethodModal";
-import PaymentMethodDetailsModal from "../../modals/PaymentMethodDetailsModal";
 import ConfirmPaymentModal, {
   type ConfirmPaymentVendor,
 } from "../../modals/ConfirmPaymentModal";
@@ -55,13 +54,19 @@ const MultiplePaymentPage: React.FC = () => {
   const [vendorPaymentMethods, setVendorPaymentMethods] = useState<
     Record<string, string>
   >({});
-  const [isPaymentMethodDetailsModalOpen, setIsPaymentMethodDetailsModalOpen] =
-    useState(false);
-  const [pendingPaymentMethodLabel, setPendingPaymentMethodLabel] =
-    useState("");
-  const [pendingPaymentMethodValue, setPendingPaymentMethodValue] =
-    useState("");
-  const vendorNameForSaveRef = useRef<string>("");
+  const [vendorPaymentEmails, setVendorPaymentEmails] = useState<
+    Record<string, string>
+  >({});
+  const [vendorPaymentContacts, setVendorPaymentContacts] = useState<
+    Record<string, Array<{ id: string; type: "email" | "phone"; value: string; label?: string }>>
+  >({});
+  const [vendorBankAccounts, setVendorBankAccounts] = useState<
+    Record<string, { value: string; label: string }>
+  >({});
+  const [vendorBulkPayment, setVendorBulkPayment] = useState<
+    Record<string, boolean>
+  >({});
+  const [vendorBulkPaymentForModal, setVendorBulkPaymentForModal] = useState(false);
   const [originationAccountError, setOriginationAccountError] = useState(false);
   const [isConfirmPaymentModalOpen, setIsConfirmPaymentModalOpen] =
     useState(false);
@@ -90,31 +95,108 @@ const MultiplePaymentPage: React.FC = () => {
     maximumFractionDigits: 2,
   });
 
-  const handleBack = () => navigate(-1);
+  const handleBack = useCallback(() => navigate(-1), [navigate]);
   const firstDueDate = selectedPayments[0]?.dueDate ?? "";
 
-  const handlePay = () => {
-    if (!selectedAccount) {
-      setOriginationAccountError(true);
-      return;
-    }
-    if (!allVendorsHavePaymentMethod) return;
-    setOriginationAccountError(false);
-    setIsConfirmPaymentModalOpen(true);
-  };
+  const resetVendorData = useCallback((vendorName: string) => {
+    setVendorPaymentMethods((prev) => {
+      const updated = { ...prev };
+      delete updated[vendorName];
+      return updated;
+    });
+    setVendorPaymentEmails((prev) => {
+      const updated = { ...prev };
+      delete updated[vendorName];
+      return updated;
+    });
+    setVendorPaymentContacts((prev) => {
+      const updated = { ...prev };
+      delete updated[vendorName];
+      return updated;
+    });
+    setVendorBankAccounts((prev) => {
+      const updated = { ...prev };
+      delete updated[vendorName];
+      return updated;
+    });
+    setVendorBulkPayment((prev) => {
+      const updated = { ...prev };
+      delete updated[vendorName];
+      return updated;
+    });
+  }, []);
 
-  const payment = useMemo((): Payment => {
-    const vendors = selectedPayments.map((p) => ({
-      name: p.payee,
-      paymentMethod: "",
-      payables: [
-        {
-          id: p.billReference,
-          dueDate: p.dueDate,
-          amount: p.totalAmount.replace(/[$,]/g, ""),
-        },
-      ],
-    }));
+  const mapPaymentMethodToValue = useCallback((method: string): string => {
+    const lowerMethod = method.toLowerCase();
+    if (lowerMethod.includes("ach")) return "ach";
+    if (lowerMethod.includes("wire")) return "wire";
+    if (lowerMethod.includes("smart disburse")) return "smart-disburse";
+    return "";
+  }, []);
+
+  const paymentForVendors = useMemo((): Payment => {
+    // Собираем все vendors из выбранных payments
+    const vendorsMap = new Map<string, {
+      name: string;
+      paymentMethod: string;
+      paymentMail?: string;
+      paymentPhone?: string;
+      payables: Array<{
+        id: string;
+        dueDate: string;
+        amount: string;
+        bankAccounts?: string;
+      }>;
+    }>();
+
+    selectedPayments.forEach((p) => {
+      if (p.vendors && p.vendors.length > 0) {
+        // Если у payment есть vendors, используем их
+        p.vendors.forEach((vendor) => {
+          const existingVendor = vendorsMap.get(vendor.name);
+          if (existingVendor) {
+            // Объединяем payables если vendor уже существует
+            existingVendor.payables.push(...vendor.payables);
+          } else {
+            // Добавляем новый vendor
+            vendorsMap.set(vendor.name, {
+              name: vendor.name,
+              paymentMethod: vendor.paymentMethod || "",
+              paymentMail: vendor.paymentMail,
+              paymentPhone: vendor.paymentPhone,
+              payables: [...vendor.payables],
+            });
+          }
+        });
+      } else {
+        // Если у payment нет vendors, создаем vendor из payee
+        const existingVendor = vendorsMap.get(p.payee);
+        if (existingVendor) {
+          existingVendor.payables.push({
+            id: p.billReference,
+            dueDate: p.dueDate,
+            amount: p.totalAmount.replace(/[$,]/g, ""),
+            bankAccounts: p.bankAccounts,
+          });
+        } else {
+          vendorsMap.set(p.payee, {
+            name: p.payee,
+            paymentMethod: "",
+            payables: [
+              {
+                id: p.billReference,
+                dueDate: p.dueDate,
+                amount: p.totalAmount.replace(/[$,]/g, ""),
+                bankAccounts: p.bankAccounts,
+              },
+            ],
+          });
+        }
+      }
+    });
+
+    const vendors = Array.from(vendorsMap.values());
+
     return {
       id: "multiple",
       totalAmount: `$${totalFormatted}`,
@@ -130,11 +212,6 @@ const MultiplePaymentPage: React.FC = () => {
     };
   }, [selectedPayments, totalFormatted, firstDueDate]);
 
-  const paymentForVendors = useMemo(() => {
-    const withVendors = selectedPayments.find((p) => p.vendors?.length);
-    return withVendors ?? payment;
-  }, [selectedPayments, payment]);
-
   const selectedBankAccount = useMemo(
     () => bankAccounts.find((a) => a.value === selectedAccount),
     [selectedAccount]
@@ -148,6 +225,16 @@ const MultiplePaymentPage: React.FC = () => {
       return method !== "";
     });
   }, [paymentForVendors.vendors, vendorPaymentMethods]);
+
+  const handlePay = useCallback(() => {
+    if (!selectedAccount) {
+      setOriginationAccountError(true);
+      return;
+    }
+    if (!allVendorsHavePaymentMethod) return;
+    setOriginationAccountError(false);
+    setIsConfirmPaymentModalOpen(true);
+  }, [selectedAccount, allVendorsHavePaymentMethod]);
 
   const confirmModalVendors = useMemo((): ConfirmPaymentVendor[] => {
     const vendors = paymentForVendors.vendors ?? [];
@@ -281,10 +368,22 @@ const MultiplePaymentPage: React.FC = () => {
             key={`methods-${Object.keys(vendorPaymentMethods).length}-${Object.entries(vendorPaymentMethods).map(([k, v]) => `${k}:${v}`).sort().join(";")}`}
             payment={paymentForVendors}
             vendorPaymentMethods={vendorPaymentMethods}
-            onSelectPaymentMethodClick={(vendorName) => {
+            vendorPaymentEmails={vendorPaymentEmails}
+            vendorPaymentContacts={vendorPaymentContacts}
+            vendorBankAccounts={vendorBankAccounts}
+            vendorBulkPayment={vendorBulkPayment}
+            onSelectPaymentMethodClick={(vendorName, isBulkPayment) => {
               setVendorSelectingPaymentMethod(vendorName);
+              setVendorBulkPaymentForModal(isBulkPayment ?? false);
               setIsSelectPaymentMethodModalOpen(true);
             }}
+            onBulkPaymentChange={(vendorName, enabled) => {
+              setVendorBulkPayment((prev) => ({
+                ...prev,
+                [vendorName]: enabled,
+              }));
+            }}
+            onDiscardPaymentMethod={resetVendorData}
           />
         </div>
       </div>
@@ -295,33 +394,77 @@ const MultiplePaymentPage: React.FC = () => {
           setIsSelectPaymentMethodModalOpen(false);
           setVendorSelectingPaymentMethod(null);
         }}
-        onConfirm={(value, label) => {
-          vendorNameForSaveRef.current = vendorSelectingPaymentMethod ?? "";
-          setPendingPaymentMethodLabel(label);
-          setPendingPaymentMethodValue(value);
-          setIsSelectPaymentMethodModalOpen(false);
-          setIsPaymentMethodDetailsModalOpen(true);
-        }}
-      />
-
-      <PaymentMethodDetailsModal
-        open={isPaymentMethodDetailsModalOpen}
-        onClose={() => {
-          setIsPaymentMethodDetailsModalOpen(false);
-          setVendorSelectingPaymentMethod(null);
-        }}
-        onSave={(_, __, label) => {
-          const name = vendorNameForSaveRef.current;
-          if (name) {
-            setVendorPaymentMethods((prev) => ({ ...prev, [name]: label }));
+        onConfirm={(data) => {
+          const vendorName = vendorSelectingPaymentMethod;
+          if (vendorName) {
+            setVendorPaymentMethods((prev) => ({
+              ...prev,
+              [vendorName]: data.paymentMethodLabel,
+            }));
+            // Сохраняем контакты для SMART Disburse
+            if (data.contacts && data.contacts.length > 0) {
+              setVendorPaymentContacts((prev) => ({
+                ...prev,
+                [vendorName]: data.contacts!,
+              }));
+              // Также сохраняем первый контакт как email для обратной совместимости
+              const firstContact = data.contacts[0];
+              setVendorPaymentEmails((prev) => ({
+                ...prev,
+                [vendorName]: firstContact.value,
+              }));
+            } else if (data.email) {
+              setVendorPaymentEmails((prev) => ({
+                ...prev,
+                [vendorName]: data.email!,
+              }));
+            }
+            if (data.bankAccount && data.bankAccountLabel) {
+              setVendorBankAccounts((prev) => ({
+                ...prev,
+                [vendorName]: {
+                  value: data.bankAccount!,
+                  label: data.bankAccountLabel!,
+                },
+              }));
+            }
           }
-          vendorNameForSaveRef.current = "";
-          setIsPaymentMethodDetailsModalOpen(false);
+          setIsSelectPaymentMethodModalOpen(false);
           setVendorSelectingPaymentMethod(null);
         }}
-        paymentMethodLabel={pendingPaymentMethodLabel}
-        paymentMethodValue={pendingPaymentMethodValue}
-        vendorName={vendorSelectingPaymentMethod ?? ""}
+        payables={
+          vendorSelectingPaymentMethod
+            ? paymentForVendors.vendors?.find(
+                (v) => v.name === vendorSelectingPaymentMethod
+              )?.payables
+            : undefined
+        }
+        initialEmail={
+          vendorSelectingPaymentMethod
+            ? vendorPaymentEmails[vendorSelectingPaymentMethod] ?? ""
+            : ""
+        }
+        initialContacts={
+          vendorSelectingPaymentMethod
+            ? vendorPaymentContacts[vendorSelectingPaymentMethod]
+            : undefined
+        }
+        initialPaymentMethod={
+          vendorSelectingPaymentMethod
+            ? mapPaymentMethodToValue(
+                vendorPaymentMethods[vendorSelectingPaymentMethod] ??
+                paymentForVendors.vendors?.find(
+                  (v) => v.name === vendorSelectingPaymentMethod
+                )?.paymentMethod ?? ""
+              )
+            : ""
+        }
+        initialBankAccount={
+          vendorSelectingPaymentMethod
+            ? vendorBankAccounts[vendorSelectingPaymentMethod]?.value ?? ""
+            : ""
+        }
+        isBulkPayment={vendorBulkPaymentForModal}
       />
 
       <ConfirmPaymentModal
@@ -340,6 +483,7 @@ const MultiplePaymentPage: React.FC = () => {
             : ""
         }
         vendors={confirmModalVendors}
+        isBulkPayment={Object.values(vendorBulkPayment).some(enabled => enabled)}
       />
 
       <PaymentSubmittedModal

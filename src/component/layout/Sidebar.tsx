@@ -65,9 +65,9 @@ const COMMON_CLASSES = {
   label: "text-base font-medium pl-3 transition-all duration-300",
   labelActive: "text-gray-900",
   labelInactive: "text-gray-600 group-hover:text-gray-900",
-  textContainer: "flex justify-between w-full items-center overflow-hidden transition-all duration-300",
-  textVisible: "opacity-100 max-w-full",
-  textHidden: "opacity-0 max-w-0 pointer-events-none",
+  textContainer: "flex justify-between w-full items-center overflow-hidden",
+  textVisible: "opacity-100 max-w-full transition-[max-width,opacity] duration-500 ease-in-out",
+  textHidden: "opacity-0 max-w-0 pointer-events-none transition-[max-width,opacity] duration-[800ms] ease-in-out",
   childLink: "block rounded-md p-2 text-base font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-300",
   childLinkActive: "text-gray-900 bg-gray-100",
 } as const;
@@ -646,16 +646,6 @@ const Sidebar: React.FC = () => {
                   )}
                 >
                   <Icon icon="question-mark-circle" className="h-4 w-4 text-gray-400" />
-                  <div
-                    className={clsx(
-                      "flex pl-1.5 justify-between w-full items-center overflow-hidden transition-all duration-300",
-                      COMMON_CLASSES.textHidden
-                    )}
-                  >
-                    <span className="text-sm font-semibold text-gray-700 group-hover:text-gray-900 transition-all duration-300 text-nowrap">
-                      Help from Transcard
-                    </span>
-                  </div>
                 </TooltipTrigger>
                 <TooltipContent className="w-64 p-4 bg-white border border-gray-200 shadow-lg rounded-lg">
                   <HelpContent />
@@ -703,14 +693,16 @@ const Sidebar: React.FC = () => {
             />
             <div
               className={clsx(
-                "flex items-center overflow-hidden transition-all duration-300",
-                isOpen ? COMMON_CLASSES.textVisible : COMMON_CLASSES.textHidden
+                "flex items-center overflow-hidden",
+                isOpen 
+                  ? "opacity-100 max-w-full"
+                  : "opacity-0 max-w-0 pointer-events-none"
               )}
             >
-              <div className="ml-1 text-xs font-medium leading-4 text-gray-500 text-nowrap">Powered by</div>
+              <div className="ml-1 text-xs font-medium leading-4 text-gray-500 text-nowrap whitespace-nowrap">Powered by</div>
               <img
                 src={TranscardText}
-                className="ml-1"
+                className="ml-1 flex-shrink-0"
                 alt="Transcard"
                 loading="lazy"
                 decoding="async"

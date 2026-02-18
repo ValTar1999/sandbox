@@ -280,7 +280,7 @@ function WrapSelect({
                 {option.badge && (option.badgePosition ?? "right") !== "inline" && (
                   <Badge
                     color={option.badgeColor ?? "blue"}
-                    size={option.badgeSize ?? "lg"}
+                    size={option.badgeSize ?? "xs"}
                     rounded
                     icon={option.badgeIcon}
                     iconDirection={option.badgeIconDirection}

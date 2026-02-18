@@ -19,6 +19,7 @@ interface RootTableProps {
   onSelectionChange?: (ids: string[]) => void;
   onCancelClick: (payment: Payment) => void;
   onReRunClick: (payment: Payment) => void;
+  onCancelBulkPaymentClick?: (payment: Payment) => void;
 }
 
 const classConstructor = {
@@ -39,6 +40,7 @@ const RootTable: React.FC<RootTableProps> = ({
   onSelectionChange,
   onCancelClick,
   onReRunClick,
+  onCancelBulkPaymentClick,
 }) => {
   const [selectedPayees, setSelectedPayees] = useState<string[]>([]);
   const [tempSelectedPayees, setTempSelectedPayees] = useState<string[]>([]);
@@ -253,7 +255,7 @@ const RootTable: React.FC<RootTableProps> = ({
                   <Icon icon="selector" className="text-gray-400" />
                 </button>
                 <Menu.Root placement="bottom-end">
-                  <Menu.Trigger onClick={handleOpenPayeeFilter}>
+                  <Menu.Trigger as="span" onClick={handleOpenPayeeFilter}>
                     <Button
                       icon="filter"
                       size="xs"
@@ -504,7 +506,7 @@ const RootTable: React.FC<RootTableProps> = ({
               <tr className="border-b border-gray-200">
                 <td colSpan={8} className="transition-all duration-500">
                   <div
-                    className={`overflow-hidden transition-all duration-500 ${
+                    className={`overflow-hidden transition-all duration-500 divide-y divide-gray-200 ${
                       expandedRow === payment.id ? 'max-h-[500px]' : 'max-h-0 overflow-hidden'
                     }`}
                   >
@@ -550,6 +552,27 @@ const RootTable: React.FC<RootTableProps> = ({
                         </div>
                       </div>
                     </div>
+                    {payment.status === "processed" && (
+                      <div className="flex items-center">
+                        <div className="p-4 w-40 flex-shrink-0 text-xs font-semibold uppercase text-gray-500">Actions</div>
+                        <div className="px-4 py-3.5">
+                          <Button 
+                            variant="gray" 
+                            size="md"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (onCancelBulkPaymentClick) {
+                                onCancelBulkPaymentClick(payment);
+                              } else {
+                                onCancelClick(payment);
+                              }
+                            }}
+                          >
+                            Cancel Payment
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </td>
               </tr>

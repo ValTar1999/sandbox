@@ -8,6 +8,7 @@ import { ButtonTab } from "../../component/base/ButtonTab";
 import RootTable from "../../component/base/RootTable";
 import { payments } from "./data";
 import CancelPaymentModal from "../../modals/CancelPaymentModal";
+import CancelBulkPaymentModal from "../../modals/CancelBulkPaymentModal";
 import ReRunPaymentModal from "../../modals/ReRunPaymentModal";
 import Loading from "../../component/base/Loading";
 
@@ -28,6 +29,7 @@ const BillsPayables = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [isCancelBulkPaymentModalOpen, setIsCancelBulkPaymentModalOpen] = useState(false);
   const [isReRunModalOpen, setIsReRunModalOpen] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<typeof payments[0] | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -120,6 +122,22 @@ const BillsPayables = () => {
     setSelectedPayment(null);
   };
 
+  const handleCancelBulkPaymentClick = (payment: typeof payments[0]) => {
+    setSelectedPayment(payment);
+    setIsCancelBulkPaymentModalOpen(true);
+  };
+
+  const handleCancelBulkPaymentConfirm = () => {
+    console.log('Cancelling bulk payment:', selectedPayment);
+    setIsCancelBulkPaymentModalOpen(false);
+    setSelectedPayment(null);
+  };
+
+  const handleCancelBulkPaymentClose = () => {
+    setIsCancelBulkPaymentModalOpen(false);
+    setSelectedPayment(null);
+  };
+
   const handleReRunClose = () => {
     setIsReRunModalOpen(false);
     setSelectedPayment(null);
@@ -182,6 +200,7 @@ const BillsPayables = () => {
             onSelectionChange={setSelectedIds}
             onCancelClick={handleCancelClick}
             onReRunClick={handleReRunClick}
+            onCancelBulkPaymentClick={handleCancelBulkPaymentClick}
           />
         </div>
 
@@ -196,6 +215,11 @@ const BillsPayables = () => {
         open={isCancelModalOpen}
         onClose={handleCancelClose}
         onConfirm={handleCancelConfirm}
+      />
+      <CancelBulkPaymentModal
+        open={isCancelBulkPaymentModalOpen}
+        onClose={handleCancelBulkPaymentClose}
+        onConfirm={handleCancelBulkPaymentConfirm}
       />
       <ReRunPaymentModal
         open={isReRunModalOpen}

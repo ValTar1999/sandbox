@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import clsx from "clsx";
 import LayoutModal from "../component/modal/LayoutModal";
-import Modal from "../component/modal/Modal";
+import WrapModal from "../component/modal/WrapModal";
 import Button from "../component/base/Button";
 import Icon from "../component/base/Icon";
 import Badge from "../component/base/Badge";
+import InfoBox from "../component/base/InfoBox";
 
 export interface ConfirmPaymentVendor {
   name: string;
@@ -22,6 +23,7 @@ interface ConfirmPaymentModalProps {
   originationAccountLabel: string;
   originationAccountMasked: string;
   vendors: ConfirmPaymentVendor[];
+  isBulkPayment?: boolean;
 }
 
 const ConfirmPaymentModal: React.FC<ConfirmPaymentModalProps> = ({
@@ -33,6 +35,7 @@ const ConfirmPaymentModal: React.FC<ConfirmPaymentModalProps> = ({
   originationAccountLabel,
   originationAccountMasked,
   vendors,
+  isBulkPayment = false,
 }) => {
   const [expandedVendor, setExpandedVendor] = useState<string | null>(null);
 
@@ -46,12 +49,23 @@ const ConfirmPaymentModal: React.FC<ConfirmPaymentModalProps> = ({
     return sep ? method.split(sep)[0].trim() : method;
   };
 
+  const showBulkPaymentInfo = useMemo(() => {
+    return isBulkPayment || vendors.length > 1;
+  }, [isBulkPayment, vendors.length]);
+
   if (!open) return null;
 
   return (
     <LayoutModal>
-      <Modal
+      <WrapModal
         className="w-125"
+        header={
+          <div className="flex items-center gap-3">
+            <Icon icon="lightning-bolt" variant="outline" className="w-6 h-6 text-blue-600" />
+            <div className="text-xl font-semibold text-gray-900">Pay Now</div>
+          </div>
+        }
+        onClose={onClose}
         footer={
           <div className="flex items-center justify-end gap-3">
             <Button variant="secondary" size="lg" onClick={onClose}>
@@ -63,32 +77,42 @@ const ConfirmPaymentModal: React.FC<ConfirmPaymentModalProps> = ({
           </div>
         }
       >
-        <div className="grid gap-2 w-full">
-          <div className="text-center text-2xl mb-4 flex items-center justify-center space-x-1">
-            <div className="font-bold text-gray-900">
-              {totalAmountFormatted} 
+        <div className="p-6">
+          <div className="grid gap-2 w-full">
+            <div className="text-center text-2xl mb-4 flex items-center justify-center space-x-1">
+              <div className="font-bold text-gray-900">
+                {totalAmountFormatted} 
+              </div>
+              <div className="text-gray-500">
+                {amountValute}
+              </div>
             </div>
-            <div className="text-gray-500">
-              {amountValute}
-            </div>
-          </div>
 
-          <div className="rounded-md border border-gray-200 bg-gray-50 p-4 grid grid-cols-2 gap-6 text-sm leading-5">
-            <div className="font-medium text-gray-900">
-              Origination Account
+            <div className="rounded-md border border-gray-200 bg-gray-50 p-4 grid grid-cols-2 gap-6 text-sm leading-5">
+              <div className="font-medium text-gray-900">
+                Origination Account
+              </div>
+              <div className="text-gray-700">
+                {originationAccountLabel} {originationAccountMasked}
+              </div>
             </div>
-            <div className="text-gray-700">
-              {originationAccountLabel} {originationAccountMasked}
-            </div>
-          </div>
 
-          <div className="flex justify-center">
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-50 ring-2 ring-inset ring-gray-200">
-              <Icon icon="arrow-down" className="text-gray-500" />
+            <div className="flex justify-center">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-50 ring-2 ring-inset ring-gray-200">
+                <Icon icon="arrow-down" className="text-gray-500" />
+              </div>
             </div>
-          </div>
 
-          <div className="flex flex-col gap-2">
+            {showBulkPaymentInfo && (
+              <InfoBox
+                color="blue"
+                icon="information-circle"
+                title="You're about to make a Bulk Payment"
+                text="This means you'll consolidate multiple payments into one transaction, using a single receiving bank account for all payables."
+              />
+            )}
+
+            <div className="flex flex-col gap-2">
             {vendors.map((vendor) => {
               const isExpanded = expandedVendor === vendor.name;
               const hasPayables = vendor.payables.length > 0;
@@ -160,9 +184,10 @@ const ConfirmPaymentModal: React.FC<ConfirmPaymentModalProps> = ({
                 </div>
               );
             })}
+            </div>
           </div>
         </div>
-      </Modal>
+      </WrapModal>
     </LayoutModal>
   );
 };
