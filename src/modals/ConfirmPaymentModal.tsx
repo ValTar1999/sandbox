@@ -138,7 +138,7 @@ const ConfirmPaymentModal: React.FC<ConfirmPaymentModalProps> = ({
                     <div className="flex items-center justify-between gap-2 w-full">
                       <div className="flex items-center gap-2">
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-gray-900 truncate">
+                          <div className="text-sm font-medium text-gray-900 truncate max-w-[150px]">
                             {vendor.name}
                           </div>
                         </div>
