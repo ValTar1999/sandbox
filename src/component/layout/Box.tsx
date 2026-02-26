@@ -17,7 +17,7 @@ const Box = memo<BoxProps>(({
   return (
     <div 
       className={clsx(
-        'relative w-full rounded-lg border border-gray-200 shadow-lg bg-white',
+        'relative w-full rounded-lg border border-gray-200 shadow shadow-inherit bg-white',
         className
       )}
       {...props}

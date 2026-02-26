@@ -1,5 +1,5 @@
 export const focusButton = (focusColorClass?: string) => {
-  return `focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white ${focusColorClass || 'focus-visible:ring-blue-600'}`
+  return `focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white ${(focusColorClass || 'focus-visible:ring-blue-600').replace('focus-visible:', 'focus:')}`
 }
 
 export const focusItem = (focusColorClass?: string) => {

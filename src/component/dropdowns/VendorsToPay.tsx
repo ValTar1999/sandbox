@@ -20,6 +20,11 @@ const calculateTotalAmount = (payables: PayableItem[]): number => {
   }, 0);
 };
 
+const formatAmount = (value: number | string): string => {
+  const num = typeof value === "string" ? parseFloat(value.replace(/[$,\s]/g, "")) : value;
+  return isNaN(num) ? "0.00" : num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
 type SmartDisburseContact = {
   id: string;
   type: "email" | "phone";
@@ -111,7 +116,7 @@ const VendorsToPay: React.FC<VendorsToPayProps> = ({
         <div className="flex flex-col items-end gap-1 mr-4">
           <div className="text-xs text-gray-500">Total amount</div>
           <div className="text-sm font-medium text-gray-900">
-            ${totalAmount} <span className="text-gray-500">USD</span>
+            ${formatAmount(totalAmount)} <span className="text-gray-500">USD</span>
           </div>
         </div>
       </div>
@@ -276,7 +281,7 @@ const VendorsToPay: React.FC<VendorsToPayProps> = ({
                   <div className="flex flex-col items-end gap-1">
                     <div className="text-xs text-gray-500">Amount</div>
                     <div className="text-sm font-medium text-gray-900">
-                      ${vendorTotalAmount} <span className="text-gray-500">USD</span>
+                      ${formatAmount(vendorTotalAmount)} <span className="text-gray-500">USD</span>
                     </div>
                   </div>
                 </div>
@@ -333,7 +338,7 @@ const VendorsToPay: React.FC<VendorsToPayProps> = ({
                         </div>
                         <div />
                         <div className="text-right text-sm font-medium text-gray-900">
-                          ${payable.amount} <span className="font-normal text-gray-500">USD</span>
+                          ${formatAmount(payable.amount)} <span className="font-normal text-gray-500">USD</span>
                         </div>
                       </div>
                     </div>

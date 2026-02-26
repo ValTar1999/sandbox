@@ -1,7 +1,6 @@
 import React from 'react';
 import clsx from 'clsx';
 import Badge from './Badge';
-import { focusButton } from '../../config/commonStyles';
 
 interface ButtonTabProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   title?: string;
@@ -15,7 +14,7 @@ const VARIANT_STYLES = {
   red: 'text-red-600 bg-red-50',
 } as const;
 
-const BASE_STYLES = 'inline-flex items-center px-3 py-2 rounded-md cursor-pointer';
+const BASE_STYLES = 'inline-flex items-center px-3 py-2 rounded-md cursor-pointer transition-all duration-300';
 
 export const ButtonTab: React.FC<ButtonTabProps> = ({
   title,
@@ -35,7 +34,6 @@ export const ButtonTab: React.FC<ButtonTabProps> = ({
       : active
         ? VARIANT_STYLES[variant]
         : 'text-gray-500',
-    focusButton()
   );
 
   return (

@@ -183,7 +183,7 @@ function WrapSelect({
       {open && (
         <ul
           className={clsx(
-            "absolute z-10 mt-0.5 bg-white border border-gray-100 divide-y divide-gray-200 rounded-md shadow-lg overflow-hidden",
+            "absolute z-10 mt-0.5 bg-white border border-gray-100 divide-y divide-gray-200 rounded-md shadow-lg overflow-hidden max-h-[350px] overflow-y-auto",
             dropdownClassName ?? "w-full"
           )}
         >

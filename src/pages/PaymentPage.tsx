@@ -270,10 +270,10 @@ const PaymentPage = () => {
     })}`, []);
   
   const fundingAmountValue = useMemo(() => {
-    if (selectedFundingMethod === "match-payment") return "$8,065.50";
-    if (selectedFundingMethod === "add-funds") return formatCurrency(addFundsAmount);
-    return "$12,034.50";
-  }, [selectedFundingMethod, addFundsAmount, formatCurrency]);
+    if (selectedFundingMethod === "match-payment") return "8,065.50";
+    if (selectedFundingMethod === "add-funds") return addFundsAmount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return "12,034.50";
+  }, [selectedFundingMethod, addFundsAmount]);
   
   const projectedBalanceAmount = useMemo(() =>
     selectedFundingMethod && selectedFundingMethod !== "spend-balance"
@@ -861,7 +861,7 @@ const PaymentPage = () => {
                                       setAddFundsAmount((prev) => prev + 8065.5)
                                     }
                                   >
-                                    $8,065.50
+                                    {formatCurrency(8065.5)}
                                   </button>
                                 </div>
                               )}
@@ -893,11 +893,7 @@ const PaymentPage = () => {
                                     labelClassName="text-sm text-gray-900 font-medium leading-5"
                                     label={
                                       <div className="flex items-center gap-2">
-                                        <span>
-                                          {method.value === "delivery" && isSelected
-                                            ? "Send the card details via email or SMS"
-                                            : method.label}
-                                        </span>
+                                        <span>{method.label}</span>
                                         {method.hasInfo && (
                                           <Icon
                                             icon="information-circle"

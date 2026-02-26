@@ -81,8 +81,8 @@ export const classes = {
   disabled: 'opacity-40 pointer-events-none',
   colors: {
     primary: `bg-smart-main text-white shadow-sm hover:bg-smart-main-darken ${focusButton('focus-visible:ring-blue-600')}`,
-    secondary: `bg-white text-gray-700 shadow-sm hover:bg-gray-50 custom-ring-btn-secondary ${focusButton('focus-visible:ring-blue-600')}`,
-    gray: `bg-gray-100 text-gray-600 hover:bg-gray-200 ${focusButton('focus-visible:ring-smart-main')}`,
+    secondary: `bg-white text-gray-700 shadow-sm hover:bg-gray-50 border border-gray-300 custom-ring-btn-secondary ${focusButton('focus-visible:ring-blue-600')}`,
+    gray: `bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-300 ${focusButton('focus-visible:ring-smart-main')}`,
     linkPrimary: `bg-transparent text-smart-secondary group hover:text-smart-secondary-darken ${focusButton('focus-visible:ring-smart-main')}`,
     linkSecondary: `bg-transparent text-gray-500 group hover:text-gray-600 ${focusButton('focus-visible:ring-smart-main')}`,
     linkError: `bg-transparent text-red-500 group hover:text-red-600 ${focusButton('focus-visible:ring-red-600')}`,

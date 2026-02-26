@@ -452,7 +452,7 @@ const RootTable: React.FC<RootTableProps> = ({
                 </td>
 
                 {payment.status === "unprocessed" && (                  
-                <td className="px-4">
+                <td className="pl-4">
                   <div className={clsx('flex', `justify-${flexAlignMap.end}`)}>
                     <Button size="md"  onClick={(e) => {
                       e.stopPropagation();
@@ -464,7 +464,7 @@ const RootTable: React.FC<RootTableProps> = ({
                 )}
 
                 {payment.status === "processed" && (                  
-                  <td className="px-4">
+                  <td className="pl-4">
                     <div className={clsx('flex', `justify-${flexAlignMap.end}`)}>
                       <Button
                         variant="gray"
@@ -478,7 +478,7 @@ const RootTable: React.FC<RootTableProps> = ({
                 )}
 
                 {payment.status === "failed" && (                  
-                <td className="px-4">
+                <td className="pl-4">
                   <div className={clsx('flex', `justify-${flexAlignMap.end}`)}>
                     <Button 
                       icon="x" 
@@ -503,7 +503,7 @@ const RootTable: React.FC<RootTableProps> = ({
               </tr>
 
               {/* Анимированный блок */}
-              <tr className="border-b border-gray-200">
+              <tr className="border-b border-gray-200 last:border-b-0">
                 <td colSpan={8} className="transition-all duration-500">
                   <div
                     className={`overflow-hidden transition-all duration-500 divide-y divide-gray-200 ${
