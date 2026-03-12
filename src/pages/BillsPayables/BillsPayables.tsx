@@ -1,6 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import clsx from "clsx";
 import Box from "../../component/layout/Box";
 import Pagination from "../../component/base/Pagination";
 import BoxHeader from "../../component/layout/BoxHeader";
@@ -10,7 +9,8 @@ import { payments } from "./data";
 import CancelPaymentModal from "../../modals/CancelPaymentModal";
 import CancelBulkPaymentModal from "../../modals/CancelBulkPaymentModal";
 import ReRunPaymentModal from "../../modals/ReRunPaymentModal";
-import Loading from "../../component/base/Loading";
+import TableWithLoading from "../../component/base/TableWithLoading";
+import { LOADING_DURATION_MS } from "../../constants/animations";
 
 const statusMap = {
   'Ready to Pay': 'unprocessed',
@@ -42,7 +42,7 @@ const BillsPayables = () => {
       setCurrentPage(1);
       setNextTab(null);
       setIsLoading(false);
-    }, 1000); // время исчезновения
+    }, LOADING_DURATION_MS);
 
     return () => clearTimeout(timeout);
   }, [isLoading, nextTab]);
@@ -187,29 +187,16 @@ const BillsPayables = () => {
         </div>
       </div>
 
-      <div className="relative min-h-fit">        
-        <div
-          className={clsx(
-            "transition-opacity duration-500 ease-in-out",
-            isLoading ? "opacity-0 pointer-events-none" : "opacity-100"
-          )}
-        >
-          <RootTable
-            payments={currentData}
-            selectedIds={selectedIds}
-            onSelectionChange={setSelectedIds}
-            onCancelClick={handleCancelClick}
-            onReRunClick={handleReRunClick}
-            onCancelBulkPaymentClick={handleCancelBulkPaymentClick}
-          />
-        </div>
-
-        {isLoading && (
-          <div className="flex justify-center items-center py-8 absolute inset-0">
-            <Loading />
-          </div>
-        )}
-      </div>
+      <TableWithLoading isLoading={isLoading}>
+        <RootTable
+          payments={currentData}
+          selectedIds={selectedIds}
+          onSelectionChange={setSelectedIds}
+          onCancelClick={handleCancelClick}
+          onReRunClick={handleReRunClick}
+          onCancelBulkPaymentClick={handleCancelBulkPaymentClick}
+        />
+      </TableWithLoading>
 
       <CancelPaymentModal
         open={isCancelModalOpen}

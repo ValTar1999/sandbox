@@ -16,6 +16,7 @@ interface ButtonProps {
   disabled?: boolean;
   children?: React.ReactNode;
   as?: React.ElementType;
+  href?: string;
   onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
 }
 

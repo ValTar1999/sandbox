@@ -1,17 +1,25 @@
-import React, { useMemo, useState, useRef, useEffect } from "react";
+import React, { useCallback, useMemo, useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import clsx from "clsx";
 import CheckBox from "./CheckBox";
 import Icon from "./Icon";
 import Button from "./Button";
 import Badge from "./Badge";
+import ExpandableTableRow from "./ExpandableTableRow";
+import ExpandableRow from "./ExpandableRow";
 import Menu, { useMenuContext } from "./Menu";
 import Input from "./Input";
 import { Payment } from "../../pages/BillsPayables/data";
-// import { focusButton } from '../../config/commonStyles';
-
-// Img
-import SD from '../../assets/image/SMART-Disburse.svg';
+import { STATUS_BADGES } from "../../constants/tableStatusBadges";
+import {
+  TH_CLASS,
+  TH_TEXT_CLASS,
+  TD_CLASS,
+  FLEX_END,
+  FLEX_START,
+  FLEX_CENTER,
+} from "../../constants/tableStyles";
+import SD from "../../assets/image/SMART-Disburse.svg";
 
 interface RootTableProps {
   payments: Payment[];
@@ -22,16 +30,14 @@ interface RootTableProps {
   onCancelBulkPaymentClick?: (payment: Payment) => void;
 }
 
-const classConstructor = {
-  th: ['p-4'],
-  thText: ['flex items-center text-start text-gray-500 text-xs uppercase tracking-wider font-medium'],
-  td: ['p-4']
-};
-
-const flexAlignMap = {
-  start: 'start',
-  center: 'center',
-  end: 'end',
+const renderStatusBadge = (status: Payment["status"]) => {
+  const config = STATUS_BADGES[status as keyof typeof STATUS_BADGES];
+  if (!config) return null;
+  return (
+    <Badge color={config.color} icon={config.icon} iconDirection="left">
+      {config.label}
+    </Badge>
+  );
 };
 
 const RootTable: React.FC<RootTableProps> = ({
@@ -77,9 +83,9 @@ const RootTable: React.FC<RootTableProps> = ({
     if (el) el.indeterminate = someCurrentSelected && !allCurrentSelected;
   }, [someCurrentSelected, allCurrentSelected]);
 
-  const toggleExpand = (id: string) => {
-    setExpandedRow(prev => (prev === id ? null : id));
-  };
+  const toggleExpand = useCallback((id: string) => {
+    setExpandedRow((prev) => (prev === id ? null : id));
+  }, []);
 
   const handleMasterCheckboxChange = () => {
     if (!onSelectionChange) return;
@@ -134,10 +140,13 @@ const RootTable: React.FC<RootTableProps> = ({
     );
   };
 
-  const handleCancelClick = (payment: Payment, e: React.MouseEvent) => {
-    e.stopPropagation();
-    onCancelClick(payment);
-  };
+  const handleCancelClick = useCallback(
+    (payment: Payment, e: React.MouseEvent) => {
+      e.stopPropagation();
+      onCancelClick(payment);
+    },
+    [onCancelClick]
+  );
 
   const PayeeFilterTooltipContent: React.FC = () => {
     const { setOpen } = useMenuContext();
@@ -210,8 +219,8 @@ const RootTable: React.FC<RootTableProps> = ({
         <thead>
           <tr className="border-b border-dashed border-gray-200">
             <th className="w-[52px] max-w-[52px] min-w-[52px]"></th>
-            <th className={clsx(`w-8 max-w-8 min-w-8` ,`${classConstructor.td}`)}>
-              <div className={clsx('flex', `justify-${flexAlignMap.center}`)}>
+            <th className={clsx("w-8 max-w-8 min-w-8", TD_CLASS)}>
+              <div className={FLEX_CENTER}>
                 <CheckBox
                   ref={masterCheckboxRef}
                   checked={filteredPayments.length > 0 ? allCurrentSelected : false}
@@ -220,38 +229,32 @@ const RootTable: React.FC<RootTableProps> = ({
               </div>
             </th>
 
-            <th className={clsx(classConstructor.th)}>
-              <div className={clsx('flex', `justify-${flexAlignMap.end}`)}>
+            <th className={TH_CLASS}>
+              <div className={FLEX_END}>
                 <button>
                   <div className="flex items-center gap-1">
-                    <div className={clsx(classConstructor.thText)}>
-                      amount
-                    </div>
+                    <div className={TH_TEXT_CLASS}>amount</div>
                     <Icon icon="selector" className="text-gray-400" />
                   </div>
                 </button>
               </div>
             </th>
 
-            <th className={clsx(classConstructor.th)}>
-              <div className={clsx('flex', `justify-${flexAlignMap.start}`)}>
+            <th className={TH_CLASS}>
+              <div className={FLEX_START}>
                 <button>
                   <div className="flex items-center gap-1">
-                    <div className={clsx(classConstructor.thText)}>
-                      bill reference
-                    </div>
+                    <div className={TH_TEXT_CLASS}>bill reference</div>
                     <Icon icon="selector" className="text-gray-400" />
                   </div>
                 </button>
               </div>
             </th>
 
-            <th className={clsx(classConstructor.th)}>
-              <div className={clsx('flex items-center gap-1', `justify-${flexAlignMap.start}`)}>
+            <th className={TH_CLASS}>
+              <div className={clsx("flex items-center gap-1", "justify-start")}>
                 <button className="flex items-center gap-1">
-                  <div className={clsx(classConstructor.thText)}>
-                    payee
-                  </div>
+                  <div className={TH_TEXT_CLASS}>payee</div>
                   <Icon icon="selector" className="text-gray-400" />
                 </button>
                 <Menu.Root placement="bottom-end">
@@ -275,19 +278,17 @@ const RootTable: React.FC<RootTableProps> = ({
             </th>
 
             {hasPaymentType && (
-              <th className={clsx(classConstructor.th)}>
-                <div className={clsx('flex items-center gap-1', `justify-${flexAlignMap.start}`)}>
-                  <div className={clsx(classConstructor.thText)}>Payment Type</div>
+              <th className={TH_CLASS}>
+                <div className={clsx("flex items-center gap-1", "justify-start")}>
+                  <div className={TH_TEXT_CLASS}>Payment Type</div>
                   <Button icon="filter" size="xs" variant="linkSecondary" />
                 </div>
               </th>
             )}
 
-            <th className={clsx(classConstructor.th)}>
-              <div className={clsx('flex items-center gap-1', `justify-${flexAlignMap.start}`)}>
-                <div className={clsx(classConstructor.thText)}>
-                  source
-                </div>
+            <th className={TH_CLASS}>
+              <div className={clsx("flex items-center gap-1", "justify-start")}>
+                <div className={TH_TEXT_CLASS}>source</div>
                 <Button
                   icon="filter"
                   size="xs"
@@ -296,20 +297,16 @@ const RootTable: React.FC<RootTableProps> = ({
               </div>
             </th>
 
-            <th className={clsx(classConstructor.th)}>
-              <div className={clsx('flex items-center gap-1', `justify-${flexAlignMap.start}`)}>
-                <div className={clsx(`text-nowrap` ,`${classConstructor.thText}`)}>
-                  Due Date
-                </div>
+            <th className={TH_CLASS}>
+              <div className={clsx("flex items-center gap-1", "justify-start")}>
+                <div className={clsx("text-nowrap", TH_TEXT_CLASS)}>Due Date</div>
                 <Icon icon="selector" className="text-gray-400" />
               </div>
             </th>
 
-            <th className={clsx(classConstructor.th)}>
-              <div className={clsx('flex items-center gap-1', `justify-${flexAlignMap.start}`)}>
-                <div className={clsx(classConstructor.thText)}>
-                  status
-                </div>
+            <th className={TH_CLASS}>
+              <div className={clsx("flex items-center gap-1", "justify-start")}>
+                <div className={TH_TEXT_CLASS}>status</div>
               </div>
             </th>
 
@@ -322,7 +319,7 @@ const RootTable: React.FC<RootTableProps> = ({
               <tr
                 onClick={() => toggleExpand(payment.id)}
                 className={clsx(
-                  'hover:bg-gray-50 cursor-pointer transition-all duration-500',
+                  'hover:bg-gray-50 cursor-pointer transition-colors duration-300 ease-in-out',
                   expandedRow === payment.id && "bg-gray-100",
                   selectedSet.has(payment.id) && "bg-blue-50"
                 )}
@@ -331,15 +328,15 @@ const RootTable: React.FC<RootTableProps> = ({
                   <Icon
                     icon="chevron-right"
                     className={clsx(
-                      'ml-4',
+                      'ml-4 transition-transform duration-300 ease-in-out',
                       selectedSet.has(payment.id) ? "text-blue-500" : "text-gray-500",
                       expandedRow === payment.id && "rotate-90"
                     )}
                   />
                 </td>
 
-                <td className={clsx(`w-8 max-w-8 min-w-8` ,`${classConstructor.td}`)}>
-                  <div className={clsx('flex', `justify-${flexAlignMap.center}`)}>
+                <td className={clsx("w-8 max-w-8 min-w-8", TD_CLASS)}>
+                  <div className={FLEX_CENTER}>
                     <CheckBox
                       checked={selectedSet.has(payment.id)}
                       onClick={(e) => e.stopPropagation()}
@@ -350,8 +347,8 @@ const RootTable: React.FC<RootTableProps> = ({
                   </div>
                 </td>
 
-                <td className={clsx(`w-[186px] max-w-[186px] min-w-[186px]`,`${classConstructor.td}`)}>
-                  <div className={clsx('flex items-center gap-1', `justify-${flexAlignMap.end}`)}>
+                <td className={clsx("w-[186px] max-w-[186px] min-w-[186px]", TD_CLASS)}>
+                  <div className={clsx("flex items-center gap-1", "justify-end")}>
                     {payment.lock ? (
                       <Icon className="text-gray-500" icon="lock-closed" />
                     ) : null}
@@ -360,14 +357,14 @@ const RootTable: React.FC<RootTableProps> = ({
                   </div>
                 </td>
 
-                <td className={clsx(`w-[140px] max-w-[140px] min-w-[140px]`,`${classConstructor.td}`)}>
-                  <div className={clsx('text-sm text-gray-500 flex', `justify-${flexAlignMap.start}`)}>
+                <td className={clsx("w-[140px] max-w-[140px] min-w-[140px]", TD_CLASS)}>
+                  <div className={clsx("text-sm text-gray-500 flex", "justify-start")}>
                     {payment.billReference}
                   </div>
                 </td>
 
-                <td className={clsx(`min-w-0 max-w-xs overflow-hidden`,`${classConstructor.td}`)}>
-                  <div className={clsx('flex items-center gap-2', `justify-${flexAlignMap.start}`)}> 
+                <td className={clsx("min-w-0 max-w-xs overflow-hidden", TD_CLASS)}>
+                  <div className={clsx("flex items-center gap-2", "justify-start")}> 
                     {payment.vendors && payment.vendors.length > 0 && (
                       <Badge size="lg" rounded color="gray">
                         {payment.vendors.length}
@@ -380,8 +377,8 @@ const RootTable: React.FC<RootTableProps> = ({
                 </td>
 
                 {payment.paymentType && (
-                  <td className={clsx(classConstructor.td)}>
-                    <div className={clsx('flex items-center gap-2', `justify-${flexAlignMap.start}`)}> 
+                  <td className={TD_CLASS}>
+                    <div className={clsx("flex items-center gap-2", "justify-start")}> 
                       {payment.paymentType === 'sd' ? (
                         <>
                           <img
@@ -400,14 +397,14 @@ const RootTable: React.FC<RootTableProps> = ({
                   </td>
                 )}
 
-                <td className={clsx(classConstructor.td)}>
-                  <div className={clsx('text-sm text-gray-900 flex font-medium', `justify-${flexAlignMap.start}`)}>
+                <td className={TD_CLASS}>
+                  <div className={clsx("text-sm text-gray-900 flex font-medium", "justify-start")}>
                     {payment.source}
                   </div>
                 </td>
 
-                <td className={clsx(classConstructor.td)}>
-                  <div className={clsx('text-sm  flex', `justify-${flexAlignMap.start}`)}>
+                <td className={TD_CLASS}>
+                  <div className={clsx("text-sm flex", "justify-start")}>
                     {payment.status === "pastDue" ? (
                       <div className="flex items-center gap-1">
                         <div className="text-yellow-600 text-nowrap">{payment.dueDate}</div>
@@ -421,51 +418,25 @@ const RootTable: React.FC<RootTableProps> = ({
                   </div>
                 </td>
 
-                <td className={clsx(classConstructor.td)}>
-                  <div className={clsx('flex', `justify-${flexAlignMap.start}`)}>
-                    {payment.status === "unprocessed" && (
-                      <Badge icon="flag" iconDirection="left">
-                        Unprocessed
-                      </Badge>
-                    )}
-                    {payment.status === "processed" && (
-                      <Badge color="blue" icon="in-progress" iconDirection="left">
-                        Processing
-                      </Badge>
-                    )}
-                    {payment.status === "paid" && (
-                      <Badge color="green" icon="check-circle" iconDirection="left">
-                        Paid
-                      </Badge>
-                    )}
-                    {payment.status === "failed" && (
-                      <Badge color="red" icon="check-circle" iconDirection="left">
-                        Failed
-                      </Badge>
-                    )}
-                    {payment.status === "pastDue" && (
-                      <Badge color="red" icon="calendar" iconDirection="left">
-                        Past Due
-                      </Badge>
-                    )}
-                  </div>
+                <td className={TD_CLASS}>
+                  <div className={FLEX_START}>{renderStatusBadge(payment.status)}</div>
                 </td>
 
-                {payment.status === "unprocessed" && (                  
-                <td className="pl-4">
-                  <div className={clsx('flex', `justify-${flexAlignMap.end}`)}>
+                {payment.status === "unprocessed" && (
+                  <td className="pl-4">
+                    <div className={FLEX_END}>
                     <Button size="md"  onClick={(e) => {
                       e.stopPropagation();
                       navigate(`/payables/${payment.id}`);
                     }}>Pay
                     </Button>
-                  </div>
-                </td>
+                    </div>
+                  </td>
                 )}
 
-                {payment.status === "processed" && (                  
+                {payment.status === "processed" && (
                   <td className="pl-4">
-                    <div className={clsx('flex', `justify-${flexAlignMap.end}`)}>
+                    <div className={FLEX_END}>
                       <Button
                         variant="gray"
                         size="md"
@@ -477,9 +448,9 @@ const RootTable: React.FC<RootTableProps> = ({
                   </td>
                 )}
 
-                {payment.status === "failed" && (                  
-                <td className="pl-4">
-                  <div className={clsx('flex', `justify-${flexAlignMap.end}`)}>
+                {payment.status === "failed" && (
+                  <td className="pl-4">
+                    <div className={FLEX_END}>
                     <Button 
                       icon="x" 
                       iconDirection="right" 
@@ -492,90 +463,45 @@ const RootTable: React.FC<RootTableProps> = ({
                     >
                       Re-Run
                     </Button>
-                  </div>
-                </td>
-                )}
-
-                {payment.status === "pastDue" && (
-                  <td className={clsx(classConstructor)}></td>
-                )}
-
-              </tr>
-
-              {/* Анимированный блок */}
-              <tr className="border-b border-gray-200 last:border-b-0">
-                <td colSpan={8} className="transition-all duration-500">
-                  <div
-                    className={`overflow-hidden transition-all duration-500 divide-y divide-gray-200 ${
-                      expandedRow === payment.id ? 'max-h-[500px]' : 'max-h-0 overflow-hidden'
-                    }`}
-                  >
-                    <div className="flex flex-col">
-                      <div className="flex items-start">
-                        <div className="p-4 w-40 flex-shrink-0 text-xs font-semibold uppercase text-gray-500">Notes</div>
-                        <div className="px-4 py-3.5 text-sm font-medium text-gray-900">{payment.notes}</div>
-                      </div>
-                      <div className="flex items-start">
-                        <div className="p-4 w-40 flex-shrink-0 text-xs font-semibold uppercase text-gray-500">Status</div>
-                        <div className="px-4 py-3.5">
-                          {payment.status === "unprocessed" && (
-                            <Badge icon="flag" iconDirection="left">
-                              Unprocessed
-                            </Badge>
-                          )}
-                          {payment.status === "processed" && (
-                            <Badge color="blue" icon="in-progress" iconDirection="left">
-                              Processing
-                            </Badge>
-                          )}
-                          {payment.status === "paid" && (
-                            <Badge color="green" icon="check-circle" iconDirection="left">
-                              Paid
-                            </Badge>
-                          )}
-                          {payment.status === "failed" && (
-                            <Badge color="red" icon="check-circle" iconDirection="left">
-                              Failed
-                            </Badge>
-                          )}
-                          {payment.status === "pastDue" && (
-                            <Badge color="red" icon="calendar" iconDirection="left">
-                              Past Due
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-start">
-                        <div className="p-4 w-40 flex-shrink-0 text-xs font-semibold uppercase text-gray-500">Attachments</div>
-                        <div className="px-4 py-3.5">
-                          <Badge>{payment.attachments}</Badge>
-                        </div>
-                      </div>
                     </div>
-                    {payment.status === "processed" && (
-                      <div className="flex items-center">
-                        <div className="p-4 w-40 flex-shrink-0 text-xs font-semibold uppercase text-gray-500">Actions</div>
-                        <div className="px-4 py-3.5">
-                          <Button 
-                            variant="gray" 
-                            size="md"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (onCancelBulkPaymentClick) {
-                                onCancelBulkPaymentClick(payment);
-                              } else {
-                                onCancelClick(payment);
-                              }
-                            }}
-                          >
-                            Cancel Payment
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </td>
+                  </td>
+                )}
+
+                {payment.status === "pastDue" && <td className={TD_CLASS}></td>}
+
               </tr>
+
+              <ExpandableTableRow colSpan={8} isExpanded={expandedRow === payment.id}>
+                <div className="flex flex-col">
+                  <ExpandableRow label="Notes">
+                    <span className="text-sm font-medium text-gray-900">{payment.notes}</span>
+                  </ExpandableRow>
+                  <ExpandableRow label="Status">
+                    {renderStatusBadge(payment.status)}
+                  </ExpandableRow>
+                  <ExpandableRow label="Attachments" borderTop>
+                    <Badge>{payment.attachments}</Badge>
+                  </ExpandableRow>
+                  {payment.status === "processed" && (
+                    <ExpandableRow label="Actions" borderTop>
+                      <Button
+                        variant="gray"
+                        size="md"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (onCancelBulkPaymentClick) {
+                            onCancelBulkPaymentClick(payment);
+                          } else {
+                            onCancelClick(payment);
+                          }
+                        }}
+                      >
+                        Cancel Payment
+                      </Button>
+                    </ExpandableRow>
+                  )}
+                </div>
+              </ExpandableTableRow>
             </React.Fragment>
           ))}
         </tbody>

@@ -3,6 +3,7 @@ import { clsx } from "clsx";
 import Icon from "./Icon";
 import Button from "./Button";
 import Badge from "./Badge";
+import { Tooltip, TooltipTrigger, TooltipContent } from "./Tooltip";
 import type { TColors, TSizes } from "../../enums/Badge";
 
 interface Option {
@@ -12,11 +13,17 @@ interface Option {
   descriptionPosition?: "inline" | "below";
   inactive?: boolean;
   badge?: string;
+  badgeTooltip?: string;
   badgeColor?: TColors;
   badgeIcon?: string;
   badgeIconDirection?: "left" | "right";
   badgePosition?: "inline" | "right";
   badgeSize?: TSizes;
+  badgeSecondary?: string;
+  badgeSecondaryColor?: TColors;
+  badgeSecondaryTooltip?: string;
+  badgeRounded?: boolean;
+  badgeSecondaryRounded?: boolean;
   rightLabel?: string;
   rightValue?: string;
   icon?: string;
@@ -42,6 +49,8 @@ interface WrapSelectProps {
   showSelectedDescription?: boolean;
   error?: boolean;
   errorMessage?: string;
+  /** In trigger: "all" = show all badges, "defaultOnly" = only badgeSecondary (e.g. Default) */
+  triggerBadgeMode?: "all" | "defaultOnly";
 }
 
 function WrapSelect({
@@ -60,6 +69,7 @@ function WrapSelect({
   showSelectedDescription = true,
   error = false,
   errorMessage = "Method of Payment is required.",
+  triggerBadgeMode = "all",
 }: WrapSelectProps) {
   const [open, setOpen] = useState(false);
   const selectId = useId();
@@ -125,7 +135,7 @@ function WrapSelect({
 
   return (
     <div className="relative">
-      {!hideLabel && (
+      {!hideLabel && label && (
         <div className="flex items-center gap-1 text-sm font-medium text-gray-700 mb-1">
           <span>{label}</span>
           {labelIcon && (
@@ -146,10 +156,10 @@ function WrapSelect({
         )}
       >
         {selectedOption ? (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
             {renderOptionIcon(
               selectedOption,
-              selectedOption.iconImageSrc ? "w-4 h-4" : "w-5 h-5 text-gray-400"
+              selectedOption.iconImageSrc ? "w-4 h-4 flex-shrink-0" : "w-5 h-5 text-gray-400 flex-shrink-0"
             )}
             <div className="min-w-0 truncate font-medium text-gray-900 text-base">
               {selectedOption.label}
@@ -157,6 +167,64 @@ function WrapSelect({
             {showSelectedDescription && selectedDescription && (
               <div className="min-w-0 truncate text-base font-medium text-gray-500">
                 {selectedDescription}
+              </div>
+            )}
+            {(triggerBadgeMode === "defaultOnly"
+              ? selectedOption.badgeSecondary
+              : (selectedOption.badge || selectedOption.badgeSecondary)) && (
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                {selectedOption.badge && triggerBadgeMode !== "defaultOnly" && (selectedOption.badgeTooltip ? (
+                  <Tooltip trigger="hover" placement="top">
+                    <TooltipTrigger as="span" className="inline-flex cursor-help">
+                      <Badge
+                        color={selectedOption.badgeColor ?? "blue"}
+                        size={selectedOption.badgeSize ?? "xs"}
+                        rounded={selectedOption.badgeRounded !== false}
+                        icon={selectedOption.badgeIcon}
+                        iconDirection={selectedOption.badgeIconDirection}
+                      >
+                        {selectedOption.badge}
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-gray-900 text-white max-w-[240px]">
+                      {selectedOption.badgeTooltip}
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <Badge
+                    color={selectedOption.badgeColor ?? "blue"}
+                    size={selectedOption.badgeSize ?? "xs"}
+                    rounded
+                    icon={selectedOption.badgeIcon}
+                    iconDirection={selectedOption.badgeIconDirection}
+                  >
+                    {selectedOption.badge}
+                  </Badge>
+                ))}
+                {selectedOption.badgeSecondary && (selectedOption.badgeSecondaryTooltip ? (
+                  <Tooltip trigger="hover" placement="top">
+                    <TooltipTrigger as="span" className="inline-flex cursor-help">
+                      <Badge
+                        color={selectedOption.badgeSecondaryColor ?? "gray"}
+                        size={selectedOption.badgeSize ?? "xs"}
+                        rounded={selectedOption.badgeSecondaryRounded !== false}
+                      >
+                        {selectedOption.badgeSecondary}
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-gray-900 text-white max-w-[240px]">
+                      {selectedOption.badgeSecondaryTooltip}
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <Badge
+                    color={selectedOption.badgeSecondaryColor ?? "gray"}
+                    size={selectedOption.badgeSize ?? "xs"}
+                    rounded={selectedOption.badgeSecondaryRounded !== false}
+                  >
+                    {selectedOption.badgeSecondary}
+                  </Badge>
+                ))}
               </div>
             )}
           </div>
@@ -205,7 +273,7 @@ function WrapSelect({
               }}
             >
               <div className="flex items-start justify-between gap-4">
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-3 flex-1 min-w-0">
                   {renderOptionIcon(
                     option,
                     clsx(
@@ -215,7 +283,7 @@ function WrapSelect({
                   )}
                   <div className="w-full">
                     <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0">
+                      <div className="flex items-center gap-2 min-w-0 flex-wrap">
                         <div 
                           className={clsx(
                             "font-medium text-sm leading-5 truncate",
@@ -224,16 +292,37 @@ function WrapSelect({
                         >
                           {option.label}
                         </div>
-                        {option.badge && (option.badgePosition ?? "right") === "inline" && (
-                          <Badge
-                            size={option.badgeSize ?? "sm"}
-                            color={option.badgeColor ?? "gray"}
-                            rounded
-                            icon={option.badgeIcon}
-                            iconDirection={option.badgeIconDirection}
-                          >
-                            {option.badge}
-                          </Badge>
+                        {(option.badge || option.badgeSecondary) && (option.badgePosition ?? "right") === "inline" && (
+                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                            {option.badge && (option.badgeTooltip ? (
+                              <Tooltip trigger="hover" placement="top">
+                                <TooltipTrigger as="span" className="inline-flex cursor-help">
+                                  <Badge size={option.badgeSize ?? "xs"} color={option.badgeColor ?? "gray"} rounded={option.badgeRounded !== false} icon={option.badgeIcon} iconDirection={option.badgeIconDirection}>
+                                    {option.badge}
+                                  </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent className="bg-gray-900 text-white max-w-[240px]">{option.badgeTooltip}</TooltipContent>
+                              </Tooltip>
+                            ) : (
+                              <Badge size={option.badgeSize ?? "xs"} color={option.badgeColor ?? "gray"} rounded={option.badgeRounded !== false} icon={option.badgeIcon} iconDirection={option.badgeIconDirection}>
+                                {option.badge}
+                              </Badge>
+                            ))}
+                            {option.badgeSecondary && (option.badgeSecondaryTooltip ? (
+                              <Tooltip trigger="hover" placement="top">
+                                <TooltipTrigger as="span" className="inline-flex cursor-help">
+                                  <Badge size={option.badgeSize ?? "xs"} color={option.badgeSecondaryColor ?? "gray"} rounded={option.badgeSecondaryRounded !== false}>
+                                    {option.badgeSecondary}
+                                  </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent className="bg-gray-900 text-white max-w-[240px]">{option.badgeSecondaryTooltip}</TooltipContent>
+                              </Tooltip>
+                            ) : (
+                              <Badge size={option.badgeSize ?? "xs"} color={option.badgeSecondaryColor ?? "gray"} rounded={option.badgeSecondaryRounded !== false}>
+                                {option.badgeSecondary}
+                              </Badge>
+                            ))}
+                          </div>
                         )}
                       </div>
                       {option.description && (option.descriptionPosition ?? "inline") === "inline" && (
@@ -277,16 +366,40 @@ function WrapSelect({
                     </div>
                   </div>
                 )}
-                {option.badge && (option.badgePosition ?? "right") !== "inline" && (
-                  <Badge
-                    color={option.badgeColor ?? "blue"}
-                    size={option.badgeSize ?? "xs"}
-                    rounded
-                    icon={option.badgeIcon}
-                    iconDirection={option.badgeIconDirection}
-                  >
-                    {option.badge}
-                  </Badge>
+                {(option.badge || option.badgeSecondary) && (option.badgePosition ?? "right") !== "inline" && (
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    {option.badge && (option.badgeTooltip ? (
+                      <Tooltip trigger="hover" placement="top">
+                        <TooltipTrigger as="span" className="inline-flex cursor-help">
+                          <Badge color={option.badgeColor ?? "blue"} size={option.badgeSize ?? "xs"} rounded={option.badgeRounded !== false} icon={option.badgeIcon} iconDirection={option.badgeIconDirection}>
+                            {option.badge}
+                          </Badge>
+                        </TooltipTrigger>
+                        <TooltipContent className="bg-gray-900 text-white max-w-[240px]">{option.badgeTooltip}</TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <Badge color={option.badgeColor ?? "blue"} size={option.badgeSize ?? "xs"} rounded={option.badgeRounded !== false} icon={option.badgeIcon} iconDirection={option.badgeIconDirection}>
+                        {option.badge}
+                      </Badge>
+                    ))}
+                    {option.badgeSecondary && (option.badgeSecondaryTooltip ? (
+                      <Tooltip trigger="hover" placement="top">
+                        <TooltipTrigger as="span" className="inline-flex cursor-help">
+                          <Badge color={option.badgeSecondaryColor ?? "gray"} size={option.badgeSize ?? "xs"} rounded={option.badgeSecondaryRounded !== false}>
+                            {option.badgeSecondary}
+                          </Badge>
+                        </TooltipTrigger>
+                        <TooltipContent className="bg-gray-900 text-white max-w-[240px]">{option.badgeSecondaryTooltip}</TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <Badge color={option.badgeSecondaryColor ?? "gray"} size={option.badgeSize ?? "xs"} rounded={option.badgeSecondaryRounded !== false}>
+                        {option.badgeSecondary}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+                {selectedValue === option.value && (
+                  <Icon icon="check" className="w-5 h-5 text-green-600 flex-shrink-0" />
                 )}
               </div>
               {option.inactive && option.inactiveDescription && (

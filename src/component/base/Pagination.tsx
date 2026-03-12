@@ -1,5 +1,6 @@
 import React from 'react';
 import Button from './Button';
+import RowsPerPageSelect from './RowsPerPageSelect';
 
 interface PaginationProps {
   currentPage: number;
@@ -38,28 +39,16 @@ const Pagination: React.FC<PaginationProps> = ({
     onPageChange(totalPages);
   };
 
-  const handleChangeItemsPerPage = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    onItemsPerPageChange(Number(e.target.value));
-  };
-
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
   return (
     <div className="flex items-center text-sm leading-5 text-gray-700">
-      <div className="mr-4 flex items-center">
-        Rows per page:
-        <select
+      <div className="mr-4">
+        <RowsPerPageSelect
           value={itemsPerPage}
-          onChange={handleChangeItemsPerPage}
-          className="ml-2 p-2"
-        >
-          {[10, 25, 50].map((count) => (
-            <option key={count} value={count}>
-              {count}
-            </option>
-          ))}
-        </select>
+          onChange={onItemsPerPageChange}
+        />
       </div>
 
       <div className="flex items-center">

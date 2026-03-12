@@ -10,6 +10,7 @@ import {
   offset,
   flip,
   shift,
+  size,
   autoUpdate,
   useDismiss,
   useRole,
@@ -47,6 +48,13 @@ const useSelectInternal = (
     placement,
     middleware: [
       offset(8),
+      size({
+        apply({ rects, elements }) {
+          Object.assign(elements.floating.style, {
+            width: `${rects.reference.width}px`,
+          });
+        },
+      }),
       flip(),
       shift({ padding: 8 }),
       floatingArrow({ element: arrowRef, padding: 8 }),

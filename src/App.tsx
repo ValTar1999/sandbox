@@ -7,10 +7,11 @@ import Loading from "./component/base/Loading";
 const BillsPayables = lazy(() => import('./pages/BillsPayables/BillsPayables'));
 const PaymentPage = lazy(() => import('./pages/PaymentPage'));
 const MultiplePaymentPage = lazy(() => import('./pages/Payment/MultiplePaymentPage'));
+const InvoicesReceivables = lazy(() => import('./pages/InvoicesReceivables/InvoicesReceivables'));
+const InitiatePaymentRequestPage = lazy(() => import('./pages/InvoicesReceivables/InitiatePaymentRequestPage'));
 
 const Dashboard = () => <div className="p-4">Dashboard Page</div>;
 const Vendors = () => <div className="p-4">Vendors Page</div>;
-const InvoicesReceivables = () => <div className="p-4">Invoices/Receivables Page</div>;
 const Customers = () => <div className="p-4">Customers Page</div>;
 const Configurator = () => <div className="p-4">Configurator Page</div>;
 const SettingsBusinessDetails = () => <div className="p-4">Business Details</div>;
@@ -28,6 +29,7 @@ function App() {
           <Route path="/payables/:id" element={<PaymentPage />} />
           <Route path="/vendors" element={<Vendors />} />
           <Route path="/receivables" element={<InvoicesReceivables />} />
+          <Route path="/receivables/:id" element={<InitiatePaymentRequestPage />} />
           <Route path="/customers" element={<Customers />} />
           <Route path="/configurator" element={<Configurator />} />
           <Route path="/settings/business-details" element={<SettingsBusinessDetails />} />
