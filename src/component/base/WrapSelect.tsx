@@ -21,7 +21,7 @@ interface Option {
   badgeSize?: TSizes;
   badgeSecondary?: string;
   badgeSecondaryColor?: TColors;
-  badgeSecondaryTooltip?: string;
+  badgeSecondaryTooltip?: React.ReactNode;
   badgeRounded?: boolean;
   badgeSecondaryRounded?: boolean;
   rightLabel?: string;
@@ -212,7 +212,7 @@ function WrapSelect({
                         {selectedOption.badgeSecondary}
                       </Badge>
                     </TooltipTrigger>
-                    <TooltipContent className="bg-gray-900 text-white max-w-[240px]">
+                    <TooltipContent className="bg-gray-900 text-white w-[343px] p-3 rounded-lg">
                       {selectedOption.badgeSecondaryTooltip}
                     </TooltipContent>
                   </Tooltip>
@@ -263,7 +263,7 @@ function WrapSelect({
                 option.inactive
                   ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                   : "hover:bg-gray-50 cursor-pointer",
-                selectedValue === option.value && "bg-blue-50"
+                selectedValue === option.value && "bg-gray-100"
               )}
               onClick={() => {
                 if (!option.inactive) {
@@ -315,7 +315,7 @@ function WrapSelect({
                                     {option.badgeSecondary}
                                   </Badge>
                                 </TooltipTrigger>
-                                <TooltipContent className="bg-gray-900 text-white max-w-[240px]">{option.badgeSecondaryTooltip}</TooltipContent>
+                                <TooltipContent className="bg-gray-900 text-white w-[343px] px-3 py-2.5 rounded-lg">{option.badgeSecondaryTooltip}</TooltipContent>
                               </Tooltip>
                             ) : (
                               <Badge size={option.badgeSize ?? "xs"} color={option.badgeSecondaryColor ?? "gray"} rounded={option.badgeSecondaryRounded !== false}>
@@ -389,7 +389,7 @@ function WrapSelect({
                             {option.badgeSecondary}
                           </Badge>
                         </TooltipTrigger>
-                        <TooltipContent className="bg-gray-900 text-white max-w-[240px]">{option.badgeSecondaryTooltip}</TooltipContent>
+                        <TooltipContent className="bg-gray-900 text-white w-[343px] px-3 py-2.5 rounded-lg">{option.badgeSecondaryTooltip}</TooltipContent>
                       </Tooltip>
                     ) : (
                       <Badge color={option.badgeSecondaryColor ?? "gray"} size={option.badgeSize ?? "xs"} rounded={option.badgeSecondaryRounded !== false}>

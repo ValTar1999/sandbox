@@ -153,7 +153,7 @@ export const TooltipContent = ({
         }}
         {...getFloatingProps({
           className: clsx(
-            "z-50 rounded-md px-2 py-1 text-xs font-normal text-gray-50 shadow-dropdown",
+            "z-50 rounded-md p-3 text-xs font-normal text-gray-50 shadow-dropdown",
             className
           ),
           ...props,

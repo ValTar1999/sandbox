@@ -9,9 +9,9 @@ const PaymentPage = lazy(() => import('./pages/PaymentPage'));
 const MultiplePaymentPage = lazy(() => import('./pages/Payment/MultiplePaymentPage'));
 const InvoicesReceivables = lazy(() => import('./pages/InvoicesReceivables/InvoicesReceivables'));
 const InitiatePaymentRequestPage = lazy(() => import('./pages/InvoicesReceivables/InitiatePaymentRequestPage'));
+const Vendors = lazy(() => import('./pages/Vendors/Vendors'));
 
 const Dashboard = () => <div className="p-4">Dashboard Page</div>;
-const Vendors = () => <div className="p-4">Vendors Page</div>;
 const Customers = () => <div className="p-4">Customers Page</div>;
 const Configurator = () => <div className="p-4">Configurator Page</div>;
 const SettingsBusinessDetails = () => <div className="p-4">Business Details</div>;

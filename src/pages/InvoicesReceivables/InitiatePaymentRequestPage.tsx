@@ -29,7 +29,6 @@ import SelectPaymentWorkflowModal, {
 } from "../../modals/SelectPaymentWorkflowModal";
 import SmartCollectDetailsModal from "../../modals/SmartCollectDetailsModal";
 import PaymentRequestSubmittedModal from "../../modals/PaymentRequestSubmittedModal";
-import ValidationErrorModal from "../../modals/ValidationErrorModal";
 import MastercardIcon from "../../assets/image/mastercard-flag.svg";
 import { receivables, Receivable } from "./data";
 import { STATUS_BADGES } from "../../constants/tableStatusBadges";
@@ -130,7 +129,7 @@ const PaymentCollectionOption = ({
       type="button"
       className={clsx(
         "flex w-full items-start gap-3 p-4 text-left cursor-pointer",
-        isSelected ? "bg-blue-50" : "hover:bg-gray-50"
+        isSelected ? "bg-gray-100" : "hover:bg-gray-50"
       )}
       onClick={() => {
         onSelect();
@@ -184,11 +183,14 @@ const AddCustomerAccountSelect = ({
   onAddBankAccount,
   onAddCardDetails,
   charge = false,
+  error = false,
 }: {
   onAddBankAccount?: () => void;
   onAddCardDetails?: () => void;
   charge?: boolean;
+  error?: boolean;
 }) => (
+  <div className="flex flex-col gap-1">
   <Menu.Root placement="bottom-start">
     <Menu.Trigger as="span" className="inline-flex">
       <Button
@@ -220,6 +222,10 @@ const AddCustomerAccountSelect = ({
       </Menu.Positioner>
     </Menu.Portal>
   </Menu.Root>
+  {error && (
+    <span className="text-sm text-red-500">Please add and select an account for payment initiation.</span>
+  )}
+  </div>
 );
 
 const AddCustomerAccountOption = ({
@@ -308,12 +314,14 @@ const ContactInputArea = ({
   setContactQuery,
   addContact,
   removeContact,
+  error,
 }: {
   selectedContacts: ContactItem[];
   contactQuery: string;
   setContactQuery: (v: string) => void;
   addContact: (item: ContactItem) => void;
   removeContact: (id: string) => void;
+  error?: boolean;
 }) => {
   const { setOpen } = useSelectContext();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -342,9 +350,11 @@ const ContactInputArea = ({
       }}
       className={clsx(
         "relative shadow-sm flex flex-wrap min-h-10 rounded-md border px-3 items-center gap-2",
-        "border-gray-300 text-base font-normal text-gray-800 placeholder-gray-400",
-        "focus-within:border-smart-main focus-within:outline-none focus-within:ring-1 focus-within:ring-smart-main",
-        "transition duration-300 ease-in-out"
+        "text-base font-normal text-gray-800 placeholder-gray-400",
+        "focus-within:outline-none focus-within:ring-1 transition duration-300 ease-in-out",
+        error
+          ? "border-red-500 focus-within:border-red-500 focus-within:ring-red-500 placeholder:text-red-300"
+          : "border-gray-300 focus-within:border-smart-main focus-within:ring-smart-main"
       )}
     >
       {selectedContacts.map((item) => (
@@ -481,7 +491,7 @@ const InitiatePaymentRequestPage = () => {
     useState(false);
   const [isPaymentRequestSubmittedOpen, setIsPaymentRequestSubmittedOpen] =
     useState(false);
-  const [isValidationErrorOpen, setIsValidationErrorOpen] = useState(false);
+  const [showErrors, setShowErrors] = useState(false);
 
   const receivable = useMemo(
     () => receivables.find((r) => r.id === id),
@@ -510,9 +520,10 @@ const InitiatePaymentRequestPage = () => {
 
   const handleInvoiceClick = useCallback(() => {
     if (isFormValid) {
+      setShowErrors(false);
       setIsSmartCollectModalOpen(true);
     } else {
-      setIsValidationErrorOpen(true);
+      setShowErrors(true);
     }
   }, [isFormValid]);
 
@@ -554,6 +565,7 @@ const InitiatePaymentRequestPage = () => {
   }, [contactQuery, selectedContacts]);
 
   const addContact = useCallback((item: ContactItem) => {
+    setShowErrors(false);
     setSelectedContacts((prev) => {
       const otherType = prev.filter((c) => c.type !== item.type);
       return [...otherType, item];
@@ -562,10 +574,12 @@ const InitiatePaymentRequestPage = () => {
   }, []);
 
   const removeContact = useCallback((id: string) => {
+    setShowErrors(false);
     setSelectedContacts((prev) => prev.filter((c) => c.id !== id));
   }, []);
 
   const handleAddBankAccount = useCallback((data: BankAccountFormData) => {
+    setShowErrors(false);
     const id = `account-${Date.now()}`;
     setAccountsOnFile((prev) => [
       ...prev,
@@ -580,6 +594,7 @@ const InitiatePaymentRequestPage = () => {
   }, []);
 
   const handleAddCardDetails = useCallback((data: CardDetailsFormData) => {
+    setShowErrors(false);
     const id = `card-${Date.now()}`;
     const cardNumber = data.cardNumber.replace(/\s/g, "");
     const cardBrand = getCardBrand(cardNumber);
@@ -642,7 +657,6 @@ const InitiatePaymentRequestPage = () => {
             <Button
               size="md"
               variant="primary"
-              disabled={!isFormValid}
               onClick={handleInvoiceClick}
             >
               Invoice: {receivable.amount}
@@ -702,7 +716,6 @@ const InitiatePaymentRequestPage = () => {
               <Button
                 size="md"
                 variant="primary"
-                disabled={!isFormValid}
                 onClick={handleInvoiceClick}
               >
                 Invoice: {receivable.amount}
@@ -825,6 +838,7 @@ const InitiatePaymentRequestPage = () => {
                       <Select.Trigger
                         as="span"
                         className="block w-full cursor-text"
+                        onClick={() => setShowErrors(false)}
                       >
                         <ContactInputArea
                           selectedContacts={selectedContacts}
@@ -832,6 +846,7 @@ const InitiatePaymentRequestPage = () => {
                           setContactQuery={setContactQuery}
                           addContact={addContact}
                           removeContact={removeContact}
+                          error={showErrors && paymentCollection === "invoice" && selectedContacts.length === 0}
                         />
                       </Select.Trigger>
                       <ContactDropdownContent
@@ -841,16 +856,28 @@ const InitiatePaymentRequestPage = () => {
                         addContact={addContact}
                       />
                     </Select.Root>
-                    <div className="mt-1 flex items-center gap-1 text-sm leading-5">
-                      <span className="text-gray-500">
-                        {selectedWorkflowId
-                          ? "Selected payment workflow:"
-                          : "Payment workflow:"}
-                      </span>
+                    {showErrors && paymentCollection === "invoice" && selectedContacts.length === 0 && (
+                      <span className="mt-1 block text-sm text-red-500">Email address or phone number is required.</span>
+                    )}
+                    <div className="mt-1 flex flex-col gap-1">
+                      <div className="flex items-center gap-1 text-sm leading-5">
+                        <span className="text-gray-500">
+                          {selectedWorkflowId
+                            ? "Selected payment workflow:"
+                            : "Payment workflow:"}
+                        </span>
                       <button
                         type="button"
-                        onClick={() => setIsSelectWorkflowModalOpen(true)}
-                        className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 transition-colors duration-300 cursor-pointer font-semibold"
+                        onClick={() => {
+                          setShowErrors(false);
+                          setIsSelectWorkflowModalOpen(true);
+                        }}
+                        className={clsx(
+                          "inline-flex items-center gap-1 transition-colors duration-300 cursor-pointer font-semibold",
+                          showErrors && paymentCollection === "invoice" && !selectedWorkflowId
+                            ? "text-red-600 hover:text-red-700"
+                            : "text-blue-600 hover:text-blue-700"
+                        )}
                       >
                         {selectedWorkflowId
                           ? workflowOptions.find(
@@ -859,6 +886,10 @@ const InitiatePaymentRequestPage = () => {
                           : "Select Workflow"}
                         <Icon icon="arrow-right" className="w-3 h-3" />
                       </button>
+                      </div>
+                      {showErrors && paymentCollection === "invoice" && !selectedWorkflowId && (
+                        <span className="text-sm text-red-500">Payment workflow is required.</span>
+                      )}
                     </div>
                   </>
                 ) : (
@@ -866,6 +897,8 @@ const InitiatePaymentRequestPage = () => {
                     <WrapSelect
                       placeholder="Select source account for fund retrieval"
                       triggerBadgeMode="defaultOnly"
+                      error={showErrors && paymentCollection === "charge" && !selectedAccountOnFile}
+                      errorMessage="Please select an account for fund retrieval."
                       options={(accountsOnFile.length > 0 ? accountsOnFile : chargeSourceAccountDemo).map((acc, index) => {
                         const lastFour = acc.accountNumber.replace(/\s/g, "").slice(-4) || "----";
                         const isCard = acc.type === "card";
@@ -887,8 +920,8 @@ const InitiatePaymentRequestPage = () => {
                           iconImageAlt: acc.accountName,
                           iconImageClassName: isCard ? "h-4 w-5 flex-shrink-0" : undefined,
                           badge: isFirst ? "SMART Collect" : undefined,
-                          badgeSecondary: isCard && isDefault ? "Default" : undefined,
-                          badgeSecondaryTooltip: isCard && isDefault ? "This is the default payment method that the customer has set through SMART Collect." : undefined,
+                          badgeSecondary: (isCard && isDefault) || isFirst ? "Default" : undefined,
+                          badgeSecondaryTooltip: (isCard && isDefault) || isFirst ? (<>This is the default payment method that the customer has set through <strong>SMART Collect</strong>.</>) : undefined,
                           badgeColor: "gray" as const,
                           badgeSecondaryColor: "blue" as const,
                           badgePosition: "inline" as const,
@@ -897,7 +930,10 @@ const InitiatePaymentRequestPage = () => {
                         };
                       })}
                       selectedValue={selectedAccountOnFile}
-                      onSelect={setSelectedAccountOnFile}
+                      onSelect={(v) => {
+                        setShowErrors(false);
+                        setSelectedAccountOnFile(v);
+                      }}
                     />
                     <AddCustomerAccountSelect
                       charge
@@ -919,13 +955,18 @@ const InitiatePaymentRequestPage = () => {
                         placeholder="Select bank account"
                         options={bankAccounts}
                         selectedValue={selectedAccount}
-                        onSelect={setSelectedAccount}
+                        onSelect={(v) => {
+                          setShowErrors(false);
+                          setSelectedAccount(v);
+                        }}
+                        error={showErrors && paymentCollection === "invoice" && !selectedAccount}
+                        errorMessage="Receiving account is required."
                         footerActionLabel="Add New Bank Account"
                         onFooterActionClick={() => {}}
                         showInactiveNotice
                       />
                     ) : (
-                      <div className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-gray-500 text-base cursor-default select-none">
+                      <div className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-500 text-base font-medium cursor-default select-none">
                         Merchant Account ID #4569
                       </div>
                     )}
@@ -946,6 +987,8 @@ const InitiatePaymentRequestPage = () => {
                 <div className="mb-4">
                   <WrapSelect
                     placeholder="Select account"
+                    error={showErrors && paymentCollection === "invoice" && !selectedAccountOnFile}
+                    errorMessage="Accounts on File: please select an account."
                     options={accountsOnFile.map((acc) => {
                       const lastFour = acc.accountNumber.replace(/\s/g, "").slice(-4) || "----";
                       const isCard = acc.type === "card";
@@ -967,13 +1010,17 @@ const InitiatePaymentRequestPage = () => {
                       };
                     })}
                     selectedValue={selectedAccountOnFile}
-                    onSelect={setSelectedAccountOnFile}
+                    onSelect={(v) => {
+                      setShowErrors(false);
+                      setSelectedAccountOnFile(v);
+                    }}
                   />
                 </div>
               )}
               <AddCustomerAccountSelect
                 onAddBankAccount={() => setIsAddBankAccountModalOpen(true)}
                 onAddCardDetails={() => setIsAddCardDetailsModalOpen(true)}
+                error={showErrors && paymentCollection === "invoice" && !selectedAccountOnFile}
               />
             </div>
           )}
@@ -1079,7 +1126,10 @@ const InitiatePaymentRequestPage = () => {
         open={isSelectWorkflowModalOpen}
         onClose={() => setIsSelectWorkflowModalOpen(false)}
         selectedWorkflowId={selectedWorkflowId}
-        onSave={(workflowId) => setSelectedWorkflowId(workflowId)}
+        onSave={(workflowId) => {
+          setShowErrors(false);
+          setSelectedWorkflowId(workflowId);
+        }}
       />
       <SmartCollectDetailsModal
         open={isSmartCollectModalOpen}
@@ -1128,10 +1178,6 @@ const InitiatePaymentRequestPage = () => {
         open={isPaymentRequestSubmittedOpen}
         onClose={() => setIsPaymentRequestSubmittedOpen(false)}
         onDone={handlePaymentRequestDone}
-      />
-      <ValidationErrorModal
-        open={isValidationErrorOpen}
-        onClose={() => setIsValidationErrorOpen(false)}
       />
     </Box>
   );
