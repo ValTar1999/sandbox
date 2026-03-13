@@ -648,7 +648,7 @@ const InitiatePaymentRequestPage = () => {
       footer={
         <div className="flex flex-col gap-2 w-full">
           <div className="flex items-center flex-wrap justify-end w-full">
-            <span className="text-sm leading-5 text-gray-700 mr-4">Payment Collection</span>
+            <span className="text-sm leading-5 text-gray-700 mr-4 font-medium">Payment Collection</span>
             <PaymentCollectionSelect
               value={paymentCollection}
               onChange={setPaymentCollection}
@@ -707,7 +707,7 @@ const InitiatePaymentRequestPage = () => {
               {renderStatusBadge(receivable.status)}
             </div>
             <div className="flex items-center">
-              <span className="text-sm leading-5 text-gray-700 mr-4">Payment Collection</span>
+              <span className="text-sm leading-5 text-gray-700 mr-4 font-medium">Payment Collection</span>
               <PaymentCollectionSelect
                 value={paymentCollection}
                 onChange={setPaymentCollection}
