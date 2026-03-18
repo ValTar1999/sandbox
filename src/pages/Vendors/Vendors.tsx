@@ -1,9 +1,12 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import Box from "../../component/layout/Box";
 import Pagination from "../../component/base/Pagination";
 import BoxHeader from "../../component/layout/BoxHeader";
 import VendorsTable from "./VendorsTable";
+import type { NetworkAction } from "./VendorsTable";
 import { vendors as vendorsData, Vendor, PaymentNetworkStatus } from "./data";
+import NetworkSearchInviteModal from "../../modals/NetworkSearchInviteModal";
+import type { ModalStage } from "../../modals/NetworkSearchInviteModal";
 
 const Vendors = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -34,6 +37,21 @@ const Vendors = () => {
     setCurrentPage(1);
   };
 
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const [activeVendor, setActiveVendor] = useState<Vendor | null>(null);
+  const [inviteModalInitialStage, setInviteModalInitialStage] = useState<
+    ModalStage | undefined
+  >(undefined);
+  const [inviteModalType, setInviteModalType] = useState<
+    | "inviteToNetwork"
+    | "resendInvitation"
+    | "sendLinkRequest"
+    | "resendLinkRequest"
+    | "rejectRequest"
+    | "deleteLink"
+    | undefined
+  >(undefined);
+
   const handlePaymentNetworkChange = (vendor: Vendor, status: PaymentNetworkStatus) => {
     setVendors((prev) =>
       prev.map((v) =>
@@ -41,6 +59,67 @@ const Vendors = () => {
       )
     );
   };
+
+  const handleNetworkAction = useCallback(
+    (action: NetworkAction, vendor: Vendor) => {
+      if (
+        action.modalType === "inviteToNetwork" ||
+        action.modalType === "resendInvitation" ||
+        action.modalType === "sendLinkRequest" ||
+        action.modalType === "resendLinkRequest" ||
+        action.modalType === "rejectRequest" ||
+        action.modalType === "deleteLink"
+      ) {
+        setActiveVendor(vendor);
+        setInviteModalType(action.modalType as typeof inviteModalType);
+        setInviteModalInitialStage(
+          action.modalType === "resendInvitation"
+            ? "invite"
+            : action.modalType === "sendLinkRequest" ||
+                action.modalType === "resendLinkRequest"
+              ? "linkRequest"
+              : action.modalType === "deleteLink"
+                ? "unlinkVendor"
+              : action.modalType === "rejectRequest"
+                ? "rejectRequest"
+              : "search"
+        );
+        setInviteModalOpen(true);
+      }
+    },
+    []
+  );
+
+  const handleInviteModalClose = useCallback(() => {
+    setInviteModalOpen(false);
+    setActiveVendor(null);
+    setInviteModalInitialStage(undefined);
+    setInviteModalType(undefined);
+  }, []);
+
+  const handleInviteSent = useCallback(() => {
+    if (activeVendor) {
+      setVendors((prev) =>
+        prev.map((v) =>
+          v.id === activeVendor.id
+            ? { ...v, paymentNetworkStatus: "invitationSent" as PaymentNetworkStatus }
+            : v
+        )
+      );
+    }
+  }, [activeVendor]);
+
+  const handleUnlink = useCallback(() => {
+    if (activeVendor) {
+      setVendors((prev) =>
+        prev.map((v) =>
+          v.id === activeVendor.id
+            ? { ...v, paymentNetworkStatus: "notInNetwork" as PaymentNetworkStatus }
+            : v
+        )
+      );
+    }
+  }, [activeVendor]);
 
   return (
     <Box
@@ -50,6 +129,7 @@ const Vendors = () => {
           title="Vendors"
           description={`${filteredVendors.length} companies`}
           onSearch={setSearchQuery}
+          showFilter={false}
         />
       }
       footer={
@@ -68,6 +148,16 @@ const Vendors = () => {
       <VendorsTable
         vendors={currentData}
         onPaymentNetworkChange={handlePaymentNetworkChange}
+        onNetworkAction={handleNetworkAction}
+      />
+
+      <NetworkSearchInviteModal
+        open={inviteModalOpen}
+        onClose={handleInviteModalClose}
+        onInviteSent={handleInviteSent}
+        onUnlink={handleUnlink}
+        initialStage={inviteModalInitialStage}
+        modalType={inviteModalType}
       />
     </Box>
   );

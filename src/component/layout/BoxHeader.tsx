@@ -11,6 +11,7 @@ interface BoxHeaderProps {
   onSearch?: (value: string) => void;
   onDeselect?: () => void;
   onPay?: () => void;
+  showFilter?: boolean;
   children?: React.ReactNode;
   className?: string;
 }
@@ -22,6 +23,7 @@ const BoxHeader: React.FC<BoxHeaderProps> = ({
   onSearch,
   onDeselect,
   onPay,
+  showFilter = true,
   children,
   className,
 }) => {
@@ -67,13 +69,15 @@ const BoxHeader: React.FC<BoxHeaderProps> = ({
           icon="search"
           onChange={handleSearch}
         />
-        <Button
-          size="lg"
-          variant="secondary"
-          icon="chevron-down"
-        >
-          Filter
-        </Button>
+        {showFilter && (
+          <Button
+            size="lg"
+            variant="secondary"
+            icon="chevron-down"
+          >
+            Filter
+          </Button>
+        )}
       </div>
 
       {children}
