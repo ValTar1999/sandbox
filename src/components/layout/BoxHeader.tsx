@@ -1,8 +1,8 @@
 import React from 'react';
 import { clsx } from 'clsx'; 
-import Input from '../base/Input';
-import Button from '../base/Button'; 
-import { RefreshButton } from '../base/RefreshButton';
+import Input from '../common/base/Input';
+import Button from '../common/base/Button'; 
+import { RefreshButton } from '../common/base/RefreshButton';
 
 interface BoxHeaderProps {
   title?: string;

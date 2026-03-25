@@ -1,8 +1,8 @@
 import React from "react";
-import LayoutModal from "../component/modal/LayoutModal";
-import Modal from "../component/modal/Modal";
-import Button from "../component/base/Button";
-import Icon from "../component/base/Icon";
+import LayoutModal from "../components/common/modal/LayoutModal";
+import Modal from "../components/common/modal/Modal";
+import Button from "../components/common/base/Button";
+import Icon from "../components/common/base/Icon";
 
 interface CancelBulkPaymentModalProps {
   open: boolean;

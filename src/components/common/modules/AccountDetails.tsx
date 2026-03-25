@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Button from "../base/Button";
-import MastercardFlag from "../../assets/image/mastercard-flag.svg";
+import MastercardFlag from "../../../assets/image/mastercard-flag.svg";
 
 type AccountDetailsVariant = "bank" | "card" | "smart-disburse";
 

@@ -7,16 +7,17 @@ interface TooltipDarkProps {
   className?: string;
   menuClass?: string;
   onStateChange?: (isOpen: boolean) => void;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 const TooltipDark = ({children, className, menuClass, onStateChange, ...props}: TooltipDarkProps): ReactElement => {
   let trigger: ReactElement | null = null;
   let menu: ReactElement | null = null;
 
+  type SlotChildProps = { slot?: string };
   Children.forEach(children, (child) => {
     if (isValidElement(child)) {
-      const slot = (child.props as any).slot;
+      const slot = (child as React.ReactElement<SlotChildProps>).props.slot;
       if (slot === 'trigger') {
         trigger = child;
       } else {

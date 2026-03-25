@@ -1,9 +1,9 @@
 import React from "react";
-import Icon from "../component/base/Icon";
-import Button from "../component/base/Button";
-import LayoutModal from "../component/modal/LayoutModal";
-import Modal from "../component/modal/Modal";
-import PaymentStepProgress from "../component/base/PaymentStepProgress";
+import Icon from "../components/common/base/Icon";
+import Button from "../components/common/base/Button";
+import LayoutModal from "../components/common/modal/LayoutModal";
+import Modal from "../components/common/modal/Modal";
+import PaymentStepProgress from "../components/common/base/PaymentStepProgress";
 
 interface ReRunPaymentModalProps {
   open: boolean;

@@ -6,8 +6,8 @@ import Button from "../base/Button";
 import Badge from "../base/Badge";
 import Toggle from "../base/Toggle";
 import Tooltip, { TooltipTrigger, TooltipContent } from "../base/Tooltip";
-import UnsupportedBulkPaymentMethodModal from "../../modals/UnsupportedBulkPaymentMethodModal";
-import { payments, Payment, PayableItem } from "../../pages/BillsPayables/data";
+import UnsupportedBulkPaymentMethodModal from "../../../modals/UnsupportedBulkPaymentMethodModal";
+import { payments, Payment, PayableItem } from "../../../pages/BillsPayables/data";
 
 const SUPPORTED_BULK_PAYMENT_METHODS = ["ach", "rtp", "smart exchange", "wire"] as const;
 

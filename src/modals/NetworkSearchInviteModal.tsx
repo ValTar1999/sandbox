@@ -1,14 +1,14 @@
 import React, { useState, useMemo, useCallback } from "react";
 import clsx from "clsx";
-import LayoutModal from "../component/modal/LayoutModal";
-import WrapModal from "../component/modal/WrapModal";
-import Modal from "../component/modal/Modal";
-import Button from "../component/base/Button";
-import Input from "../component/base/Input";
-import Icon from "../component/base/Icon";
-import Toggle from "../component/base/Toggle";
-import WrapSelect from "../component/base/WrapSelect";
-import { Tooltip, TooltipTrigger, TooltipContent } from "../component/base/Tooltip";
+import LayoutModal from "../components/common/modal/LayoutModal";
+import WrapModal from "../components/common/modal/WrapModal";
+import Modal from "../components/common/modal/Modal";
+import Button from "../components/common/base/Button";
+import Input from "../components/common/base/Input";
+import Icon from "../components/common/base/Icon";
+import Toggle from "../components/common/base/Toggle";
+import WrapSelect from "../components/common/base/WrapSelect";
+import { Tooltip, TooltipTrigger, TooltipContent } from "../components/common/base/Tooltip";
 
 export type ModalStage =
   | "search"

@@ -34,8 +34,8 @@ const classConstructor = {
 const PaymentStepProgress: React.FC<PaymentStepProgressProps> = ({ data = defaultData, className, ...props }) => {
   return (
     <div className={clsx(classConstructor.root, className)} {...props}>
-      {data.map(({ text, state }, index) => (
-        <div key={index} className="flex w-full flex-col items-start">
+      {data.map(({ text, state }) => (
+        <div key={text} className="flex w-full flex-col items-start">
           <div className={clsx('h-1 w-full bg-gray-200', state && classConstructor.state[state]?.line)} />
           <div className={clsx('mt-4 flex items-center', state && classConstructor.state[state]?.text)}>
             {state === 'done' && <Icon icon="check-circle" className="mr-1" />}

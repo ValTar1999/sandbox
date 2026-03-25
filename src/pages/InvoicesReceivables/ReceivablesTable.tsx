@@ -1,11 +1,12 @@
 import React, { useCallback, useState } from "react";
 import clsx from "clsx";
-import Icon from "../../component/base/Icon";
-import Button from "../../component/base/Button";
-import Badge from "../../component/base/Badge";
-import ExpandableTableRow from "../../component/base/ExpandableTableRow";
-import ExpandableRow from "../../component/base/ExpandableRow";
-import Menu, { useMenuContext } from "../../component/base/Menu";
+import Icon from "../../components/common/base/Icon";
+import Button from "../../components/common/base/Button";
+import Badge from "../../components/common/base/Badge";
+import ExpandableTableRow from "../../components/common/base/ExpandableTableRow";
+import ExpandableRow from "../../components/common/base/ExpandableRow";
+import Menu, { useMenuContext } from "../../components/common/base/Menu";
+import Tooltip, { TooltipTrigger, TooltipContent } from "../../components/common/base/Tooltip";
 import {
   Receivable,
   ReceivableStatus,
@@ -39,12 +40,118 @@ const ACTIVITY_LOG_ICONS: Record<string, { icon: string; className: string }> = 
   pending: { icon: "calendar", className: "w-3.5 h-3.5 text-gray-500" },
 };
 
-const ThWithInfo: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="flex items-center gap-1">
-    <span className={TH_TEXT_CLASS}>{children}</span>
-    <Icon icon="information-circle" className="w-4 h-4 text-gray-400" />
+const TooltipColumn: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => <div className="flex flex-col gap-3">{children}</div>;
+
+const TooltipTitle: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => (
+  <div className="text-base font-bold text-white">{children}</div>
+);
+
+const TooltipText: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => <div className="text-sm leading-5 text-gray-400">{children}</div>;
+
+const RelatedStatusesBadges: React.FC<{
+  items: Array<{
+    color: "yellow" | "blue" | "red" | "green";
+    icon: string;
+    label: string;
+  }>;
+}> = ({ items }) => (
+  <div className="flex flex-wrap items-center gap-2.5">
+    {items.map((item) => (
+      <Badge
+        key={item.label}
+        size="sm"
+        color={item.color}
+        rounded={false}
+        icon={item.icon}
+        iconDirection="left"
+      >
+        {item.label}
+      </Badge>
+    ))}
   </div>
 );
+
+const ThWithInfo: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const key = String(children).toLowerCase();
+
+  const tooltipContent = (() => {
+    switch (key) {
+      case "created":
+        return (
+          <TooltipColumn>
+            <TooltipTitle>Invoice Date</TooltipTitle>
+            <TooltipText>Date when invoice was created in your system / ERP.</TooltipText>
+          </TooltipColumn>
+        );
+      case "due":
+        return (
+          <TooltipColumn>
+            <TooltipTitle>Invoice Due Date</TooltipTitle>
+            <TooltipText>
+              Date when payment is due according to invoice data as sourced from your system / ERP.
+            </TooltipText>
+          </TooltipColumn>
+        );
+      case "presented":
+        return (
+          <TooltipColumn>
+            <TooltipTitle>Initiation Date</TooltipTitle>
+            <TooltipText>
+              Date when you initiate a request for payment collection. It can be future dated for scheduled requests.
+            </TooltipText>
+            <TooltipText>Related Statuses:</TooltipText>
+            <RelatedStatusesBadges
+              items={[
+                { color: "yellow", icon: "user", label: "Waiting on Customer" },
+                { color: "blue", icon: "in-progress", label: "Initiated" },
+              ]}
+            />
+          </TooltipColumn>
+        );
+      case "expected":
+        return (
+          <TooltipColumn>
+            <TooltipTitle>Bill Date</TooltipTitle>
+            <TooltipText>
+              Date when payment is expected to be initiated. It&apos;s not always guaranteed that payment will successfully be executed.
+            </TooltipText>
+            <TooltipText>Related Statuses:</TooltipText>
+            <RelatedStatusesBadges
+              items={[
+                { color: "red", icon: "calendar", label: "Past Due" },
+                { color: "blue", icon: "external-link", label: "Pending Receipt" },
+                { color: "green", icon: "check-circle", label: "Paid" },
+              ]}
+            />
+          </TooltipColumn>
+        );
+      default:
+        return null;
+    }
+  })();
+
+  return (
+    <div className="flex items-center gap-1">
+      <span className={TH_TEXT_CLASS}>{children}</span>
+      <Tooltip trigger="hover" placement="top">
+        <TooltipTrigger as="span" className="inline-flex cursor-help">
+          <Icon icon="information-circle" className="w-4 h-4 text-gray-400" />
+        </TooltipTrigger>
+        {tooltipContent ? (
+          <TooltipContent className="bg-gray-900 w-full max-w-[368px] p-6 rounded-lg shadow-dropdown">
+            {tooltipContent}
+          </TooltipContent>
+        ) : null}
+      </Tooltip>
+    </div>
+  );
+};
 
 const IN_PROGRESS_STATUS_BADGES: Record<
   PaymentMethodItem["status"],
@@ -107,9 +214,16 @@ const getActivityLogStatusLabel = (status: string) =>
   status === "pending" ? "Pending Initiation" : status.charAt(0).toUpperCase() + status.slice(1);
 
 const renderDescriptionWithHighlightedId = (description: string) =>
-  description.split(/(#\w+)/g).map((part, i) =>
+  description.split(/(#\w+)/g).map((part) =>
     part.match(/^#\w+$/) ? (
-      <a href="#" key={i} className="text-blue-600 font-medium">{part}</a>
+      <a
+        href="#"
+        key={part}
+        className="text-blue-600 font-medium"
+        onClick={(e) => e.preventDefault()}
+      >
+        {part}
+      </a>
     ) : (
       part
     )

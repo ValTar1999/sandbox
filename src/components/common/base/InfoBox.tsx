@@ -2,9 +2,9 @@ import React from 'react';
 import clsx from 'clsx';
 import Icon from '../base/Icon';
 import Button from '../base/Button';
-import {TIconName, TIconVariant} from '../../enums/Icon'
-import {TColors} from '../../enums/InfoBox';
-import {TVariants} from '../../enums/Button';
+import {TIconName, TIconVariant} from '../../../enums/Icon'
+import {TColors} from '../../../enums/InfoBox';
+import {TVariants} from '../../../enums/Button';
 
 type BaseProps = React.HTMLAttributes<HTMLDivElement> & {
   title?: string;

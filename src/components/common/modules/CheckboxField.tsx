@@ -1,5 +1,6 @@
 import React from 'react';
 import clsx from 'clsx';
+import DOMPurify from 'dompurify';
 import CheckBox from '../base/CheckBox';
 
 interface Props
@@ -24,32 +25,45 @@ const CheckboxField: React.FC<Props> = ({
   children,
   ...props
 }) => {
+  const safeTitle =
+    title && typeof window !== 'undefined' ? DOMPurify.sanitize(title) : title;
+  const safeText =
+    text && typeof window !== 'undefined' ? DOMPurify.sanitize(text) : text;
+  const safeSubtitle =
+    subtitle && typeof window !== 'undefined'
+      ? DOMPurify.sanitize(subtitle)
+      : subtitle;
+  const safeDescription =
+    description && typeof window !== 'undefined'
+      ? DOMPurify.sanitize(description)
+      : description;
+
   const content = children ? (
     children
   ) : (
     <>
-      {title && (
+      {safeTitle && (
         <div
           className="font-medium text-gray-700"
-          dangerouslySetInnerHTML={{ __html: title }}
+          dangerouslySetInnerHTML={{ __html: safeTitle }}
         />
       )}
-      {text && (
+      {safeText && (
         <div
           className="text-gray-900"
-          dangerouslySetInnerHTML={{ __html: text }}
+          dangerouslySetInnerHTML={{ __html: safeText }}
         />
       )}
-      {subtitle && (
+      {safeSubtitle && (
         <div
           className="text-gray-500"
-          dangerouslySetInnerHTML={{ __html: subtitle }}
+          dangerouslySetInnerHTML={{ __html: safeSubtitle }}
         />
       )}
-      {description && (
+      {safeDescription && (
         <div
           className="text-gray-700"
-          dangerouslySetInnerHTML={{ __html: description }}
+          dangerouslySetInnerHTML={{ __html: safeDescription }}
         />
       )}
     </>

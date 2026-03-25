@@ -1,11 +1,11 @@
 import React, { useCallback, useState } from "react";
 import clsx from "clsx";
-import Icon from "../../component/base/Icon";
-import Button from "../../component/base/Button";
-import Menu, { useMenuContext } from "../../component/base/Menu";
-import { Tooltip, TooltipTrigger, TooltipContent } from "../../component/base/Tooltip";
+import Icon from "../../components/common/base/Icon";
+import Button from "../../components/common/base/Button";
+import Menu, { useMenuContext } from "../../components/common/base/Menu";
+import { Tooltip, TooltipTrigger, TooltipContent } from "../../components/common/base/Tooltip";
 import MastercardFlag from "../../assets/image/mastercard-flag.svg";
-import Badge from "../../component/base/Badge";
+import Badge from "../../components/common/base/Badge";
 import {
   Vendor,
   PaymentNetworkStatus,
@@ -165,10 +165,24 @@ const PAYMENT_METHOD_ICONS: Record<string, { icon: string; label: string }> = {
   cash: { icon: SMARTExchangeIcon, label: "SMART Exchange" },
 };
 
-const ThWithInfo: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+const ThWithInfo: React.FC<{
+  children: React.ReactNode;
+  tooltipContent?: React.ReactNode;
+}> = ({ children, tooltipContent }) => (
   <div className="flex items-center gap-1">
     <span className={TH_TEXT_CLASS}>{children}</span>
-    <Icon icon="information-circle" className="w-4 h-4 text-gray-400" />
+    {tooltipContent ? (
+      <Tooltip trigger="hover" placement="top">
+        <TooltipTrigger as="span" className="inline-flex cursor-help">
+          <Icon icon="information-circle" className="w-4 h-4 text-gray-400" />
+        </TooltipTrigger>
+        <TooltipContent className="bg-gray-900 w-[320px] p-6 rounded-lg shadow-dropdown">
+          {tooltipContent}
+        </TooltipContent>
+      </Tooltip>
+    ) : (
+      <Icon icon="information-circle" className="w-4 h-4 text-gray-400" />
+    )}
   </div>
 );
 
@@ -236,9 +250,9 @@ const PaymentNetworkSelect: React.FC<{
         <Menu.Positioner>
           <Menu.Popup className="z-50 w-fit bg-white rounded-md shadow-lg overflow-hidden">
             <div className="">
-              {config.actions.map((action, index) => (
+              {config.actions.map((action) => (
                 <NetworkActionButton
-                  key={index}
+                  key={`${action.actionType ?? 'unknown'}-${action.modalType ?? action.label}`}
                   action={action}
                   vendor={vendor}
                   onSelect={onSelect}
@@ -342,7 +356,21 @@ const VendorsTable: React.FC<VendorsTableProps> = ({
               "max-w-[220px] min-w-[220px] w-[220px]"
             )}>
               <div className="flex items-center gap-1">
-                <ThWithInfo>PAYMENT NETWORK</ThWithInfo>
+                <ThWithInfo
+                  tooltipContent={
+                    <div className="flex flex-col gap-3">
+                      <div className="text-base font-bold leading-5 text-white">
+                        Payment Network
+                      </div>
+                      <div className="text-sm leading-5 text-gray-400">
+                        An electronic payment network digitally connects buyers and
+                        suppliers to facilitate payment transactions.
+                      </div>
+                    </div>
+                  }
+                >
+                  PAYMENT NETWORK
+                </ThWithInfo>
                 <Button icon="filter" size="xs" variant="linkSecondary" />
               </div>
             </th>
@@ -351,7 +379,20 @@ const VendorsTable: React.FC<VendorsTableProps> = ({
               "max-w-40 min-w-40 w-40"
             )}>
               <div className="flex items-center gap-1">
-                <ThWithInfo>
+                <ThWithInfo
+                  tooltipContent={
+                    <div className="flex flex-col gap-3">
+                      <div className="text-base font-bold leading-5 text-white">
+                        Early Payment Option
+                      </div>
+                      <div className="text-sm leading-5 text-gray-400">
+                        You can offer this vendor an early payment option, which means
+                        you can pay their invoice(s) before the due date and receive a
+                        discount or other incentive.
+                      </div>
+                    </div>
+                  }
+                >
                   <div className="text-end">
                     EARLY PAYMENT OPTION
                   </div>

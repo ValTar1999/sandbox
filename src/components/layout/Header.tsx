@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import clsx from 'clsx';
 import Breadcrumb from "../layout/Breadcrumb";
-import { DropdownUser } from "../dropdowns/DropdownUser";
+import { DropdownUser } from "../common/dropdowns/DropdownUser";
 
 interface HeaderProps {
   userName?: string;

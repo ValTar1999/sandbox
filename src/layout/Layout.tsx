@@ -1,8 +1,8 @@
 import { ReactNode } from "react";
 import { Outlet } from "react-router-dom";
 import { clsx } from "clsx";
-import Header from "../component/layout/Header";
-import Sidebar from "../component/layout/Sidebar";
+import Header from "../components/layout/Header";
+import Sidebar from "../components/layout/Sidebar";
 
 interface LayoutProps {
   children?: ReactNode;

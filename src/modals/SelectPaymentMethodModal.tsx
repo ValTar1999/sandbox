@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import clsx from "clsx";
-import LayoutModal from "../component/modal/LayoutModal";
-import WrapModal from "../component/modal/WrapModal";
-import Button from "../component/base/Button";
-import WrapSelect from "../component/base/WrapSelect";
-import Input from "../component/base/Input";
-import InfoBox from "../component/base/InfoBox";
-import CheckboxField from "../component/modules/CheckboxField";
-import Icon from "../component/base/Icon";
+import LayoutModal from "../components/common/modal/LayoutModal";
+import WrapModal from "../components/common/modal/WrapModal";
+import Button from "../components/common/base/Button";
+import WrapSelect from "../components/common/base/WrapSelect";
+import Input from "../components/common/base/Input";
+import InfoBox from "../components/common/base/InfoBox";
+import CheckboxField from "../components/common/modules/CheckboxField";
+import Icon from "../components/common/base/Icon";
 import SmartDisburseIcon from "../assets/image/SMART-Disburse.svg";
 import { PayableItem } from "../pages/BillsPayables/data";
 

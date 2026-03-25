@@ -1,7 +1,7 @@
 import { Suspense, lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./layout/Layout";
-import Loading from "./component/base/Loading";
+import Loading from "./components/common/base/Loading";
 
 // Page
 const BillsPayables = lazy(() => import('./pages/BillsPayables/BillsPayables'));

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import clsx from "clsx";
-import LayoutModal from "../component/modal/LayoutModal";
-import WrapModal from "../component/modal/WrapModal";
-import Button from "../component/base/Button";
-import Badge from "../component/base/Badge";
-import Icon from "../component/base/Icon";
+import LayoutModal from "../components/common/modal/LayoutModal";
+import WrapModal from "../components/common/modal/WrapModal";
+import Button from "../components/common/base/Button";
+import Badge from "../components/common/base/Badge";
+import Icon from "../components/common/base/Icon";
 
 export type PaymentWorkflowOption = {
   id: string;
@@ -124,7 +124,7 @@ const SelectPaymentWorkflowModal: React.FC<SelectPaymentWorkflowModalProps> = ({
                   )}
                 >
                   {tempSelected === option.id && (
-                    <div className="w-1.5 h-1.5 flex-shrink-0 rounded-full bg-white mt-px ml-px" />
+                    <div className="w-1.5 h-1.5 flex-shrink-0 rounded-full bg-white" />
                   )}
                 </div>
               </div>
@@ -136,6 +136,7 @@ const SelectPaymentWorkflowModal: React.FC<SelectPaymentWorkflowModalProps> = ({
             preferences in{" "}
             <a
               href="#"
+              onClick={(e) => e.preventDefault()}
               className="text-blue-600 hover:text-blue-700 font-medium inline-flex items-center gap-0.5 cursor-pointer transition-colors duration-300"
             >
               Payment Workflows

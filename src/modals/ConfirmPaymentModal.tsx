@@ -1,11 +1,11 @@
 import React, { useState, useMemo } from "react";
 import clsx from "clsx";
-import LayoutModal from "../component/modal/LayoutModal";
-import WrapModal from "../component/modal/WrapModal";
-import Button from "../component/base/Button";
-import Icon from "../component/base/Icon";
-import Badge from "../component/base/Badge";
-import InfoBox from "../component/base/InfoBox";
+import LayoutModal from "../components/common/modal/LayoutModal";
+import WrapModal from "../components/common/modal/WrapModal";
+import Button from "../components/common/base/Button";
+import Icon from "../components/common/base/Icon";
+import Badge from "../components/common/base/Badge";
+import InfoBox from "../components/common/base/InfoBox";
 
 export interface ConfirmPaymentVendor {
   name: string;

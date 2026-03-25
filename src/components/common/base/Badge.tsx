@@ -1,9 +1,9 @@
 import React from 'react';
 import clsx from 'clsx';
 import Icon from './Icon';
-import { focusButton } from '../../config/commonStyles';
-import { type TColors, type TSizes, classes as enumClasses } from '../../enums/Badge';
-import type { TIconName, TIconVariant, TIconDirectionLR } from '../../enums/Icon';
+import { focusButton } from '../../../config/commonStyles';
+import { type TColors, type TSizes, classes as enumClasses } from '../../../enums/Badge';
+import type { TIconName, TIconVariant, TIconDirectionLR } from '../../../enums/Icon';
 
 type BadgeProps = {
   size?: TSizes;

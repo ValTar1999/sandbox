@@ -1,12 +1,12 @@
 import clsx from 'clsx';
-import { focusButton, focusItem } from '../../config/commonStyles';
+import { focusButton, focusItem } from '../../../config/commonStyles';
 
 import { Dropdown } from './Dropdown';
 import { Avatar } from '../base/Avatar';
 import Icon from '../base/Icon'; 
 
 // Img
-import avatarImg from "../../assets/image/layout/avatar-example.jpeg";
+import avatarImg from "../../../assets/image/layout/avatar-example.jpeg";
 
 interface DropdownItem {
   icon: string; 
@@ -69,7 +69,7 @@ export const DropdownUser: React.FC = () => {
   );
 
   const handleClick = () => {
-    console.log('Menu clicked');
+    // Intentionally no-op (demo UI).
   };
 
   return (

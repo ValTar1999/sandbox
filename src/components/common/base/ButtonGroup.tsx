@@ -2,7 +2,7 @@ import React from "react";
 import clsx from "clsx";
 import Icon from "./Icon";
 import Spinner from "./Spinner";
-import type { TIconName } from "../../enums/Icon";
+import type { TIconName } from "../../../enums/Icon";
 
 export type ButtonGroupVariant =
   | "gray"

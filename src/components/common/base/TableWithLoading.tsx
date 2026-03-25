@@ -1,7 +1,7 @@
 import React from "react";
 import clsx from "clsx";
 import Loading from "./Loading";
-import { LOADING_TRANSITION_CLASS } from "../../constants/animations";
+import { LOADING_TRANSITION_CLASS } from "../../../constants/animations";
 
 interface TableWithLoadingProps {
   isLoading: boolean;

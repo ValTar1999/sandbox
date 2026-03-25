@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
-import Box from "../../component/layout/Box";
-import Pagination from "../../component/base/Pagination";
-import BoxHeader from "../../component/layout/BoxHeader";
+import Box from "../../components/layout/Box";
+import Pagination from "../../components/common/base/Pagination";
+import BoxHeader from "../../components/layout/BoxHeader";
 import VendorsTable from "./VendorsTable";
 import type { NetworkAction } from "./VendorsTable";
 import { vendors as vendorsData, Vendor, PaymentNetworkStatus } from "./data";

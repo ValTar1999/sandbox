@@ -2,20 +2,21 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
 import { useParams, useNavigate } from "react-router-dom";
 import { payments, Payment } from "./BillsPayables/data";
-import Button from "../component/base/Button";
-import Badge from "../component/base/Badge";
-import Icon from "../component/base/Icon";
-import CheckBox from "../component/base/CheckBox";
-import { RefreshButton } from "../component/base/RefreshButton";
-import Box from "../component/layout/Box";
-import Accordion from "../component/dropdowns/Accordion";
-import DropdownCalendar from "../component/dropdowns/DropdownCalendar";
-import WrapSelect from "../component/base/WrapSelect";
-import AccountDetails from "../component/modules/AccountDetails";
+import Button from "../components/common/base/Button";
+import ScheduleForBox from "../components/common/base/ScheduleForBox";
+import Badge from "../components/common/base/Badge";
+import Icon from "../components/common/base/Icon";
+import CheckBox from "../components/common/base/CheckBox";
+import { RefreshButton } from "../components/common/base/RefreshButton";
+import Box from "../components/layout/Box";
+import Accordion from "../components/common/dropdowns/Accordion";
+import DropdownCalendar from "../components/common/dropdowns/DropdownCalendar";
+import WrapSelect from "../components/common/base/WrapSelect";
+import AccountDetails from "../components/common/modules/AccountDetails";
 import SmartDisburseIcon from "../assets/image/SMART-Disburse.svg";
 import MastercardIcon from "../assets/image/mastercard-flag.svg";
-import InfoBox from '../component/base/InfoBox';
-import VendorsToPay from '../component/dropdowns/VendorsToPay';
+import InfoBox from '../components/common/base/InfoBox';
+import VendorsToPay from '../components/common/dropdowns/VendorsToPay';
 import MultiPartyPaymentPage from "./Payment/MultiPartyPaymentPage";
 
 // Modal
@@ -230,7 +231,6 @@ const PaymentPage = () => {
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
   const [isPaymentSubmittedModalOpen, setIsPaymentSubmittedModalOpen] = useState(false);
   const [isChooseDataModalOpen, setIsChooseDataModalOpen] = useState(false);
-  const [selectedPayment, setSelectedPayment] = useState<typeof payments[0] | null>(null);
   const [selectedAccount, setSelectedAccount] = useState("");
   const [selectedMethod, setSelectedMethod] = useState("");
   const [selectedAchAccount, setSelectedAchAccount] = useState("");
@@ -432,6 +432,11 @@ const PaymentPage = () => {
     };
   }, [isSmartDisburseDropdownOpen, isSmartDisburseInputFocused, handleClickOutside]);
 
+  const handleClearSchedule = useCallback(() => {
+    setSelectedDate(null);
+    setSelectedIndex(null);
+  }, []);
+
   const handleCopy = useCallback(() => {
     if (!payment) return;
     navigator.clipboard.writeText(payment.billReference)
@@ -445,6 +450,7 @@ const PaymentPage = () => {
 
   // Pay Modal
   const handlePayClick = useCallback((payment: typeof payments[0]) => {
+    void payment;
     const hasErrors =
       !selectedAccount ||
       !selectedMethod ||
@@ -460,7 +466,6 @@ const PaymentPage = () => {
       return;
     }
 
-    setSelectedPayment(payment);
     setIsPayModalOpen(true);
   }, [
     selectedAccount,
@@ -480,43 +485,35 @@ const PaymentPage = () => {
   ]);
 
   const handlePayConfirm = useCallback(() => {
-    console.log('Processing payment:', selectedPayment);
     setIsPayModalOpen(false);
     setIsPaymentSubmittedModalOpen(true);
-  }, [selectedPayment]);
+  }, []);
 
   const handlePayClose = useCallback(() => {
     setIsPayModalOpen(false);
-    setSelectedPayment(null);
   }, []);
 
   // Payment Submitted Modal
   const handlePaymentSubmittedConfirm = useCallback(() => {
-    console.log('Cancelling payment:', selectedPayment);
     setIsPaymentSubmittedModalOpen(false);
-    setSelectedPayment(null);
-  }, [selectedPayment]);
+  }, []);
 
   const handlePaymentSubmittedClose = useCallback(() => {
     setIsPaymentSubmittedModalOpen(false);
-    setSelectedPayment(null);
   }, []);
 
   // Choose Data Modal
   const handleChooseDataClick = useCallback((payment: typeof payments[0]) => {
-    setSelectedPayment(payment);
+    void payment;
     setIsChooseDataModalOpen(true);
   }, []);
 
   const handleChooseDataModalConfirm = useCallback(() => {
-    console.log('Processing payment:', selectedPayment);
     setIsChooseDataModalOpen(false);
-    setSelectedPayment(null);
-  }, [selectedPayment]);
+  }, []);
 
   const handleChooseDataModalClose = useCallback(() => {
     setIsChooseDataModalOpen(false);
-    setSelectedPayment(null);
   }, []);
   // --------------------------------------------------
 
@@ -544,25 +541,28 @@ const PaymentPage = () => {
         </div>
       }
       footer={
-        <div className="flex items-center gap-2 w-full justify-end">
-          <Button 
-            size="md"
-            onClick={() => handlePayClick(payment)}
-          >
-            Pay: {payment.totalAmount}
-          </Button>
-          <DropdownCalendar 
-            dueDate={payment.dueDate} 
-            onSelectDate={setSelectedDate} 
-            selectedIndex={selectedIndex} 
-            setSelectedIndex={setSelectedIndex}
-            handleChooseDataClick={() => handleChooseDataClick(payment)}
-          />
+        <div className="flex flex-col gap-2 w-full">
+          <div className="flex items-center gap-2 w-full justify-end">
+            <Button 
+              size="md"
+              onClick={() => handlePayClick(payment)}
+            >
+              Pay: {payment.totalAmount}
+            </Button>
+            <DropdownCalendar 
+              dueDate={payment.dueDate} 
+              onSelectDate={setSelectedDate} 
+              selectedIndex={selectedIndex} 
+              setSelectedIndex={setSelectedIndex}
+              handleChooseDataClick={() => handleChooseDataClick(payment)}
+            />
+          </div>
+          <ScheduleForBox selectedDate={selectedDate} onClear={handleClearSchedule} />
         </div>
       }
     >
       <div className="p-6">
-        <div className="mb-6">
+        <div className="mb-6 flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
               <div className="text-2xl font-bold">
@@ -607,28 +607,7 @@ const PaymentPage = () => {
             </div>
           </div>
 
-          {selectedDate && (
-            <div className="flex justify-end mt-2">
-              <div className="text-sm font-semibold inline-flex">
-                <div className="px-2 flex items-center gap-1 text-gray-600 bg-gray-50 border border-gray-300 rounded-l-md">
-                  <Icon className="w-4.5 h-4.5" icon="calendar" variant="outline" />
-                  <div className="">Schedule for:</div>
-                </div>
-                <div className="flex items-center border-y border-r border-gray-200 rounded-r-md">
-                  <div className="text-blue-600 pl-2">{selectedDate}</div>
-                  <Button 
-                    size="sm" 
-                    icon="x" 
-                    variant="add_on" 
-                    onClick={() => {
-                      setSelectedDate(null);
-                      setSelectedIndex(null);
-                    }} 
-                  />
-                </div>
-              </div>
-            </div>
-          )}
+          <ScheduleForBox selectedDate={selectedDate} onClear={handleClearSchedule} />
         </div>
 
         <div className="flex flex-wrap gap-6 border-y border-gray-200 py-5">
@@ -1056,7 +1035,7 @@ const PaymentPage = () => {
           </div>
         </div>
 
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-6">
           {hasPayableSummary(payment) && (
             <Accordion title="Payable Summary">
               <table className="w-full">
@@ -1077,8 +1056,10 @@ const PaymentPage = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                {payment.payableSummary.map((item, index) => (
-                  <tr key={index}>
+                {payment.payableSummary.map((item) => (
+                  <tr
+                    key={`${item.item}-${item.quantity}-${item.price}-${item.amount}`}
+                  >
                     <td className="px-6 py-2 text-sm whitespace-nowrap text-left max-w-64 overflow-hidden text-ellipsis">
                       {item.item}
                     </td>
@@ -1110,7 +1091,15 @@ const PaymentPage = () => {
                 <div className="text-base font-medium">Unprocessed</div>
                 <div className="mt-1 text-sm text-gray-700">
                   <div>
-                    Payment for payable ID <a className="text-smart-main hover:text-smart-main-darken hover:underline" href="#">#2345REQ3</a> is pending initiation on 04/22/2022
+                    Payment for payable ID{" "}
+                    <a
+                      className="text-smart-main hover:text-smart-main-darken hover:underline"
+                      href="#"
+                      onClick={(e) => e.preventDefault()}
+                    >
+                      #2345REQ3
+                    </a>{" "}
+                    is pending initiation on 04/22/2022
                   </div>
                 </div>
                 <div className="mt-1 text-xs font-medium text-gray-400">{payment.unprocessed?.date}</div>

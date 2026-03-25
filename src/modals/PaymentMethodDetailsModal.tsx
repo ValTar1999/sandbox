@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import LayoutModal from "../component/modal/LayoutModal";
-import WrapModal from "../component/modal/WrapModal";
-import Button from "../component/base/Button";
-import WrapSelect from "../component/base/WrapSelect";
-import AccountDetails from "../component/modules/AccountDetails";
-import InfoBox from "../component/base/InfoBox";
-import CheckboxField from "../component/modules/CheckboxField";
+import LayoutModal from "../components/common/modal/LayoutModal";
+import WrapModal from "../components/common/modal/WrapModal";
+import Button from "../components/common/base/Button";
+import WrapSelect from "../components/common/base/WrapSelect";
+import AccountDetails from "../components/common/modules/AccountDetails";
+import InfoBox from "../components/common/base/InfoBox";
+import CheckboxField from "../components/common/modules/CheckboxField";
 import SmartDisburseIcon from "../assets/image/SMART-Disburse.svg";
 
 const paymentMethodOptions = [
@@ -141,7 +141,7 @@ const PaymentMethodDetailsModal: React.FC<PaymentMethodDetailsModalProps> = ({
 
           <CheckboxField
             title="Make default payment method"
-            subtitle='Checking this means next time you make a payment it will be pre-selected. You can change it anytime in <a href="#" class="text-blue-600 font-medium">vendor profile</a>.'
+            subtitle='Checking this means next time you make a payment it will be pre-selected. You can change it anytime in <span class="text-blue-600 font-medium">vendor profile</span>.'
             checked={makeDefault}
             onChange={(e) => setMakeDefault(e.target.checked)}
           />

@@ -1,10 +1,10 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import Button from "../../component/base/Button";
-import Badge from "../../component/base/Badge";
-import Box from "../../component/layout/Box";
-import { RefreshButton } from "../../component/base/RefreshButton";
-import VendorsToPay from "../../component/dropdowns/VendorsToPay";
+import Button from "../../components/common/base/Button";
+import Badge from "../../components/common/base/Badge";
+import Box from "../../components/layout/Box";
+import { RefreshButton } from "../../components/common/base/RefreshButton";
+import VendorsToPay from "../../components/common/dropdowns/VendorsToPay";
 import { Payment } from "../BillsPayables/data";
 
 interface MultiPartyPaymentPageProps {

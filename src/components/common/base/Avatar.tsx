@@ -1,6 +1,6 @@
 import React from 'react'
 import clsx from 'clsx'
-import { TSizes, classes as enumClasses } from '../../enums/Avatar'
+import { TSizes, classes as enumClasses } from '../../../enums/Avatar'
 
 // Интерфейс пропсов компонента Avatar
 interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {

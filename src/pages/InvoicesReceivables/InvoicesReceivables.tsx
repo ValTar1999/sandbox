@@ -1,9 +1,9 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Box from "../../component/layout/Box";
-import Pagination from "../../component/base/Pagination";
-import BoxHeader from "../../component/layout/BoxHeader";
-import { ButtonTab } from "../../component/base/ButtonTab";
+import Box from "../../components/layout/Box";
+import Pagination from "../../components/common/base/Pagination";
+import BoxHeader from "../../components/layout/BoxHeader";
+import { ButtonTab } from "../../components/common/base/ButtonTab";
 import ReceivablesTable from "./ReceivablesTable";
 import {
   receivables,
@@ -12,7 +12,7 @@ import {
   ReceivableStatus,
   PaymentMethodItem,
 } from "./data";
-import TableWithLoading from "../../component/base/TableWithLoading";
+import TableWithLoading from "../../components/common/base/TableWithLoading";
 import { LOADING_DURATION_MS } from "../../constants/animations";
 
 const InvoicesReceivables = () => {
@@ -125,20 +125,19 @@ const InvoicesReceivables = () => {
   };
 
   const handleInvoiceClick = (receivable: Receivable) => {
-    navigate(`/receivables/${receivable.id}`);
+    navigate(`/receivables/${receivable.invoiceNumber}`);
   };
 
   const handleReRunClick = (receivable: Receivable) => {
-    console.log("Re-run clicked:", receivable);
-    // TODO: Re-run payment
+    void receivable
   };
 
   const handleCancelClick = (
     receivable: Receivable,
     paymentMethod?: PaymentMethodItem
   ) => {
-    console.log("Cancel clicked:", receivable, paymentMethod);
-    // TODO: Cancel payment
+    void receivable
+    void paymentMethod
   };
 
   return (

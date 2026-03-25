@@ -1,9 +1,9 @@
-// src/component/base/CancelPaymentModal.tsx
+// src/components/common/base/CancelPaymentModal.tsx
 import React from "react";
-import Icon from "../component/base/Icon";
-import Button from "../component/base/Button";
-import LayoutModal from "../component/modal/LayoutModal";
-import Modal from "../component/modal/Modal";
+import Icon from "../components/common/base/Icon";
+import Button from "../components/common/base/Button";
+import LayoutModal from "../components/common/modal/LayoutModal";
+import Modal from "../components/common/modal/Modal";
 
 interface CancelPaymentModalProps {
   open: boolean;

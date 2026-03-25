@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { focusButton } from '../../config/commonStyles';
-import Icon from '../base/Icon';
+import Icon from '../common/base/Icon';
 import clsx from 'clsx';
 
 interface BreadcrumbSegmentProps {
@@ -11,7 +11,11 @@ interface BreadcrumbSegmentProps {
 }
 
 const BreadcrumbSegment: React.FC<BreadcrumbSegmentProps> = ({ segment, pathTo, isLast }) => {
-  const formattedSegment = segment.replace(/-/g, " ");
+  // Preserve hyphen for IDs (e.g. XZ1-A, KQ5-B), replace for slugs (e.g. business-details)
+  const formattedSegment =
+    segment.length <= 12 && /^[A-Za-z0-9]+-[A-Za-z0-9]+$/.test(segment)
+      ? segment
+      : segment.replace(/-/g, " ");
 
   if (isLast) {
     return (

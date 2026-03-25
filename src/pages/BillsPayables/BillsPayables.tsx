@@ -1,15 +1,15 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Box from "../../component/layout/Box";
-import Pagination from "../../component/base/Pagination";
-import BoxHeader from "../../component/layout/BoxHeader";
-import { ButtonTab } from "../../component/base/ButtonTab";
-import RootTable from "../../component/base/RootTable";
+import Box from "../../components/layout/Box";
+import Pagination from "../../components/common/base/Pagination";
+import BoxHeader from "../../components/layout/BoxHeader";
+import { ButtonTab } from "../../components/common/base/ButtonTab";
+import RootTable from "../../components/common/base/RootTable";
 import { payments } from "./data";
 import CancelPaymentModal from "../../modals/CancelPaymentModal";
 import CancelBulkPaymentModal from "../../modals/CancelBulkPaymentModal";
 import ReRunPaymentModal from "../../modals/ReRunPaymentModal";
-import TableWithLoading from "../../component/base/TableWithLoading";
+import TableWithLoading from "../../components/common/base/TableWithLoading";
 import { LOADING_DURATION_MS } from "../../constants/animations";
 
 const statusMap = {
@@ -31,7 +31,6 @@ const BillsPayables = () => {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isCancelBulkPaymentModalOpen, setIsCancelBulkPaymentModalOpen] = useState(false);
   const [isReRunModalOpen, setIsReRunModalOpen] = useState(false);
-  const [selectedPayment, setSelectedPayment] = useState<typeof payments[0] | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   useEffect(() => {
@@ -96,51 +95,42 @@ const BillsPayables = () => {
   };
 
   const handleCancelClick = (payment: typeof payments[0]) => {
-    setSelectedPayment(payment);
+    void payment;
     setIsCancelModalOpen(true);
   };
 
   const handleReRunClick = (payment: typeof payments[0]) => {
-    setSelectedPayment(payment);
+    void payment;
     setIsReRunModalOpen(true);
   };
 
   const handleCancelConfirm = () => {
-    console.log('Cancelling payment:', selectedPayment);
     setIsCancelModalOpen(false);
-    setSelectedPayment(null);
   };
 
   const handleReRunConfirm = () => {
-    console.log('Re-running payment:', selectedPayment);
     setIsReRunModalOpen(false);
-    setSelectedPayment(null);
   };
 
   const handleCancelClose = () => {
     setIsCancelModalOpen(false);
-    setSelectedPayment(null);
   };
 
   const handleCancelBulkPaymentClick = (payment: typeof payments[0]) => {
-    setSelectedPayment(payment);
+    void payment;
     setIsCancelBulkPaymentModalOpen(true);
   };
 
   const handleCancelBulkPaymentConfirm = () => {
-    console.log('Cancelling bulk payment:', selectedPayment);
     setIsCancelBulkPaymentModalOpen(false);
-    setSelectedPayment(null);
   };
 
   const handleCancelBulkPaymentClose = () => {
     setIsCancelBulkPaymentModalOpen(false);
-    setSelectedPayment(null);
   };
 
   const handleReRunClose = () => {
     setIsReRunModalOpen(false);
-    setSelectedPayment(null);
   };
 
   return (

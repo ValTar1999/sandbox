@@ -1,7 +1,7 @@
 import React from 'react';
 import clsx from 'clsx';
 import Icon from '../base/Icon';
-import { TIconName, TIconVariant, TIconDirectionLR } from '../../enums/Icon';
+import { TIconName, TIconVariant, TIconDirectionLR } from '../../../enums/Icon';
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   rounded?: boolean;

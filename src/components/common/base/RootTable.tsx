@@ -9,8 +9,8 @@ import ExpandableTableRow from "./ExpandableTableRow";
 import ExpandableRow from "./ExpandableRow";
 import Menu, { useMenuContext } from "./Menu";
 import Input from "./Input";
-import { Payment } from "../../pages/BillsPayables/data";
-import { STATUS_BADGES } from "../../constants/tableStatusBadges";
+import { Payment } from "../../../pages/BillsPayables/data";
+import { STATUS_BADGES } from "../../../constants/tableStatusBadges";
 import {
   TH_CLASS,
   TH_TEXT_CLASS,
@@ -18,8 +18,8 @@ import {
   FLEX_END,
   FLEX_START,
   FLEX_CENTER,
-} from "../../constants/tableStyles";
-import SD from "../../assets/image/SMART-Disburse.svg";
+} from "../../../constants/tableStyles";
+import SD from "../../../assets/image/SMART-Disburse.svg";
 
 interface RootTableProps {
   payments: Payment[];

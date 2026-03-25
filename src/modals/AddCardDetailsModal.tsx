@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import clsx from "clsx";
-import LayoutModal from "../component/modal/LayoutModal";
-import WrapModal from "../component/modal/WrapModal";
-import Button from "../component/base/Button";
-import Input from "../component/base/Input";
-import Icon from "../component/base/Icon";
-import WrapSelect from "../component/base/WrapSelect";
+import LayoutModal from "../components/common/modal/LayoutModal";
+import WrapModal from "../components/common/modal/WrapModal";
+import Button from "../components/common/base/Button";
+import Input from "../components/common/base/Input";
+import Icon from "../components/common/base/Icon";
+import WrapSelect from "../components/common/base/WrapSelect";
 
 export type CardDetailsFormData = {
   cardNumber: string;

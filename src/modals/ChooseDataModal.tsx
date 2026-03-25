@@ -1,10 +1,10 @@
 import React from 'react';
-import LayoutModal from "../component/modal/LayoutModal";
-import WrapModal from "../component/modal/WrapModal";
-import Button from "../component/base/Button";
-import Calendar from "../component/modules/Calendar";
+import LayoutModal from "../components/common/modal/LayoutModal";
+import WrapModal from "../components/common/modal/WrapModal";
+import Button from "../components/common/base/Button";
+import Calendar from "../components/common/modules/Calendar";
 import { format } from 'date-fns';
-import Icon from '../component/base/Icon';
+import Icon from '../components/common/base/Icon';
 
 interface ChooseDataModalProps {
   open: boolean;

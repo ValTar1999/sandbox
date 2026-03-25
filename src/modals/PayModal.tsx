@@ -1,12 +1,12 @@
 import React from 'react';
-import LayoutModal from "../component/modal/LayoutModal";
-import Modal from "../component/modal/Modal";
-import Button from "../component/base/Button";
-import Icon from "../component/base/Icon";
-import CheckboxField from "../component/modules/CheckboxField";
+import LayoutModal from "../components/common/modal/LayoutModal";
+import Modal from "../components/common/modal/Modal";
+import Button from "../components/common/base/Button";
+import Icon from "../components/common/base/Icon";
+import CheckboxField from "../components/common/modules/CheckboxField";
 import { payments } from "../pages/BillsPayables/data";
-import AccountDetails from '../component/modules/AccountDetails';
-import InfoBox from '../component/base/InfoBox';
+import AccountDetails from '../components/common/modules/AccountDetails';
+import InfoBox from '../components/common/base/InfoBox';
 
 interface PayModalProps {
   open: boolean;

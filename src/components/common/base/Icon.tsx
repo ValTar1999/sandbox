@@ -1,6 +1,6 @@
 import React from 'react'
 import { clsx } from 'clsx'
-import { TIconName, TIconVariant } from '../../enums/Icon'
+import { TIconName, TIconVariant } from '../../../enums/Icon'
 
 /**
  * @param icon - Имя иконки для отображения

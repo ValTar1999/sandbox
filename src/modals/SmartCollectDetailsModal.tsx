@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import LayoutModal from "../component/modal/LayoutModal";
-import WrapModal from "../component/modal/WrapModal";
-import Button from "../component/base/Button";
-import CheckboxField from "../component/modules/CheckboxField";
-import Icon from "../component/base/Icon";
+import LayoutModal from "../components/common/modal/LayoutModal";
+import WrapModal from "../components/common/modal/WrapModal";
+import Button from "../components/common/base/Button";
+import CheckboxField from "../components/common/modules/CheckboxField";
+import Icon from "../components/common/base/Icon";
 
 interface SmartCollectDetailsModalProps {
   open: boolean;
@@ -135,6 +135,7 @@ const SmartCollectDetailsModal: React.FC<SmartCollectDetailsModalProps> = ({
                 will be pre-selected. You can change it anytime in{" "}
                 <a
                   href="#"
+                  onClick={(e) => e.preventDefault()}
                   className="text-blue-600 hover:text-blue-700 font-medium"
                 >
                   customer profile

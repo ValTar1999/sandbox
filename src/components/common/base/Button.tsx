@@ -1,8 +1,8 @@
 import React from 'react';
 import Icon from './Icon';
-import { classes, sizes, TVariants } from '../../enums/Button';
-import { TIconName, TIconVariant, TIconDirectionLR } from '../../enums/Icon';
-import { TCommonSizes } from '../../enums/Sizes';
+import { classes, sizes, TVariants } from '../../../enums/Button';
+import { TIconName, TIconVariant, TIconDirectionLR } from '../../../enums/Icon';
+import { TCommonSizes } from '../../../enums/Sizes';
 
 interface ButtonProps {
   size?: TCommonSizes;

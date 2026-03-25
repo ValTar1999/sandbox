@@ -11,13 +11,13 @@ import {
   Cog8ToothIcon,
 } from "@heroicons/react/24/outline";
 
-import Button from "../base/Button";
-import Icon from "../base/Icon";
+import Button from "../common/base/Button";
+import Icon from "../common/base/Icon";
 import Logo from "../layout/Logo";
-import Badge from "../base/Badge";
-import Tooltip, { TooltipTrigger, TooltipContent } from "../base/Tooltip";
-import Menu from "../base/Menu";
-import Select, { useSelectContext } from "../base/Select";
+import Badge from "../common/base/Badge";
+import Tooltip, { TooltipTrigger, TooltipContent } from "../common/base/Tooltip";
+import Menu from "../common/base/Menu";
+import Select, { useSelectContext } from "../common/base/Select";
 
 import TranscardShield from "../../assets/image/layout/transcard-shield.svg";
 import TranscardText from "../../assets/image/layout/transcard-text.svg";
@@ -367,6 +367,7 @@ const HelpContent = memo(() => (
     </div>
     <a 
       href="#" 
+      onClick={(e) => e.preventDefault()}
       className="flex items-center gap-1 text-sm font-semibold py-3 px-6 text-blue-600 hover:text-blue-700 transition-all duration-300"
     >
       FAQ & User Guides
@@ -719,14 +720,16 @@ const Sidebar: React.FC = () => {
           )}
         >
           <a 
-            href="#" 
+            href="#"
+            onClick={(e) => e.preventDefault()}
             className="text-nowrap w-fit transition-all duration-300 cursor-pointer text-center text-xs font-medium leading-4 text-gray-700 hover:opacity-80"
           >
             Terms of Use
           </a>
           <div className="text-gray-700 text-xs font-medium leading-4">•</div>
           <a 
-            href="#" 
+            href="#"
+            onClick={(e) => e.preventDefault()}
             className="text-nowrap w-fit transition-all duration-300 cursor-pointer text-center text-xs font-medium leading-4 text-gray-700 hover:opacity-80"
           >
             Privacy Policy

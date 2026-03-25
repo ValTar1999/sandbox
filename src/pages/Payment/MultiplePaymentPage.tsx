@@ -1,13 +1,13 @@
 import React, { useMemo, useState, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import Button from "../../component/base/Button";
-import Badge from "../../component/base/Badge";
-import Box from "../../component/layout/Box";
-import Icon from "../../component/base/Icon";
-import { RefreshButton } from "../../component/base/RefreshButton";
-import WrapSelect from "../../component/base/WrapSelect";
-import DropdownCalendar from "../../component/dropdowns/DropdownCalendar";
-import VendorsToPay from "../../component/dropdowns/VendorsToPay";
+import Button from "../../components/common/base/Button";
+import ScheduleForBox from "../../components/common/base/ScheduleForBox";
+import Badge from "../../components/common/base/Badge";
+import Box from "../../components/layout/Box";
+import { RefreshButton } from "../../components/common/base/RefreshButton";
+import WrapSelect from "../../components/common/base/WrapSelect";
+import DropdownCalendar from "../../components/common/dropdowns/DropdownCalendar";
+import VendorsToPay from "../../components/common/dropdowns/VendorsToPay";
 import SelectPaymentMethodModal from "../../modals/SelectPaymentMethodModal";
 import ConfirmPaymentModal, {
   type ConfirmPaymentVendor,
@@ -96,6 +96,10 @@ const MultiplePaymentPage: React.FC = () => {
   });
 
   const handleBack = useCallback(() => navigate(-1), [navigate]);
+  const handleClearSchedule = useCallback(() => {
+    setSelectedDate(null);
+    setSelectedIndex(null);
+  }, []);
   const firstDueDate = selectedPayments[0]?.dueDate ?? "";
 
   const resetVendorData = useCallback((vendorName: string) => {
@@ -278,23 +282,26 @@ const MultiplePaymentPage: React.FC = () => {
         </div>
       }
       footer={
-        <div className="flex items-center gap-2 w-full justify-end">
-          <Button size="md" onClick={handlePay}>
-            Pay: ${totalFormatted}
-          </Button>
-          <DropdownCalendar
-            dueDate={firstDueDate}
-            onSelectDate={setSelectedDate}
-            selectedIndex={selectedIndex}
-            setSelectedIndex={setSelectedIndex}
-            handleChooseDataClick={() => {}}
-          />
+        <div className="flex flex-col gap-2 w-full">
+          <div className="flex items-center gap-2 w-full justify-end">
+            <Button size="md" onClick={handlePay}>
+              Pay: ${totalFormatted}
+            </Button>
+            <DropdownCalendar
+              dueDate={firstDueDate}
+              onSelectDate={setSelectedDate}
+              selectedIndex={selectedIndex}
+              setSelectedIndex={setSelectedIndex}
+              handleChooseDataClick={() => {}}
+            />
+          </div>
+          <ScheduleForBox selectedDate={selectedDate} onClear={handleClearSchedule} />
         </div>
       }
     >
       <div className="p-6">
         {/* Payment summary */}
-        <div className="mb-6">
+        <div className="mb-6 flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
               <div className="text-2xl font-bold">
@@ -319,28 +326,7 @@ const MultiplePaymentPage: React.FC = () => {
             </div>
           </div>
 
-          {selectedDate && (
-            <div className="flex justify-end mt-2">
-              <div className="text-sm font-semibold inline-flex">
-                <div className="px-2 flex items-center gap-1 text-gray-600 bg-gray-50 border border-gray-300 rounded-l-md">
-                  <Icon className="w-4.5 h-4.5" icon="calendar" variant="outline" />
-                  <div>Schedule for:</div>
-                </div>
-                <div className="flex items-center border-y border-r border-gray-200 rounded-r-md">
-                  <div className="text-blue-600 pl-2">{selectedDate}</div>
-                  <Button
-                    size="sm"
-                    icon="x"
-                    variant="add_on"
-                    onClick={() => {
-                      setSelectedDate(null);
-                      setSelectedIndex(null);
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
+          <ScheduleForBox selectedDate={selectedDate} onClear={handleClearSchedule} />
         </div>
 
         {/* Origination Account */}

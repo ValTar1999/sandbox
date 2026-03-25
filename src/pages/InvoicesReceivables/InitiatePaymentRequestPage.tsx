@@ -6,17 +6,18 @@ import React, {
 } from "react";
 import clsx from "clsx";
 import { useNavigate, useParams } from "react-router-dom";
-import Button from "../../component/base/Button";
-import Badge from "../../component/base/Badge";
-import Icon from "../../component/base/Icon";
-import { RefreshButton } from "../../component/base/RefreshButton";
-import Box from "../../component/layout/Box";
-import Accordion from "../../component/dropdowns/Accordion";
-import WrapSelect from "../../component/base/WrapSelect";
-import Select, { useSelectContext } from "../../component/base/Select";
-import Menu, { useMenuContext } from "../../component/base/Menu";
-import DropdownCalendar from "../../component/dropdowns/DropdownCalendar";
-import Tooltip, { TooltipTrigger, TooltipContent } from "../../component/base/Tooltip";
+import Button from "../../components/common/base/Button";
+import ScheduleForBox from "../../components/common/base/ScheduleForBox";
+import Badge from "../../components/common/base/Badge";
+import Icon from "../../components/common/base/Icon";
+import { RefreshButton } from "../../components/common/base/RefreshButton";
+import Box from "../../components/layout/Box";
+import Accordion from "../../components/common/dropdowns/Accordion";
+import WrapSelect from "../../components/common/base/WrapSelect";
+import Select, { useSelectContext } from "../../components/common/base/Select";
+import Menu, { useMenuContext } from "../../components/common/base/Menu";
+import DropdownCalendar from "../../components/common/dropdowns/DropdownCalendar";
+import Tooltip, { TooltipTrigger, TooltipContent } from "../../components/common/base/Tooltip";
 import SmartCollectIcon from "../../assets/image/SMART-Collect.svg";
 import AddBankAccountModal, {
   type BankAccountFormData,
@@ -494,7 +495,7 @@ const InitiatePaymentRequestPage = () => {
   const [showErrors, setShowErrors] = useState(false);
 
   const receivable = useMemo(
-    () => receivables.find((r) => r.id === id),
+    () => receivables.find((r) => r.id === id || r.invoiceNumber === id),
     [id]
   );
 
@@ -544,6 +545,11 @@ const InitiatePaymentRequestPage = () => {
       .then(() => alert("Bill reference copied!"))
       .catch(() => alert("Failed to copy."));
   }, [receivable]);
+
+  const handleClearSchedule = useCallback(() => {
+    setSelectedDate(null);
+    setSelectedIndex(null);
+  }, []);
 
   const filteredContacts = useMemo(() => {
     const query = contactQuery.trim().toLowerCase();
@@ -659,7 +665,7 @@ const InitiatePaymentRequestPage = () => {
               variant="primary"
               onClick={handleInvoiceClick}
             >
-              Invoice: {receivable.amount}
+              {paymentCollection === "charge" ? "Charge" : "Invoice"}: {receivable.amount}
             </Button>
             <div className="ml-2">
               <DropdownCalendar
@@ -671,33 +677,12 @@ const InitiatePaymentRequestPage = () => {
               />
             </div>
           </div>
-          {selectedDate && (
-            <div className="flex justify-end">
-              <div className="text-sm font-semibold inline-flex">
-                <div className="px-2 flex items-center gap-1 text-gray-600 bg-gray-50 border border-gray-300 rounded-l-md">
-                  <Icon className="w-4.5 h-4.5" icon="calendar" variant="outline" />
-                  <span>Schedule for:</span>
-                </div>
-                <div className="flex items-center border-y border-r border-gray-200 rounded-r-md">
-                  <span className="text-blue-600 pl-2">{selectedDate}</span>
-                  <Button
-                    size="sm"
-                    icon="x"
-                    variant="add_on"
-                    onClick={() => {
-                      setSelectedDate(null);
-                      setSelectedIndex(null);
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
+          <ScheduleForBox selectedDate={selectedDate} onClear={handleClearSchedule} />
         </div>
       }
     >
       <div className="p-6">
-        <div className="mb-6">
+        <div className="mb-6 flex flex-col gap-2">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-6">
               <div className="text-2xl font-bold">
@@ -718,7 +703,7 @@ const InitiatePaymentRequestPage = () => {
                 variant="primary"
                 onClick={handleInvoiceClick}
               >
-                Invoice: {receivable.amount}
+                {paymentCollection === "charge" ? "Charge" : "Invoice"}: {receivable.amount}
               </Button>
               <div className="ml-2">
                 <DropdownCalendar
@@ -731,6 +716,7 @@ const InitiatePaymentRequestPage = () => {
               </div>
             </div>
           </div>
+          <ScheduleForBox selectedDate={selectedDate} onClear={handleClearSchedule} />
         </div>
 
         <div className="flex flex-wrap gap-6 border-y border-gray-200 py-5">
@@ -1026,7 +1012,7 @@ const InitiatePaymentRequestPage = () => {
           )}
         </div>
 
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-6">
           {receivable.receivableSummary &&
             receivable.receivableSummary.length > 0 && (
               <Accordion
@@ -1048,8 +1034,10 @@ const InitiatePaymentRequestPage = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {receivable.receivableSummary.map((item, index) => (
-                      <tr key={index}>
+                    {receivable.receivableSummary.map((item) => (
+                      <tr
+                        key={`${item.item}-${item.quantity}-${item.price}-${item.amount}`}
+                      >
                         <td className="px-6 py-2 text-sm whitespace-nowrap text-left max-w-64 overflow-hidden text-ellipsis">
                           {item.item}
                         </td>
@@ -1075,40 +1063,41 @@ const InitiatePaymentRequestPage = () => {
               </Accordion>
             )}
 
-          {receivable.activityLog && receivable.activityLog.length > 0 && (
-            <Accordion title="Activity Log">
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 pt-1.5">
-                  <Icon icon="flag" className="h-3.5 w-3.5 text-gray-500" />
-                </div>
-                <div>
-                  {receivable.activityLog.map((item) => (
-                    <div key={item.id}>
-                      <div className="text-base font-medium">Unprocessed</div>
-                      <div className="mt-1 text-sm text-gray-700">
-                        {item.description.split(/(#\w+)/g).map((part, i) =>
-                          part.match(/^#\w+$/) ? (
-                            <a
-                              key={i}
-                              href="#"
-                              className="text-blue-600 font-medium hover:underline"
-                            >
-                              {part}
-                            </a>
-                          ) : (
-                            part
-                          )
-                        )}
+            {receivable.activityLog && receivable.activityLog.length > 0 && (
+              <Accordion title="Activity Log">
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 pt-1.5">
+                    <Icon icon="flag" className="h-3.5 w-3.5 text-gray-500" />
+                  </div>
+                  <div>
+                    {receivable.activityLog.map((item) => (
+                      <div key={item.id}>
+                        <div className="text-base font-medium">Unprocessed</div>
+                        <div className="mt-1 text-sm text-gray-700">
+                          {item.description.split(/(#\w+)/g).map((part) =>
+                            part.match(/^#\w+$/) ? (
+                              <a
+                                href="#"
+                                key={part}
+                                className="text-blue-600 font-medium hover:underline"
+                                onClick={(e) => e.preventDefault()}
+                              >
+                                {part}
+                              </a>
+                            ) : (
+                              part
+                            )
+                          )}
+                        </div>
+                        <div className="mt-1 text-xs font-medium text-gray-400">
+                          {item.timestamp}
+                        </div>
                       </div>
-                      <div className="mt-1 text-xs font-medium text-gray-400">
-                        {item.timestamp}
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </Accordion>
-          )}
+              </Accordion>
+            )}
         </div>
       </div>
 
