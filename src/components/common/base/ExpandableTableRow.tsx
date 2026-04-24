@@ -1,5 +1,5 @@
-import React from "react";
-import clsx from "clsx";
+import React from 'react';
+import clsx from 'clsx';
 
 interface ExpandableTableRowProps {
   colSpan: number;
@@ -22,10 +22,10 @@ const ExpandableTableRow: React.FC<ExpandableTableRowProps> = ({
     <td colSpan={colSpan} className="p-0 align-top">
       <div
         className={clsx(
-          "grid transition-[grid-template-rows] duration-300 ease-in-out",
+          'grid transition-[grid-template-rows] duration-300 ease-in-out',
           className
         )}
-        style={{ gridTemplateRows: isExpanded ? "1fr" : "0fr" }}
+        style={{ gridTemplateRows: isExpanded ? '1fr' : '0fr' }}
       >
         <div className="min-h-0 overflow-hidden">{children}</div>
       </div>

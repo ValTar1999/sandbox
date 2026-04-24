@@ -1,9 +1,9 @@
-import React, { useState } from "react";
-import LayoutModal from "../components/common/modal/LayoutModal";
-import WrapModal from "../components/common/modal/WrapModal";
-import Button from "../components/common/base/Button";
-import CheckboxField from "../components/common/modules/CheckboxField";
-import Icon from "../components/common/base/Icon";
+import React, { useState } from 'react';
+import LayoutModal from '../components/common/modal/LayoutModal';
+import WrapModal from '../components/common/modal/WrapModal';
+import Button from '../components/common/base/Button';
+import CheckboxField from '../components/common/modules/CheckboxField';
+import Icon from '../components/common/base/Icon';
 
 interface SmartCollectDetailsModalProps {
   open: boolean;
@@ -45,7 +45,7 @@ const SmartCollectDetailsModal: React.FC<SmartCollectDetailsModalProps> = ({
   paymentWorkflow,
   receivingAccount,
   isCharge = false,
-  customerAccount = "",
+  customerAccount = '',
   isFromDemoOnly = false,
 }) => {
   const [makeDefault, setMakeDefault] = useState(false);
@@ -62,7 +62,7 @@ const SmartCollectDetailsModal: React.FC<SmartCollectDetailsModalProps> = ({
               Cancel
             </Button>
             <Button size="lg" onClick={onInvoice}>
-              {isCharge ? "Charge" : "Invoice"}
+              {isCharge ? 'Charge' : 'Invoice'}
             </Button>
           </div>
         }
@@ -77,9 +77,13 @@ const SmartCollectDetailsModal: React.FC<SmartCollectDetailsModalProps> = ({
             {isCharge ? (
               <div className="rounded-md border border-gray-200 bg-gray-50 p-4 mb-2">
                 <div className="grid grid-cols-2 gap-6 text-sm leading-5">
-                  <span className="font-medium text-gray-900">Customer Account</span>
+                  <span className="font-medium text-gray-900">
+                    Customer Account
+                  </span>
                   <div className="text-gray-500">
-                    {formatAccountDisplay(customerAccount || "Account ....6789")}
+                    {formatAccountDisplay(
+                      customerAccount || 'Account ....6789'
+                    )}
                   </div>
                 </div>
               </div>
@@ -90,13 +94,17 @@ const SmartCollectDetailsModal: React.FC<SmartCollectDetailsModalProps> = ({
                 </div>
                 <div className="space-y-2 text-sm leading-5 p-4">
                   <div className="grid grid-cols-2 gap-6">
-                    <span className="font-medium text-gray-900">Contact Address</span>
+                    <span className="font-medium text-gray-900">
+                      Contact Address
+                    </span>
                     <span className="text-gray-700">{contactAddress}</span>
                   </div>
                   <div className="grid grid-cols-2 gap-6">
-                    <span className="font-medium text-gray-900">Payment Workflow</span>
+                    <span className="font-medium text-gray-900">
+                      Payment Workflow
+                    </span>
                     <span className="text-gray-700">
-                      {paymentWorkflow.replace(/^STANDARD\s+/i, "")}
+                      {paymentWorkflow.replace(/^STANDARD\s+/i, '')}
                     </span>
                   </div>
                 </div>
@@ -113,8 +121,8 @@ const SmartCollectDetailsModal: React.FC<SmartCollectDetailsModalProps> = ({
               <div className="grid grid-cols-2 gap-6 text-sm leading-5">
                 <span className="font-medium text-gray-900">
                   {isCharge && isFromDemoOnly
-                    ? "Merchant Services Account"
-                    : "Receiving Account"}
+                    ? 'Merchant Services Account'
+                    : 'Receiving Account'}
                 </span>
                 <div className="text-gray-500">
                   {formatAccountDisplay(receivingAccount)}
@@ -131,8 +139,8 @@ const SmartCollectDetailsModal: React.FC<SmartCollectDetailsModalProps> = ({
                 Make default payment method
               </span>
               <span className="block mt-1 text-gray-500 font-normal">
-                Checking this means next time you make a payment request it
-                will be pre-selected. You can change it anytime in{" "}
+                Checking this means next time you make a payment request it will
+                be pre-selected. You can change it anytime in{' '}
                 <a
                   href="#"
                   onClick={(e) => e.preventDefault()}

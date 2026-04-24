@@ -3,8 +3,8 @@ import React, {
   useContext,
   useState,
   PropsWithChildren,
-} from "react";
-import clsx from "clsx";
+} from 'react';
+import clsx from 'clsx';
 import {
   useFloating,
   offset,
@@ -17,8 +17,8 @@ import {
   useInteractions,
   FloatingPortal,
   arrow as floatingArrow,
-} from "@floating-ui/react";
-import type { Placement } from "@floating-ui/react";
+} from '@floating-ui/react';
+import type { Placement } from '@floating-ui/react';
 
 type SelectContextType = ReturnType<typeof useSelectInternal> & {
   arrowRef: React.MutableRefObject<SVGSVGElement | null>;
@@ -29,14 +29,15 @@ const SelectContext = createContext<SelectContextType | null>(null);
 export const useSelectContext = () => {
   const ctx = useContext(SelectContext);
   if (!ctx) {
-    throw new Error("Select components must be used within <Select.Root />");
+    throw new Error('Select components must be used within <Select.Root />');
   }
   return ctx;
 };
 
 const useSelectInternal = (
   initialOpen = false,
-  placement: Placement = "bottom-start"
+  placement: Placement = 'bottom-start',
+  matchTriggerWidth = true
 ) => {
   const [open, setOpen] = useState(initialOpen);
   const arrowRef = React.useRef<SVGSVGElement | null>(null);
@@ -50,8 +51,19 @@ const useSelectInternal = (
       offset(8),
       size({
         apply({ rects, elements }) {
+          if (!matchTriggerWidth) {
+            Object.assign(elements.floating.style, {
+              width: '',
+              minWidth: '',
+              maxWidth: '',
+            });
+            return;
+          }
+          const triggerWidth = `${rects.reference.width}px`;
           Object.assign(elements.floating.style, {
-            width: `${rects.reference.width}px`,
+            width: triggerWidth,
+            minWidth: triggerWidth,
+            maxWidth: triggerWidth,
           });
         },
       }),
@@ -62,7 +74,7 @@ const useSelectInternal = (
   });
 
   const dismiss = useDismiss(floating.context);
-  const role = useRole(floating.context, { role: "menu" });
+  const role = useRole(floating.context, { role: 'menu' });
 
   const interactions = useInteractions([dismiss, role]);
 
@@ -78,27 +90,37 @@ const useSelectInternal = (
 interface SelectRootProps {
   initialOpen?: boolean;
   placement?: Placement;
+  matchTriggerWidth?: boolean;
 }
 
 const Root = ({
   children,
   initialOpen,
   placement,
+  matchTriggerWidth = true,
 }: PropsWithChildren<SelectRootProps>) => {
-  const value = useSelectInternal(initialOpen, placement);
+  const value = useSelectInternal(initialOpen, placement, matchTriggerWidth);
 
-  return <SelectContext.Provider value={value}>{children}</SelectContext.Provider>;
+  return (
+    <SelectContext.Provider value={value}>{children}</SelectContext.Provider>
+  );
 };
 
 type SelectTriggerProps = React.HTMLAttributes<HTMLElement> & {
-  as?: "button" | "span";
+  as?: 'button' | 'span';
 };
 
-const Trigger = ({ children, className, onClick, as = "button", ...props }: SelectTriggerProps) => {
+const Trigger = ({
+  children,
+  className,
+  onClick,
+  as = 'button',
+  ...props
+}: SelectTriggerProps) => {
   const { refs, getReferenceProps, open, setOpen } = useSelectContext();
 
-  const Component = as === "span" ? "span" : "button";
-  const elementProps = as === "button" ? { type: "button" as const } : {};
+  const Component = as === 'span' ? 'span' : 'button';
+  const elementProps = as === 'button' ? { type: 'button' as const } : {};
 
   return (
     <Component
@@ -162,7 +184,7 @@ const Popup = ({ children, className, ...props }: PopupProps) => {
   return (
     <div
       {...getFloatingProps({
-        className: clsx("text-sm text-gray-900", className),
+        className: clsx('text-sm text-gray-900', className),
         ...props,
       })}
     >
@@ -198,7 +220,7 @@ const Item = ({ children, className, ...props }: ItemProps) => {
     <button
       type="button"
       className={clsx(
-        "flex w-full items-center px-3 py-1.5 text-left text-sm text-gray-900 hover:bg-gray-100",
+        'flex w-full items-center px-3 py-1.5 text-left text-sm text-gray-900 hover:bg-gray-100',
         className
       )}
       {...props}
@@ -209,7 +231,7 @@ const Item = ({ children, className, ...props }: ItemProps) => {
 };
 
 const Separator = ({ className }: { className?: string }) => (
-  <div className={clsx("my-1 h-px bg-gray-200", className)} />
+  <div className={clsx('my-1 h-px bg-gray-200', className)} />
 );
 
 export const Select = {

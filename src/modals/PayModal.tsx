@@ -1,10 +1,10 @@
 import React from 'react';
-import LayoutModal from "../components/common/modal/LayoutModal";
-import Modal from "../components/common/modal/Modal";
-import Button from "../components/common/base/Button";
-import Icon from "../components/common/base/Icon";
-import CheckboxField from "../components/common/modules/CheckboxField";
-import { payments } from "../pages/BillsPayables/data";
+import LayoutModal from '../components/common/modal/LayoutModal';
+import Modal from '../components/common/modal/Modal';
+import Button from '../components/common/base/Button';
+import Icon from '../components/common/base/Icon';
+import CheckboxField from '../components/common/modules/CheckboxField';
+import { payments } from '../pages/BillsPayables/data';
 import AccountDetails from '../components/common/modules/AccountDetails';
 import InfoBox from '../components/common/base/InfoBox';
 
@@ -17,7 +17,7 @@ interface PayModalProps {
   contactEmail?: string;
   smartDisburseContacts?: {
     id: string;
-    type: "email" | "phone";
+    type: 'email' | 'phone';
     value: string;
     label?: string;
     subLabel?: string;
@@ -34,16 +34,20 @@ const PayModal: React.FC<PayModalProps> = ({
   smartDisburseContacts,
 }) => {
   if (!open) return null;
-  const isCardMethod = paymentMethod === "card";
-  const isSmartDisburse = paymentMethod === "smart-disburse";
+  const isCardMethod = paymentMethod === 'card';
+  const isSmartDisburse = paymentMethod === 'smart-disburse';
   return (
     <LayoutModal>
       <Modal
         className="w-125"
         footer={
           <div className="flex items-center justify-end gap-6">
-            <Button variant="secondary" size="lg" onClick={onClose}>Cancel</Button>
-            <Button size="lg" onClick={isCardMethod ? onClose : onConfirm}>Pay Now</Button>
+            <Button variant="secondary" size="lg" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button size="lg" onClick={isCardMethod ? onClose : onConfirm}>
+              Pay Now
+            </Button>
           </div>
         }
       >
@@ -56,20 +60,25 @@ const PayModal: React.FC<PayModalProps> = ({
             <div className="flex rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm">
               <div className="grid grid-cols-2 items-start text-start gap-6">
                 <div className="font-medium">Origination Account</div>
-                <div className="text-gray-700">Secondary Bank Account ••••1010</div>
+                <div className="text-gray-700">
+                  Secondary Bank Account ••••1010
+                </div>
               </div>
             </div>
             <div className="my-1.5 flex items-center justify-center">
               <div className="flex h-10 w-10 flex-shrink-0 rounded-full bg-gray-50 ring-2 ring-inset ring-gray-200">
-                <Icon
-                  icon="arrow-down"
-                  className="m-auto text-gray-500"
-                />
+                <Icon icon="arrow-down" className="m-auto text-gray-500" />
               </div>
             </div>
 
             <AccountDetails
-              variant={isSmartDisburse ? "smart-disburse" : isCardMethod ? "card" : "bank"}
+              variant={
+                isSmartDisburse
+                  ? 'smart-disburse'
+                  : isCardMethod
+                    ? 'card'
+                    : 'bank'
+              }
               smartDisburseContacts={smartDisburseContacts}
             />
             {!isCardMethod && !isSmartDisburse && (
@@ -79,10 +88,12 @@ const PayModal: React.FC<PayModalProps> = ({
                 title='If your Routing Number, Account Number or Address records (as registered under the bank account) are no longer accurate, please update the details in your ERP. Once your details are updated, please "Refresh" to reflect the changes.'
               />
             )}
-            {isCardMethod && sendingMethod === "delivery" && !!contactEmail && (
+            {isCardMethod && sendingMethod === 'delivery' && !!contactEmail && (
               <div className="mt-4 rounded-lg border border-gray-200 bg-white">
                 <div className="border-b border-gray-200 bg-gray-100 px-4 py-2">
-                  <div className="text-sm font-semibold text-gray-900 leading-5">Contact Details</div>
+                  <div className="text-sm font-semibold text-gray-900 leading-5">
+                    Contact Details
+                  </div>
                 </div>
                 <div className="px-4 py-4 bg-gray-50">
                   <div className="grid grid-cols-2 gap-y-2 text-sm leading-5">
@@ -92,7 +103,6 @@ const PayModal: React.FC<PayModalProps> = ({
                 </div>
               </div>
             )}
-
           </div>
           <CheckboxField
             title="Make default payment method"

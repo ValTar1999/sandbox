@@ -3,13 +3,15 @@ import clsx from 'clsx';
 import Icon from '../base/Icon';
 import { TIconName, TIconVariant, TIconDirectionLR } from '../../../enums/Icon';
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface InputProps
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   rounded?: boolean;
   inputClass?: string;
   error?: boolean;
   icon?: TIconName;
   iconVariant?: TIconVariant;
   iconDirection?: TIconDirectionLR;
+  size?: 'sm' | 'md';
 }
 
 const Input: React.FC<InputProps> = ({
@@ -20,14 +22,16 @@ const Input: React.FC<InputProps> = ({
   icon,
   iconVariant,
   iconDirection = 'left',
+  size = 'md',
   className,
   disabled,
   readOnly,
   ...attrs
 }) => {
   const rootClasses = clsx(
-    'relative shadow-sm flex h-10', 
-    rounded && 'rounded-md', 
+    'relative shadow-sm flex',
+    size === 'sm' ? 'h-8' : 'h-10',
+    rounded && 'rounded-md',
     className
   );
 
@@ -36,7 +40,7 @@ const Input: React.FC<InputProps> = ({
   );
 
   const iconClasses = clsx(
-    'text-gray-400', 
+    'text-gray-400',
     iconDirection === 'right' && 'ml-auto'
   );
 
@@ -57,11 +61,7 @@ const Input: React.FC<InputProps> = ({
       {(icon || error) && (
         <div className={iconWrapClasses}>
           {icon ? (
-            <Icon
-              icon={icon}
-              variant={iconVariant}
-              className={iconClasses}
-            />
+            <Icon icon={icon} variant={iconVariant} className={iconClasses} />
           ) : (
             <Icon
               icon="exclamation-circle"

@@ -10,7 +10,13 @@ interface TooltipDarkProps {
   [key: string]: unknown;
 }
 
-const TooltipDark = ({children, className, menuClass, onStateChange, ...props}: TooltipDarkProps): ReactElement => {
+const TooltipDark = ({
+  children,
+  className,
+  menuClass,
+  onStateChange,
+  ...props
+}: TooltipDarkProps): ReactElement => {
   let trigger: ReactElement | null = null;
   let menu: ReactElement | null = null;
 

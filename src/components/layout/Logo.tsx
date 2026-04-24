@@ -9,29 +9,24 @@ interface LogoProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   className?: string;
 }
 
-const Logo: React.FC<LogoProps> = memo(({
-  className,
-  logoSrc = LogoImgSrc,
-  altText = 'SMART Hub',
-  link = '/sandbox/',
-  ...props
-}) => {
-  return (
-    <a
-      href={link}
-      className={clsx(
-        'flex flex-shrink-0 items-center',
-        className
-      )}
-      {...props}
-    >
-      <img
-        src={logoSrc}
-        alt={altText}
-        className="w-full min-w-8 h-8"
-      />
-    </a>
-  );
-});
+const Logo: React.FC<LogoProps> = memo(
+  ({
+    className,
+    logoSrc = LogoImgSrc,
+    altText = 'SMART Hub',
+    link = '/sandbox/',
+    ...props
+  }) => {
+    return (
+      <a
+        href={link}
+        className={clsx('flex flex-shrink-0 items-center', className)}
+        {...props}
+      >
+        <img src={logoSrc} alt={altText} className="w-full min-w-8 h-8" />
+      </a>
+    );
+  }
+);
 
 export default Logo;

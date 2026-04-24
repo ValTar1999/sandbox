@@ -1,9 +1,9 @@
 import React from 'react';
-import LayoutModal from "../components/common/modal/LayoutModal";
-import Modal from "../components/common/modal/Modal";
-import Button from "../components/common/base/Button";
-import Icon from "../components/common/base/Icon";
-import PaymentStepProgress from "../components/common/base/PaymentStepProgress";
+import LayoutModal from '../components/common/modal/LayoutModal';
+import Modal from '../components/common/modal/Modal';
+import Button from '../components/common/base/Button';
+import Icon from '../components/common/base/Icon';
+import PaymentStepProgress from '../components/common/base/PaymentStepProgress';
 
 interface PaymentSubmittedModalProps {
   open: boolean;
@@ -11,7 +11,11 @@ interface PaymentSubmittedModalProps {
   handlePaymentSubmittedClick: () => void;
 }
 
-const PaymentSubmittedModal: React.FC<PaymentSubmittedModalProps> = ({ open, onClose, handlePaymentSubmittedClick }) => {
+const PaymentSubmittedModal: React.FC<PaymentSubmittedModalProps> = ({
+  open,
+  onClose,
+  handlePaymentSubmittedClick,
+}) => {
   if (!open) return null;
   return (
     <LayoutModal>
@@ -22,10 +26,10 @@ const PaymentSubmittedModal: React.FC<PaymentSubmittedModalProps> = ({ open, onC
         icon={<Icon icon="check-circle" className="h-11 w-11 text-green-500" />}
         onClose={onClose}
       >
-        <PaymentStepProgress/>
-        <Button 
+        <PaymentStepProgress />
+        <Button
           size="xl"
-          className="w-full" 
+          className="w-full"
           onClick={handlePaymentSubmittedClick}
         >
           Done

@@ -37,7 +37,10 @@ const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
 
     return (
       <label
-        className={clsx('inline-flex items-center overflow-visible', wrapperClassName)}
+        className={clsx(
+          'inline-flex items-center overflow-visible',
+          wrapperClassName
+        )}
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
@@ -45,16 +48,13 @@ const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
           }
         }}
       >
-        <input
-          type={type}
-          className="peer sr-only"
-          ref={ref}
-          {...props}
-        />
+        <input type={type} className="peer sr-only" ref={ref} {...props} />
         <span
           className={clsx(
             checkboxClass,
-            isRadio ? 'peer-checked:[&>svg]:opacity-100' : 'peer-checked:[&>svg]:opacity-100'
+            isRadio
+              ? 'peer-checked:[&>svg]:opacity-100'
+              : 'peer-checked:[&>svg]:opacity-100'
           )}
         >
           {isRadio ? (
@@ -92,6 +92,5 @@ const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
     );
   }
 );
-
 
 export default CheckBox;

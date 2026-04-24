@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
-import clsx from "clsx";
-import LayoutModal from "../components/common/modal/LayoutModal";
-import WrapModal from "../components/common/modal/WrapModal";
-import Button from "../components/common/base/Button";
-import Badge from "../components/common/base/Badge";
-import Icon from "../components/common/base/Icon";
+import React, { useState, useEffect } from 'react';
+import clsx from 'clsx';
+import LayoutModal from '../components/common/modal/LayoutModal';
+import WrapModal from '../components/common/modal/WrapModal';
+import Button from '../components/common/base/Button';
+import Badge from '../components/common/base/Badge';
+import Icon from '../components/common/base/Icon';
 
 export type PaymentWorkflowOption = {
   id: string;
@@ -15,21 +15,21 @@ export type PaymentWorkflowOption = {
 
 const workflowOptions: PaymentWorkflowOption[] = [
   {
-    id: "standard",
-    title: "STANDARD SMART Collect",
+    id: 'standard',
+    title: 'STANDARD SMART Collect',
     description:
-      "Standard SMART Collect with all eligible payment methods being made available.",
+      'Standard SMART Collect with all eligible payment methods being made available.',
     isDefault: true,
   },
   {
-    id: "auto-insurance",
-    title: "Auto Insurance Claimants",
-    description: "Used for claims for all auto insurance contracts.",
+    id: 'auto-insurance',
+    title: 'Auto Insurance Claimants',
+    description: 'Used for claims for all auto insurance contracts.',
   },
   {
-    id: "premium",
-    title: "Premium Collection",
-    description: "Used for collecting customer insurance premiums.",
+    id: 'premium',
+    title: 'Premium Collection',
+    description: 'Used for collecting customer insurance premiums.',
   },
 ];
 
@@ -47,7 +47,7 @@ const SelectPaymentWorkflowModal: React.FC<SelectPaymentWorkflowModalProps> = ({
   onSave,
 }) => {
   const defaultWorkflowId =
-    workflowOptions.find((o) => o.isDefault)?.id ?? "standard";
+    workflowOptions.find((o) => o.isDefault)?.id ?? 'standard';
   const [tempSelected, setTempSelected] = useState<string>(
     selectedWorkflowId ?? defaultWorkflowId
   );
@@ -93,10 +93,10 @@ const SelectPaymentWorkflowModal: React.FC<SelectPaymentWorkflowModalProps> = ({
               type="button"
               onClick={() => setTempSelected(option.id)}
               className={clsx(
-                "w-full text-left p-4 rounded-lg border bg-white transition-all duration-300 cursor-pointer",
+                'w-full text-left p-4 rounded-lg border bg-white transition-all duration-300 cursor-pointer',
                 tempSelected === option.id
-                  ? "border-transparent ring-2 ring-blue-600"
-                  : "border-gray-300 hover:border-gray-400"
+                  ? 'border-transparent ring-2 ring-blue-600'
+                  : 'border-gray-300 hover:border-gray-400'
               )}
             >
               <div className="flex items-start justify-between gap-4">
@@ -117,10 +117,10 @@ const SelectPaymentWorkflowModal: React.FC<SelectPaymentWorkflowModalProps> = ({
                 </div>
                 <div
                   className={clsx(
-                    "w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center transition-colors duration-300",
+                    'w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center transition-colors duration-300',
                     tempSelected === option.id
-                      ? "bg-blue-600"
-                      : "border-2 border-gray-300 bg-white"
+                      ? 'bg-blue-600'
+                      : 'border-2 border-gray-300 bg-white'
                   )}
                 >
                   {tempSelected === option.id && (
@@ -133,7 +133,7 @@ const SelectPaymentWorkflowModal: React.FC<SelectPaymentWorkflowModalProps> = ({
 
           <p className="text-sm leading-5 text-gray-500 pt-4">
             Manage your default &apos;Pay Another Way&apos; payment methods
-            preferences in{" "}
+            preferences in{' '}
             <a
               href="#"
               onClick={(e) => e.preventDefault()}

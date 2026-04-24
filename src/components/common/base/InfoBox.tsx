@@ -2,9 +2,9 @@ import React from 'react';
 import clsx from 'clsx';
 import Icon from '../base/Icon';
 import Button from '../base/Button';
-import {TIconName, TIconVariant} from '../../../enums/Icon'
-import {TColors} from '../../../enums/InfoBox';
-import {TVariants} from '../../../enums/Button';
+import { TIconName, TIconVariant } from '../../../enums/Icon';
+import { TColors } from '../../../enums/InfoBox';
+import { TVariants } from '../../../enums/Button';
 
 type BaseProps = React.HTMLAttributes<HTMLDivElement> & {
   title?: string;
@@ -55,11 +55,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
     <div className={rootClass} {...rest}>
       <div className="flex w-full gap-3">
         {icon && (
-          <Icon
-            icon={icon}
-            variant={iconVariant}
-            className={iconClass}
-          />
+          <Icon icon={icon} variant={iconVariant} className={iconClass} />
         )}
         <div className="flex w-full flex-col justify-between lg:flex-row lg:items-start">
           <div className="space-y-1 text-sm font-medium">
@@ -67,18 +63,12 @@ const InfoBox: React.FC<InfoBoxProps> = ({
             {text && <div className={textClass}>{text}</div>}
           </div>
           {children && (
-            <div className="mt-2 flex gap-1 lg:-mt-1 lg:ml-10">
-              {children}
-            </div>
+            <div className="mt-2 flex gap-1 lg:-mt-1 lg:ml-10">{children}</div>
           )}
         </div>
       </div>
       {closeIcon && (
-        <Button
-          variant={closeIconVariant}
-          size="xs"
-          className="-mr-2 -mt-2"
-        >
+        <Button variant={closeIconVariant} size="xs" className="-mr-2 -mt-2">
           <Icon icon="x" />
         </Button>
       )}

@@ -1,44 +1,54 @@
-import React, { useCallback, useState } from "react";
-import clsx from "clsx";
-import Icon from "../../components/common/base/Icon";
-import Button from "../../components/common/base/Button";
-import Badge from "../../components/common/base/Badge";
-import ExpandableTableRow from "../../components/common/base/ExpandableTableRow";
-import ExpandableRow from "../../components/common/base/ExpandableRow";
-import Menu, { useMenuContext } from "../../components/common/base/Menu";
-import Tooltip, { TooltipTrigger, TooltipContent } from "../../components/common/base/Tooltip";
+import React, { useCallback, useState } from 'react';
+import clsx from 'clsx';
+import Icon from '../../components/common/base/Icon';
+import Button from '../../components/common/base/Button';
+import Badge from '../../components/common/base/Badge';
+import ExpandableTableRow from '../../components/common/base/ExpandableTableRow';
+import ExpandableRow from '../../components/common/base/ExpandableRow';
+import Menu, { useMenuContext } from '../../components/common/base/Menu';
+import Tooltip, {
+  TooltipTrigger,
+  TooltipContent,
+} from '../../components/common/base/Tooltip';
 import {
   Receivable,
   ReceivableStatus,
   PaymentType,
   PaymentMethodItem,
-} from "./data";
-import { STATUS_BADGES } from "../../constants/tableStatusBadges";
+} from './data';
+import { STATUS_BADGES } from '../../constants/tableStatusBadges';
 import {
   TH_CLASS,
   TH_TEXT_CLASS,
   TD_CLASS,
   FLEX_END,
   FLEX_START,
-} from "../../constants/tableStyles";
-import MastercardFlag from "../../assets/image/mastercard-flag.svg";
-import SmartCollectIcon from "../../assets/image/SMART-Collect.svg";
+} from '../../constants/tableStyles';
+import MastercardFlag from '../../assets/image/mastercard-flag.svg';
+import SmartCollectIcon from '../../assets/image/SMART-Collect.svg';
 
 interface ReceivablesTableProps {
   receivables: Receivable[];
   activeTab?: ReceivableStatus;
   onInvoiceClick?: (receivable: Receivable) => void;
   onReRunClick?: (receivable: Receivable) => void;
-  onCancelClick?: (receivable: Receivable, paymentMethod?: PaymentMethodItem) => void;
+  onCancelClick?: (
+    receivable: Receivable,
+    paymentMethod?: PaymentMethodItem
+  ) => void;
 }
 
-const ACTIVITY_LOG_ICONS: Record<string, { icon: string; className: string }> = {
-  paid: { icon: "check-circle", className: "w-3.5 h-3.5 text-green-500" },
-  processing: { icon: "in-progress", className: "w-3.5 h-3.5 text-blue-500" },
-  initiated: { icon: "in-progress", className: "w-3.5 h-3.5 text-blue-500" },
-  failed: { icon: "exclamation-circle", className: "w-3.5 h-3.5 text-red-500" },
-  pending: { icon: "calendar", className: "w-3.5 h-3.5 text-gray-500" },
-};
+const ACTIVITY_LOG_ICONS: Record<string, { icon: string; className: string }> =
+  {
+    paid: { icon: 'check-circle', className: 'w-3.5 h-3.5 text-green-500' },
+    processing: { icon: 'in-progress', className: 'w-3.5 h-3.5 text-blue-500' },
+    initiated: { icon: 'in-progress', className: 'w-3.5 h-3.5 text-blue-500' },
+    failed: {
+      icon: 'exclamation-circle',
+      className: 'w-3.5 h-3.5 text-red-500',
+    },
+    pending: { icon: 'calendar', className: 'w-3.5 h-3.5 text-gray-500' },
+  };
 
 const TooltipColumn: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -46,17 +56,15 @@ const TooltipColumn: React.FC<{ children: React.ReactNode }> = ({
 
 const TooltipTitle: React.FC<{ children: React.ReactNode }> = ({
   children,
-}) => (
-  <div className="text-base font-bold text-white">{children}</div>
-);
+}) => <div className="text-base font-bold text-white">{children}</div>;
 
-const TooltipText: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => <div className="text-sm leading-5 text-gray-400">{children}</div>;
+const TooltipText: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div className="text-sm leading-5 text-gray-400">{children}</div>
+);
 
 const RelatedStatusesBadges: React.FC<{
   items: Array<{
-    color: "yellow" | "blue" | "red" | "green";
+    color: 'yellow' | 'blue' | 'red' | 'green';
     icon: string;
     label: string;
   }>;
@@ -82,51 +90,60 @@ const ThWithInfo: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   const tooltipContent = (() => {
     switch (key) {
-      case "created":
+      case 'created':
         return (
           <TooltipColumn>
             <TooltipTitle>Invoice Date</TooltipTitle>
-            <TooltipText>Date when invoice was created in your system / ERP.</TooltipText>
+            <TooltipText>
+              Date when invoice was created in your system / ERP.
+            </TooltipText>
           </TooltipColumn>
         );
-      case "due":
+      case 'due':
         return (
           <TooltipColumn>
             <TooltipTitle>Invoice Due Date</TooltipTitle>
             <TooltipText>
-              Date when payment is due according to invoice data as sourced from your system / ERP.
+              Date when payment is due according to invoice data as sourced from
+              your system / ERP.
             </TooltipText>
           </TooltipColumn>
         );
-      case "presented":
+      case 'presented':
         return (
           <TooltipColumn>
             <TooltipTitle>Initiation Date</TooltipTitle>
             <TooltipText>
-              Date when you initiate a request for payment collection. It can be future dated for scheduled requests.
+              Date when you initiate a request for payment collection. It can be
+              future dated for scheduled requests.
             </TooltipText>
             <TooltipText>Related Statuses:</TooltipText>
             <RelatedStatusesBadges
               items={[
-                { color: "yellow", icon: "user", label: "Waiting on Customer" },
-                { color: "blue", icon: "in-progress", label: "Initiated" },
+                { color: 'yellow', icon: 'user', label: 'Waiting on Customer' },
+                { color: 'blue', icon: 'in-progress', label: 'Initiated' },
               ]}
             />
           </TooltipColumn>
         );
-      case "expected":
+      case 'expected':
         return (
           <TooltipColumn>
             <TooltipTitle>Bill Date</TooltipTitle>
             <TooltipText>
-              Date when payment is expected to be initiated. It&apos;s not always guaranteed that payment will successfully be executed.
+              Date when payment is expected to be initiated. It&apos;s not
+              always guaranteed that payment will successfully be executed.
             </TooltipText>
             <TooltipText>Related Statuses:</TooltipText>
             <RelatedStatusesBadges
               items={[
-                { color: "red", icon: "calendar", label: "Past Due" },
-                { color: "blue", icon: "external-link", label: "Pending Receipt" },
-                { color: "green", icon: "check-circle", label: "Paid" },
+                { color: 'red', icon: 'calendar', label: 'Past Due' },
+                {
+                  color: 'blue',
+                  icon: 'external-link',
+                  label: 'Pending Receipt',
+                },
+                { color: 'green', icon: 'check-circle', label: 'Paid' },
               ]}
             />
           </TooltipColumn>
@@ -154,15 +171,19 @@ const ThWithInfo: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 };
 
 const IN_PROGRESS_STATUS_BADGES: Record<
-  PaymentMethodItem["status"],
-  { color: "blue" | "yellow" | "red"; icon: string; label: string }
+  PaymentMethodItem['status'],
+  { color: 'blue' | 'yellow' | 'red'; icon: string; label: string }
 > = {
-  waitingOnCustomer: { color: "yellow", icon: "user", label: "Waiting on Customer" },
-  inProcess: { color: "blue", icon: "in-progress", label: "In Process" },
-  pastDue: { color: "red", icon: "calendar", label: "Past Due" },
+  waitingOnCustomer: {
+    color: 'yellow',
+    icon: 'user',
+    label: 'Waiting on Customer',
+  },
+  inProcess: { color: 'blue', icon: 'in-progress', label: 'In Process' },
+  pastDue: { color: 'red', icon: 'calendar', label: 'Past Due' },
 };
 
-const renderStatusBadge = (status: Receivable["status"]) => {
+const renderStatusBadge = (status: Receivable['status']) => {
   const config = STATUS_BADGES[status as keyof typeof STATUS_BADGES];
   if (!config) return null;
   return (
@@ -172,7 +193,7 @@ const renderStatusBadge = (status: Receivable["status"]) => {
   );
 };
 
-const renderInProgressStatusBadge = (status: PaymentMethodItem["status"]) => {
+const renderInProgressStatusBadge = (status: PaymentMethodItem['status']) => {
   const config = IN_PROGRESS_STATUS_BADGES[status];
   if (!config) return null;
   return (
@@ -182,36 +203,42 @@ const renderInProgressStatusBadge = (status: PaymentMethodItem["status"]) => {
   );
 };
 
-const getPaymentTypeLabel = (receivable: Receivable, isInProgress: boolean): string => {
+const getPaymentTypeLabel = (
+  receivable: Receivable,
+  isInProgress: boolean
+): string => {
   if (isInProgress) {
     const primaryPm = receivable.paymentMethods?.[0];
-    if (!primaryPm) return "-";
-    return primaryPm.type === "smartCollect"
-      ? "SMART Collect"
-      : primaryPm.type === "bank"
-        ? "Bank"
-        : primaryPm.type === "card"
-          ? "Card"
+    if (!primaryPm) return '-';
+    return primaryPm.type === 'smartCollect'
+      ? 'SMART Collect'
+      : primaryPm.type === 'bank'
+        ? 'Bank'
+        : primaryPm.type === 'card'
+          ? 'Card'
           : primaryPm.label;
   }
   const pt = receivable.paymentType;
-  if (!pt) return "-";
-  return pt === "smartCollect"
-    ? "SMART Collect"
-    : pt === "bank"
-      ? "Bank"
-      : pt === "card"
-        ? "Card"
+  if (!pt) return '-';
+  return pt === 'smartCollect'
+    ? 'SMART Collect'
+    : pt === 'bank'
+      ? 'Bank'
+      : pt === 'card'
+        ? 'Card'
         : pt.toUpperCase();
 };
 
 const getActivityLogIcon = (status: string) => {
-  const { icon, className } = ACTIVITY_LOG_ICONS[status] ?? ACTIVITY_LOG_ICONS.pending;
+  const { icon, className } =
+    ACTIVITY_LOG_ICONS[status] ?? ACTIVITY_LOG_ICONS.pending;
   return <Icon icon={icon} className={className} />;
 };
 
 const getActivityLogStatusLabel = (status: string) =>
-  status === "pending" ? "Pending Initiation" : status.charAt(0).toUpperCase() + status.slice(1);
+  status === 'pending'
+    ? 'Pending Initiation'
+    : status.charAt(0).toUpperCase() + status.slice(1);
 
 const renderDescriptionWithHighlightedId = (description: string) =>
   description.split(/(#\w+)/g).map((part) =>
@@ -233,14 +260,21 @@ const StatusFilterContent: React.FC = () => {
   const { setOpen } = useMenuContext();
   return (
     <div className="w-[200px] rounded-lg border border-gray-200 bg-white shadow-sm p-4">
-      <div className="text-sm font-medium text-gray-900 mb-2">Filter by Status</div>
+      <div className="text-sm font-medium text-gray-900 mb-2">
+        Filter by Status
+      </div>
       <div className="space-y-2 text-sm text-gray-700">
         <div>Unprocessed</div>
         <div>Processing</div>
         <div>Paid</div>
         <div>Failed</div>
       </div>
-      <Button className="mt-4 w-full" variant="primary" size="md" onClick={() => setOpen(false)}>
+      <Button
+        className="mt-4 w-full"
+        variant="primary"
+        size="md"
+        onClick={() => setOpen(false)}
+      >
         Apply
       </Button>
     </div>
@@ -251,7 +285,12 @@ const FilterContent: React.FC = () => {
   const { setOpen } = useMenuContext();
   return (
     <div className="w-[200px] rounded-lg border border-gray-200 bg-white shadow-sm p-4">
-      <Button className="w-full" variant="primary" size="md" onClick={() => setOpen(false)}>
+      <Button
+        className="w-full"
+        variant="primary"
+        size="md"
+        onClick={() => setOpen(false)}
+      >
         Apply
       </Button>
     </div>
@@ -263,14 +302,14 @@ const PaymentMethodDisplay: React.FC<{
   label: string;
   accountId?: string;
 }> = ({ type, label, accountId }) => {
-  const isBankOrCardWithId = (type === "bank" || type === "card") && accountId;
+  const isBankOrCardWithId = (type === 'bank' || type === 'card') && accountId;
   const displayLabel =
-    type === "bank" && accountId
+    type === 'bank' && accountId
       ? accountId
-      : type === "card" && accountId
+      : type === 'card' && accountId
         ? accountId
-        : type === "smartCollect"
-          ? "SMART Collect"
+        : type === 'smartCollect'
+          ? 'SMART Collect'
           : label;
   return (
     <div className="flex items-center gap-1.5 text-sm text-gray-900 font-medium text-nowrap">
@@ -280,13 +319,13 @@ const PaymentMethodDisplay: React.FC<{
           <Icon icon="chevron-right" className="w-5 h-5 text-gray-500" />
         </>
       )}
-      {type === "smartCollect" && !isBankOrCardWithId && (
+      {type === 'smartCollect' && !isBankOrCardWithId && (
         <img src={SmartCollectIcon} alt="" className="w-4 h-4" />
       )}
-      {type === "bank" && (
+      {type === 'bank' && (
         <Icon icon="library" className="w-5 h-5 text-gray-500" />
       )}
-      {type === "card" && (
+      {type === 'card' && (
         <img src={MastercardFlag} alt="" className="h-4 w-6" />
       )}
       <span>{displayLabel}</span>
@@ -296,23 +335,28 @@ const PaymentMethodDisplay: React.FC<{
 
 const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
   receivables,
-  activeTab = "Ready to Invoice",
+  activeTab = 'Ready to Invoice',
   onInvoiceClick,
   onReRunClick,
   onCancelClick,
 }) => {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
-  const [expandedActivityLogIds, setExpandedActivityLogIds] = useState<Set<string>>(new Set());
+  const [expandedActivityLogIds, setExpandedActivityLogIds] = useState<
+    Set<string>
+  >(new Set());
 
-  const toggleActivityLogExpand = useCallback((id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setExpandedActivityLogIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }, []);
+  const toggleActivityLogExpand = useCallback(
+    (id: string, e: React.MouseEvent) => {
+      e.stopPropagation();
+      setExpandedActivityLogIds((prev) => {
+        const next = new Set(prev);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        return next;
+      });
+    },
+    []
+  );
 
   const toggleExpand = useCallback((id: string) => {
     setExpandedRow((prev) => (prev === id ? null : id));
@@ -346,9 +390,9 @@ const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
     [onCancelClick]
   );
 
-  const isInProgress = activeTab === "In Progress";
+  const isInProgress = activeTab === 'In Progress';
   const showPaymentType =
-    activeTab === "Paid" || activeTab === "Exceptions" || isInProgress;
+    activeTab === 'Paid' || activeTab === 'Exceptions' || isInProgress;
 
   const getPaymentTypeContent = (receivable: Receivable) => {
     if (isInProgress) {
@@ -369,12 +413,12 @@ const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
       <PaymentMethodDisplay
         type={pt}
         label={
-          pt === "smartCollect"
-            ? "SMART Collect"
-            : pt === "bank"
-              ? "Bank"
-              : pt === "card"
-                ? "Card"
+          pt === 'smartCollect'
+            ? 'SMART Collect'
+            : pt === 'bank'
+              ? 'Bank'
+              : pt === 'card'
+                ? 'Card'
                 : pt.toUpperCase()
         }
         accountId={receivable.accountId}
@@ -409,19 +453,16 @@ const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
         </div>
       );
     }
-    if (receivable.status === "unprocessed") {
+    if (receivable.status === 'unprocessed') {
       return (
         <div className={FLEX_END}>
-          <Button
-            size="md"
-            onClick={(e) => handleInvoiceClick(receivable, e)}
-          >
+          <Button size="md" onClick={(e) => handleInvoiceClick(receivable, e)}>
             Invoice
           </Button>
         </div>
       );
     }
-    if (receivable.status === "failed") {
+    if (receivable.status === 'failed') {
       return (
         <div className={FLEX_END}>
           <Button
@@ -451,12 +492,10 @@ const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
       <div className="flex flex-col">
         <ExpandableRow label="Notes">
           <span className="text-sm font-medium text-gray-900">
-            {receivable.notes || "-"}
+            {receivable.notes || '-'}
           </span>
         </ExpandableRow>
-        <ExpandableRow label="Status">
-          {statusContent}
-        </ExpandableRow>
+        <ExpandableRow label="Status">{statusContent}</ExpandableRow>
         {showPaymentType && (
           <ExpandableRow label="Payment type">
             <span className="text-sm font-medium text-gray-900">
@@ -472,7 +511,10 @@ const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
                   key={filename}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-gray-100 text-sm font-medium text-gray-900"
                 >
-                  <Icon icon="document-text" className="w-4 h-4 text-gray-500" />
+                  <Icon
+                    icon="document-text"
+                    className="w-4 h-4 text-gray-500"
+                  />
                   {filename}
                 </div>
               ))
@@ -481,7 +523,7 @@ const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
             )}
           </div>
         </ExpandableRow>
-        {receivable.status === "failed" && (
+        {receivable.status === 'failed' && (
           <ExpandableRow label="Actions" borderTop>
             <Button
               size="md"
@@ -537,10 +579,14 @@ const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
                   size="sm"
                   icon="chevron-down"
                   iconDirection="right"
-                  iconClass={clsx(expandedActivityLogIds.has(receivable.id) && "rotate-180")}
+                  iconClass={clsx(
+                    expandedActivityLogIds.has(receivable.id) && 'rotate-180'
+                  )}
                   onClick={(e) => toggleActivityLogExpand(receivable.id, e)}
                 >
-                  {expandedActivityLogIds.has(receivable.id) ? "Show less" : "Show more"}
+                  {expandedActivityLogIds.has(receivable.id)
+                    ? 'Show less'
+                    : 'Show more'}
                 </Button>
               )}
             </div>
@@ -572,9 +618,7 @@ const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
               <div className={FLEX_START}>
                 <button>
                   <div className="flex items-center gap-1">
-                    <div className={TH_TEXT_CLASS}>
-                      invoice number
-                    </div>
+                    <div className={TH_TEXT_CLASS}>invoice number</div>
                     <Icon icon="selector" className="text-gray-400" />
                   </div>
                 </button>
@@ -593,12 +637,7 @@ const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
             </th>
 
             <th className={TH_CLASS}>
-              <div
-                className={clsx(
-                  "flex items-center gap-1",
-                  "justify-start"
-                )}
-              >
+              <div className={clsx('flex items-center gap-1', 'justify-start')}>
                 <button className="flex items-center gap-1">
                   <ThWithInfo>created</ThWithInfo>
                   <Icon icon="selector" className="text-gray-400" />
@@ -607,12 +646,7 @@ const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
             </th>
 
             <th className={TH_CLASS}>
-              <div
-                className={clsx(
-                  "flex items-center gap-1",
-                  "justify-start"
-                )}
-              >
+              <div className={clsx('flex items-center gap-1', 'justify-start')}>
                 <button className="flex items-center gap-1">
                   <ThWithInfo>due</ThWithInfo>
                   <Icon icon="selector" className="text-gray-400" />
@@ -621,12 +655,7 @@ const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
             </th>
 
             <th className={TH_CLASS}>
-              <div
-                className={clsx(
-                  "flex items-center gap-1",
-                  "justify-start"
-                )}
-              >
+              <div className={clsx('flex items-center gap-1', 'justify-start')}>
                 <button className="flex items-center gap-1">
                   <ThWithInfo>presented</ThWithInfo>
                   <Icon icon="selector" className="text-gray-400" />
@@ -635,12 +664,7 @@ const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
             </th>
 
             <th className={TH_CLASS}>
-              <div
-                className={clsx(
-                  "flex items-center gap-1",
-                  "justify-start"
-                )}
-              >
+              <div className={clsx('flex items-center gap-1', 'justify-start')}>
                 <button className="flex items-center gap-1">
                   <ThWithInfo>expected</ThWithInfo>
                   <Icon icon="selector" className="text-gray-400" />
@@ -651,14 +675,9 @@ const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
             {showPaymentType && (
               <th className={TH_CLASS}>
                 <div
-                  className={clsx(
-                    "flex items-center gap-1",
-                    "justify-start"
-                  )}
+                  className={clsx('flex items-center gap-1', 'justify-start')}
                 >
-                  <div className={TH_TEXT_CLASS}>
-                    payment type
-                  </div>
+                  <div className={TH_TEXT_CLASS}>payment type</div>
                   <Menu.Root placement="bottom-end">
                     <Menu.Trigger as="span">
                       <Button icon="filter" size="xs" variant="linkSecondary" />
@@ -677,12 +696,7 @@ const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
             )}
 
             <th className={TH_CLASS}>
-              <div
-                className={clsx(
-                  "flex items-center gap-1",
-                  "justify-start"
-                )}
-              >
+              <div className={clsx('flex items-center gap-1', 'justify-start')}>
                 <div className={TH_TEXT_CLASS}>status</div>
                 <Menu.Root placement="bottom-end">
                   <Menu.Trigger as="span">
@@ -707,36 +721,36 @@ const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
         <tbody>
           {receivables.map((receivable) => {
             const primaryPm = receivable.paymentMethods?.[0];
-            const isPastDue = primaryPm?.status === "pastDue";
+            const isPastDue = primaryPm?.status === 'pastDue';
 
             return (
               <React.Fragment key={receivable.id}>
                 <tr
                   onClick={() => toggleExpand(receivable.id)}
                   className={clsx(
-                    "transition-colors duration-300 ease-in-out",
-                    "hover:bg-gray-50 cursor-pointer",
-                    expandedRow === receivable.id && "bg-gray-100"
+                    'transition-colors duration-300 ease-in-out',
+                    'hover:bg-gray-50 cursor-pointer',
+                    expandedRow === receivable.id && 'bg-gray-100'
                   )}
                 >
                   <td className="w-[52px] max-w-[52px] min-w-[52px]">
                     <Icon
                       icon="chevron-right"
                       className={clsx(
-                        "ml-4 text-gray-500 transition-transform duration-300 ease-in-out",
-                        expandedRow === receivable.id && "rotate-90"
+                        'ml-4 text-gray-500 transition-transform duration-300 ease-in-out',
+                        expandedRow === receivable.id && 'rotate-90'
                       )}
                     />
                   </td>
 
                   <td
-                    className={clsx("w-[186px] max-w-[186px] min-w-[186px]", TD_CLASS)}
+                    className={clsx(
+                      'w-[186px] max-w-[186px] min-w-[186px]',
+                      TD_CLASS
+                    )}
                   >
                     <div
-                      className={clsx(
-                        "flex items-center gap-1",
-                        "justify-end"
-                      )}
+                      className={clsx('flex items-center gap-1', 'justify-end')}
                     >
                       <div className="font-medium text-gray-900 text-sm">
                         {receivable.amount}
@@ -749,14 +763,14 @@ const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
 
                   <td
                     className={clsx(
-                      "w-[140px] max-w-[140px] min-w-[140px]",
+                      'w-[140px] max-w-[140px] min-w-[140px]',
                       TD_CLASS
                     )}
                   >
                     <div
                       className={clsx(
-                        "text-sm text-gray-500 flex text-nowrap",
-                        "justify-start"
+                        'text-sm text-gray-500 flex text-nowrap',
+                        'justify-start'
                       )}
                     >
                       {receivable.invoiceNumber}
@@ -765,14 +779,14 @@ const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
 
                   <td
                     className={clsx(
-                      "min-w-0 max-w-xs overflow-hidden",
+                      'min-w-0 max-w-xs overflow-hidden',
                       TD_CLASS
                     )}
                   >
                     <div
                       className={clsx(
-                        "text-sm text-gray-900 font-medium truncate",
-                        "justify-start"
+                        'text-sm text-gray-900 font-medium truncate',
+                        'justify-start'
                       )}
                     >
                       {receivable.customer}
@@ -782,19 +796,19 @@ const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
                   <td className={TD_CLASS}>
                     <div
                       className={clsx(
-                        "text-sm text-gray-500 flex text-nowrap",
-                        "justify-start"
+                        'text-sm text-gray-500 flex text-nowrap',
+                        'justify-start'
                       )}
                     >
                       {receivable.created}
                     </div>
                   </td>
 
-                  <td className={TD_CLASS}>  
+                  <td className={TD_CLASS}>
                     <div
                       className={clsx(
-                        "text-sm text-gray-500 flex text-nowrap",
-                        "justify-start"
+                        'text-sm text-gray-500 flex text-nowrap',
+                        'justify-start'
                       )}
                     >
                       {receivable.due}
@@ -804,8 +818,8 @@ const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
                   <td className={TD_CLASS}>
                     <div
                       className={clsx(
-                        "flex items-center text-nowrap text-sm text-gray-500",
-                        "justify-start"
+                        'flex items-center text-nowrap text-sm text-gray-500',
+                        'justify-start'
                       )}
                     >
                       {receivable.presented}
@@ -815,9 +829,11 @@ const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
                   <td className={TD_CLASS}>
                     <div
                       className={clsx(
-                        "text-sm flex text-nowrap items-center gap-1",
-                        "justify-start",
-                        isPastDue ? "text-yellow-600 font-medium" : "text-gray-500"
+                        'text-sm flex text-nowrap items-center gap-1',
+                        'justify-start',
+                        isPastDue
+                          ? 'text-yellow-600 font-medium'
+                          : 'text-gray-500'
                       )}
                     >
                       {receivable.expected}
@@ -832,24 +848,14 @@ const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
 
                   {showPaymentType && (
                     <td className={TD_CLASS}>
-                      <div
-                        className={clsx(
-                          "flex",
-                          "justify-start"
-                        )}
-                      >
+                      <div className={clsx('flex', 'justify-start')}>
                         {getPaymentTypeContent(receivable)}
                       </div>
                     </td>
                   )}
 
                   <td className={TD_CLASS}>
-                    <div
-                      className={clsx(
-                        "flex",
-                        "justify-start"
-                      )}
-                    >
+                    <div className={clsx('flex', 'justify-start')}>
                       {getStatusContent(receivable)}
                     </div>
                   </td>

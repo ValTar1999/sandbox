@@ -1,36 +1,36 @@
-import React, { useEffect, useState } from "react";
-import LayoutModal from "../components/common/modal/LayoutModal";
-import WrapModal from "../components/common/modal/WrapModal";
-import Button from "../components/common/base/Button";
-import WrapSelect from "../components/common/base/WrapSelect";
-import AccountDetails from "../components/common/modules/AccountDetails";
-import InfoBox from "../components/common/base/InfoBox";
-import CheckboxField from "../components/common/modules/CheckboxField";
-import SmartDisburseIcon from "../assets/image/SMART-Disburse.svg";
+import React, { useEffect, useState } from 'react';
+import LayoutModal from '../components/common/modal/LayoutModal';
+import WrapModal from '../components/common/modal/WrapModal';
+import Button from '../components/common/base/Button';
+import WrapSelect from '../components/common/base/WrapSelect';
+import AccountDetails from '../components/common/modules/AccountDetails';
+import InfoBox from '../components/common/base/InfoBox';
+import CheckboxField from '../components/common/modules/CheckboxField';
+import SmartDisburseIcon from '../assets/image/SMART-Disburse.svg';
 
 const paymentMethodOptions = [
-  { label: "ACH", value: "ach", description: "1–3 business days" },
-  { label: "Wire", value: "wire", description: "Same business day" },
+  { label: 'ACH', value: 'ach', description: '1–3 business days' },
+  { label: 'Wire', value: 'wire', description: 'Same business day' },
   {
-    label: "SMART Disburse",
-    value: "smart-disburse",
+    label: 'SMART Disburse',
+    value: 'smart-disburse',
     iconImageSrc: SmartDisburseIcon,
-    iconImageAlt: "SMART Disburse",
+    iconImageAlt: 'SMART Disburse',
   },
 ];
 
 const bankAccountOptions = [
   {
-    label: "Bank AG ••••1728",
-    value: "1728",
-    description: "Main account",
-    descriptionPosition: "below" as const,
+    label: 'Bank AG ••••1728',
+    value: '1728',
+    description: 'Main account',
+    descriptionPosition: 'below' as const,
   },
   {
-    label: "Bank AG ••••1010",
-    value: "1010",
-    description: "Secondary account",
-    descriptionPosition: "below" as const,
+    label: 'Bank AG ••••1010',
+    value: '1010',
+    description: 'Secondary account',
+    descriptionPosition: 'below' as const,
   },
 ];
 
@@ -47,11 +47,12 @@ const PaymentMethodDetailsModal: React.FC<PaymentMethodDetailsModalProps> = ({
   open,
   onClose,
   onSave,
-  paymentMethodValue = "ach",
-  vendorName = "",
+  paymentMethodValue = 'ach',
+  vendorName = '',
 }) => {
-  const [selectedMethodValue, setSelectedMethodValue] = useState(paymentMethodValue);
-  const [selectedBank, setSelectedBank] = useState("");
+  const [selectedMethodValue, setSelectedMethodValue] =
+    useState(paymentMethodValue);
+  const [selectedBank, setSelectedBank] = useState('');
   const [makeDefault, setMakeDefault] = useState(true);
   const [bankAccountError, setBankAccountError] = useState(false);
 
@@ -64,8 +65,13 @@ const PaymentMethodDetailsModal: React.FC<PaymentMethodDetailsModalProps> = ({
 
   if (!open) return null;
 
-  const isBank = selectedMethodValue === "ach" || selectedMethodValue === "wire";
-  const variant = isBank ? "bank" : selectedMethodValue === "smart-disburse" ? "smart-disburse" : "bank";
+  const isBank =
+    selectedMethodValue === 'ach' || selectedMethodValue === 'wire';
+  const variant = isBank
+    ? 'bank'
+    : selectedMethodValue === 'smart-disburse'
+      ? 'smart-disburse'
+      : 'bank';
 
   const handleSave = () => {
     if (isBank && !selectedBank) {
@@ -73,11 +79,14 @@ const PaymentMethodDetailsModal: React.FC<PaymentMethodDetailsModalProps> = ({
       return;
     }
     setBankAccountError(false);
-    const methodOption = paymentMethodOptions.find((o) => o.value === selectedMethodValue);
+    const methodOption = paymentMethodOptions.find(
+      (o) => o.value === selectedMethodValue
+    );
     const methodLabel = methodOption?.label ?? selectedMethodValue;
-    const bankOption = isBank && selectedBank
-      ? bankAccountOptions.find((o) => o.value === selectedBank)
-      : null;
+    const bankOption =
+      isBank && selectedBank
+        ? bankAccountOptions.find((o) => o.value === selectedBank)
+        : null;
     const displayLabel = bankOption
       ? `${methodLabel} • ${bankOption.label}`
       : methodLabel;
@@ -90,9 +99,7 @@ const PaymentMethodDetailsModal: React.FC<PaymentMethodDetailsModalProps> = ({
       <WrapModal
         className="w-125"
         onClose={onClose}
-        header={
-          <div>Select Payment Method</div>
-        }
+        header={<div>Select Payment Method</div>}
         footer={
           <div className="flex items-center justify-end gap-3">
             <Button variant="secondary" size="lg" onClick={onClose}>

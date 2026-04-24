@@ -1,42 +1,41 @@
-import React, { useMemo, useState, useCallback } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import Button from "../../components/common/base/Button";
-import ScheduleForBox from "../../components/common/base/ScheduleForBox";
-import Badge from "../../components/common/base/Badge";
-import Box from "../../components/layout/Box";
-import { RefreshButton } from "../../components/common/base/RefreshButton";
-import WrapSelect from "../../components/common/base/WrapSelect";
-import DropdownCalendar from "../../components/common/dropdowns/DropdownCalendar";
-import VendorsToPay from "../../components/common/dropdowns/VendorsToPay";
-import SelectPaymentMethodModal from "../../modals/SelectPaymentMethodModal";
+import React, { useMemo, useState, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import Button from '../../components/common/base/Button';
+import ScheduleForBox from '../../components/common/base/ScheduleForBox';
+import Badge from '../../components/common/base/Badge';
+import Box from '../../components/layout/Box';
+import { RefreshButton } from '../../components/common/base/RefreshButton';
+import WrapSelect from '../../components/common/base/WrapSelect';
+import DropdownCalendar from '../../components/common/dropdowns/DropdownCalendar';
+import VendorsToPay from '../../components/common/dropdowns/VendorsToPay';
+import SelectPaymentMethodModal from '../../modals/SelectPaymentMethodModal';
 import ConfirmPaymentModal, {
   type ConfirmPaymentVendor,
-} from "../../modals/ConfirmPaymentModal";
-import PaymentSubmittedModal from "../../modals/PaymentSubmittedModal";
-import { payments, Payment } from "../BillsPayables/data";
-
+} from '../../modals/ConfirmPaymentModal';
+import PaymentSubmittedModal from '../../modals/PaymentSubmittedModal';
+import { payments, Payment } from '../BillsPayables/data';
 
 const bankAccounts = [
   {
-    label: "Secondary Bank Account",
-    value: "secondary",
-    description: "Bank AG ••••1010",
-    descriptionPosition: "below" as const,
-    rightValue: "$111,921.02",
+    label: 'Secondary Bank Account',
+    value: 'secondary',
+    description: 'Bank AG ••••1010',
+    descriptionPosition: 'below' as const,
+    rightValue: '$111,921.02',
   },
   {
-    label: "Main Bank Account",
-    value: "main",
-    description: "Bank AG ••••1010",
-    descriptionPosition: "below" as const,
-    rightValue: "$111,921.02",
+    label: 'Main Bank Account',
+    value: 'main',
+    description: 'Bank AG ••••1010',
+    descriptionPosition: 'below' as const,
+    rightValue: '$111,921.02',
   },
   {
-    label: "Insurance Bank Account",
-    value: "insurance",
-    description: "Bank AG ••••1911",
-    descriptionPosition: "below" as const,
-    rightValue: "$56,921.02",
+    label: 'Insurance Bank Account',
+    value: 'insurance',
+    description: 'Bank AG ••••1911',
+    descriptionPosition: 'below' as const,
+    rightValue: '$56,921.02',
     inactive: true,
   },
 ];
@@ -44,7 +43,7 @@ const bankAccounts = [
 const MultiplePaymentPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [selectedAccount, setSelectedAccount] = useState("");
+  const [selectedAccount, setSelectedAccount] = useState('');
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [isSelectPaymentMethodModalOpen, setIsSelectPaymentMethodModalOpen] =
@@ -58,7 +57,15 @@ const MultiplePaymentPage: React.FC = () => {
     Record<string, string>
   >({});
   const [vendorPaymentContacts, setVendorPaymentContacts] = useState<
-    Record<string, Array<{ id: string; type: "email" | "phone"; value: string; label?: string }>>
+    Record<
+      string,
+      Array<{
+        id: string;
+        type: 'email' | 'phone';
+        value: string;
+        label?: string;
+      }>
+    >
   >({});
   const [vendorBankAccounts, setVendorBankAccounts] = useState<
     Record<string, { value: string; label: string }>
@@ -66,7 +73,8 @@ const MultiplePaymentPage: React.FC = () => {
   const [vendorBulkPayment, setVendorBulkPayment] = useState<
     Record<string, boolean>
   >({});
-  const [vendorBulkPaymentForModal, setVendorBulkPaymentForModal] = useState(false);
+  const [vendorBulkPaymentForModal, setVendorBulkPaymentForModal] =
+    useState(false);
   const [originationAccountError, setOriginationAccountError] = useState(false);
   const [isConfirmPaymentModalOpen, setIsConfirmPaymentModalOpen] =
     useState(false);
@@ -85,12 +93,12 @@ const MultiplePaymentPage: React.FC = () => {
 
   const totalAmount = useMemo(() => {
     return selectedPayments.reduce((sum, p) => {
-      const value = parseFloat(p.totalAmount.replace(/[$,]/g, ""));
+      const value = parseFloat(p.totalAmount.replace(/[$,]/g, ''));
       return sum + (Number.isNaN(value) ? 0 : value);
     }, 0);
   }, [selectedPayments]);
 
-  const totalFormatted = totalAmount.toLocaleString("en-US", {
+  const totalFormatted = totalAmount.toLocaleString('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
@@ -100,7 +108,7 @@ const MultiplePaymentPage: React.FC = () => {
     setSelectedDate(null);
     setSelectedIndex(null);
   }, []);
-  const firstDueDate = selectedPayments[0]?.dueDate ?? "";
+  const firstDueDate = selectedPayments[0]?.dueDate ?? '';
 
   const resetVendorData = useCallback((vendorName: string) => {
     setVendorPaymentMethods((prev) => {
@@ -132,26 +140,29 @@ const MultiplePaymentPage: React.FC = () => {
 
   const mapPaymentMethodToValue = useCallback((method: string): string => {
     const lowerMethod = method.toLowerCase();
-    if (lowerMethod.includes("ach")) return "ach";
-    if (lowerMethod.includes("wire")) return "wire";
-    if (lowerMethod.includes("smart disburse")) return "smart-disburse";
-    return "";
+    if (lowerMethod.includes('ach')) return 'ach';
+    if (lowerMethod.includes('wire')) return 'wire';
+    if (lowerMethod.includes('smart disburse')) return 'smart-disburse';
+    return '';
   }, []);
 
   const paymentForVendors = useMemo((): Payment => {
     // Собираем все vendors из выбранных payments
-    const vendorsMap = new Map<string, {
-      name: string;
-      paymentMethod: string;
-      paymentMail?: string;
-      paymentPhone?: string;
-      payables: Array<{
-        id: string;
-        dueDate: string;
-        amount: string;
-        bankAccounts?: string;
-      }>;
-    }>();
+    const vendorsMap = new Map<
+      string,
+      {
+        name: string;
+        paymentMethod: string;
+        paymentMail?: string;
+        paymentPhone?: string;
+        payables: Array<{
+          id: string;
+          dueDate: string;
+          amount: string;
+          bankAccounts?: string;
+        }>;
+      }
+    >();
 
     selectedPayments.forEach((p) => {
       if (p.vendors && p.vendors.length > 0) {
@@ -165,7 +176,7 @@ const MultiplePaymentPage: React.FC = () => {
             // Добавляем новый vendor
             vendorsMap.set(vendor.name, {
               name: vendor.name,
-              paymentMethod: vendor.paymentMethod || "",
+              paymentMethod: vendor.paymentMethod || '',
               paymentMail: vendor.paymentMail,
               paymentPhone: vendor.paymentPhone,
               payables: [...vendor.payables],
@@ -179,18 +190,18 @@ const MultiplePaymentPage: React.FC = () => {
           existingVendor.payables.push({
             id: p.billReference,
             dueDate: p.dueDate,
-            amount: p.totalAmount.replace(/[$,]/g, ""),
+            amount: p.totalAmount.replace(/[$,]/g, ''),
             bankAccounts: p.bankAccounts,
           });
         } else {
           vendorsMap.set(p.payee, {
             name: p.payee,
-            paymentMethod: "",
+            paymentMethod: '',
             payables: [
               {
                 id: p.billReference,
                 dueDate: p.dueDate,
-                amount: p.totalAmount.replace(/[$,]/g, ""),
+                amount: p.totalAmount.replace(/[$,]/g, ''),
                 bankAccounts: p.bankAccounts,
               },
             ],
@@ -202,16 +213,16 @@ const MultiplePaymentPage: React.FC = () => {
     const vendors = Array.from(vendorsMap.values());
 
     return {
-      id: "multiple",
+      id: 'multiple',
       totalAmount: `$${totalFormatted}`,
-      amountValute: "USD",
-      billReference: "",
-      payee: "",
-      source: "",
+      amountValute: 'USD',
+      billReference: '',
+      payee: '',
+      source: '',
       dueDate: firstDueDate,
-      status: "unprocessed",
-      notes: "",
-      attachments: "",
+      status: 'unprocessed',
+      notes: '',
+      attachments: '',
       vendors,
     };
   }, [selectedPayments, totalFormatted, firstDueDate]);
@@ -225,8 +236,12 @@ const MultiplePaymentPage: React.FC = () => {
     const vendors = paymentForVendors.vendors ?? [];
     if (vendors.length === 0) return true;
     return vendors.every((v) => {
-      const method = (vendorPaymentMethods[v.name] ?? v.paymentMethod ?? "").trim();
-      return method !== "";
+      const method = (
+        vendorPaymentMethods[v.name] ??
+        v.paymentMethod ??
+        ''
+      ).trim();
+      return method !== '';
     });
   }, [paymentForVendors.vendors, vendorPaymentMethods]);
 
@@ -245,15 +260,15 @@ const MultiplePaymentPage: React.FC = () => {
     return vendors.map((v) => {
       const payables = v.payables ?? [];
       const sum = payables.reduce((acc, p) => {
-        const amount = parseFloat(p.amount.replace(/,/g, ""));
+        const amount = parseFloat(p.amount.replace(/,/g, ''));
         return acc + (Number.isNaN(amount) ? 0 : amount);
       }, 0);
-      const amountFormatted = sum.toLocaleString("en-US", {
+      const amountFormatted = sum.toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       });
       const paymentMethod =
-        vendorPaymentMethods[v.name] ?? v.paymentMethod ?? "";
+        vendorPaymentMethods[v.name] ?? v.paymentMethod ?? '';
       return {
         name: v.name,
         paymentMethod,
@@ -261,7 +276,7 @@ const MultiplePaymentPage: React.FC = () => {
         payables: payables.map((p) => ({
           id: p.id,
           dueDate: p.dueDate,
-          amount: p.amount.replace(/,/g, ""),
+          amount: p.amount.replace(/,/g, ''),
         })),
       };
     });
@@ -295,7 +310,10 @@ const MultiplePaymentPage: React.FC = () => {
               handleChooseDataClick={() => {}}
             />
           </div>
-          <ScheduleForBox selectedDate={selectedDate} onClear={handleClearSchedule} />
+          <ScheduleForBox
+            selectedDate={selectedDate}
+            onClear={handleClearSchedule}
+          />
         </div>
       }
     >
@@ -305,7 +323,7 @@ const MultiplePaymentPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
               <div className="text-2xl font-bold">
-                <span className="text-gray-900">${totalFormatted}</span>{" "}
+                <span className="text-gray-900">${totalFormatted}</span>{' '}
                 <span className="text-gray-500">USD</span>
               </div>
               <Badge icon="flag" iconDirection="left">
@@ -326,7 +344,10 @@ const MultiplePaymentPage: React.FC = () => {
             </div>
           </div>
 
-          <ScheduleForBox selectedDate={selectedDate} onClear={handleClearSchedule} />
+          <ScheduleForBox
+            selectedDate={selectedDate}
+            onClear={handleClearSchedule}
+          />
         </div>
 
         {/* Origination Account */}
@@ -351,7 +372,12 @@ const MultiplePaymentPage: React.FC = () => {
 
         <div className="pt-14">
           <VendorsToPay
-            key={`methods-${Object.keys(vendorPaymentMethods).length}-${Object.entries(vendorPaymentMethods).map(([k, v]) => `${k}:${v}`).sort().join(";")}`}
+            key={`methods-${Object.keys(vendorPaymentMethods).length}-${Object.entries(
+              vendorPaymentMethods
+            )
+              .map(([k, v]) => `${k}:${v}`)
+              .sort()
+              .join(';')}`}
             payment={paymentForVendors}
             vendorPaymentMethods={vendorPaymentMethods}
             vendorPaymentEmails={vendorPaymentEmails}
@@ -427,8 +453,8 @@ const MultiplePaymentPage: React.FC = () => {
         }
         initialEmail={
           vendorSelectingPaymentMethod
-            ? vendorPaymentEmails[vendorSelectingPaymentMethod] ?? ""
-            : ""
+            ? (vendorPaymentEmails[vendorSelectingPaymentMethod] ?? '')
+            : ''
         }
         initialContacts={
           vendorSelectingPaymentMethod
@@ -439,16 +465,17 @@ const MultiplePaymentPage: React.FC = () => {
           vendorSelectingPaymentMethod
             ? mapPaymentMethodToValue(
                 vendorPaymentMethods[vendorSelectingPaymentMethod] ??
-                paymentForVendors.vendors?.find(
-                  (v) => v.name === vendorSelectingPaymentMethod
-                )?.paymentMethod ?? ""
+                  paymentForVendors.vendors?.find(
+                    (v) => v.name === vendorSelectingPaymentMethod
+                  )?.paymentMethod ??
+                  ''
               )
-            : ""
+            : ''
         }
         initialBankAccount={
           vendorSelectingPaymentMethod
-            ? vendorBankAccounts[vendorSelectingPaymentMethod]?.value ?? ""
-            : ""
+            ? (vendorBankAccounts[vendorSelectingPaymentMethod]?.value ?? '')
+            : ''
         }
         isBulkPayment={vendorBulkPaymentForModal}
       />
@@ -462,14 +489,17 @@ const MultiplePaymentPage: React.FC = () => {
         }}
         totalAmountFormatted={`$${totalFormatted}`}
         amountValute="USD"
-        originationAccountLabel={selectedBankAccount?.label ?? ""}
+        originationAccountLabel={selectedBankAccount?.label ?? ''}
         originationAccountMasked={
           selectedBankAccount?.description
-            ? "••••" + (selectedBankAccount.description.match(/\d{4}/)?.[0] ?? "")
-            : ""
+            ? '••••' +
+              (selectedBankAccount.description.match(/\d{4}/)?.[0] ?? '')
+            : ''
         }
         vendors={confirmModalVendors}
-        isBulkPayment={Object.values(vendorBulkPayment).some(enabled => enabled)}
+        isBulkPayment={Object.values(vendorBulkPayment).some(
+          (enabled) => enabled
+        )}
       />
 
       <PaymentSubmittedModal

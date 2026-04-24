@@ -84,16 +84,36 @@ const Calendar: React.FC<Props> = ({
   );
 
   return (
-    <div className={clsx("w-full text-center", className)} {...props}>
+    <div className={clsx('w-full text-center', className)} {...props}>
       <div className="flex items-center border-b border-gray-200 px-6 py-2 text-gray-900">
         <div className="flex items-center">
-          <Button iconVariant="bicolor" icon="angle-double-left" size="lg" variant="linkSecondary" />
-          <Button iconVariant="bicolor" icon="angle-left" size="lg" variant="linkSecondary" />
+          <Button
+            iconVariant="bicolor"
+            icon="angle-double-left"
+            size="lg"
+            variant="linkSecondary"
+          />
+          <Button
+            iconVariant="bicolor"
+            icon="angle-left"
+            size="lg"
+            variant="linkSecondary"
+          />
         </div>
         <div className="flex-auto text-base font-semibold">{date}</div>
         <div className="flex items-center">
-          <Button iconVariant="bicolor" icon="angle-right" size="lg" variant="linkSecondary" />
-          <Button iconVariant="bicolor" icon="angle-double-right" size="lg" variant="linkSecondary" />
+          <Button
+            iconVariant="bicolor"
+            icon="angle-right"
+            size="lg"
+            variant="linkSecondary"
+          />
+          <Button
+            iconVariant="bicolor"
+            icon="angle-double-right"
+            size="lg"
+            variant="linkSecondary"
+          />
         </div>
       </div>
 
@@ -109,21 +129,27 @@ const Calendar: React.FC<Props> = ({
             key={day.date}
             type="button"
             className={clsx(
-              "py-1.5 hover:bg-gray-100 focus-visible:z-10 cursor-pointer transition-colors duration-300",
-              day.isCurrentMonth ? "bg-white text-gray-900" : "bg-gray-50 text-gray-400",
-              day.isToday && "text-smart-main"
+              'py-1.5 hover:bg-gray-100 focus-visible:z-10 cursor-pointer transition-colors duration-300',
+              day.isCurrentMonth
+                ? 'bg-white text-gray-900'
+                : 'bg-gray-50 text-gray-400',
+              day.isToday && 'text-smart-main'
             )}
           >
             <time
               dateTime={day.date}
               className={clsx(
-                "mx-auto flex h-7 w-7 items-center justify-center rounded-full font-medium",
-                day.isSelected && "bg-smart-main text-white"
+                'mx-auto flex h-7 w-7 items-center justify-center rounded-full font-medium',
+                day.isSelected && 'bg-smart-main text-white'
               )}
             >
               {new Date(day.date).getDate()}
             </time>
-            {day.due && <div className="-mb-2 -mt-2 text-[7px] font-semibold text-red-500">DUE DATE</div>}
+            {day.due && (
+              <div className="-mb-2 -mt-2 text-[7px] font-semibold text-red-500">
+                DUE DATE
+              </div>
+            )}
           </button>
         ))}
       </div>

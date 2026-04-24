@@ -14,7 +14,8 @@ const VARIANT_STYLES = {
   red: 'text-red-600 bg-red-50',
 } as const;
 
-const BASE_STYLES = 'inline-flex items-center px-3 py-2 rounded-md cursor-pointer transition-all duration-300';
+const BASE_STYLES =
+  'inline-flex items-center px-3 py-2 rounded-md cursor-pointer transition-all duration-300';
 
 export const ButtonTab: React.FC<ButtonTabProps> = ({
   title,
@@ -33,20 +34,13 @@ export const ButtonTab: React.FC<ButtonTabProps> = ({
       ? 'text-gray-400'
       : active
         ? VARIANT_STYLES[variant]
-        : 'text-gray-500',
+        : 'text-gray-500'
   );
 
   return (
-    <button 
-      className={rootClass} 
-      disabled={disabled} 
-      type="button"
-      {...props}
-    >
-      <div className="text-sm font-medium">
-        {title || children}
-      </div>
-      
+    <button className={rootClass} disabled={disabled} type="button" {...props}>
+      <div className="text-sm font-medium">{title || children}</div>
+
       {!disabled && count && (
         <Badge
           size="sm"

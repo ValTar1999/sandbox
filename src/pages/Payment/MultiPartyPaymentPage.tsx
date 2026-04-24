@@ -1,17 +1,19 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import Button from "../../components/common/base/Button";
-import Badge from "../../components/common/base/Badge";
-import Box from "../../components/layout/Box";
-import { RefreshButton } from "../../components/common/base/RefreshButton";
-import VendorsToPay from "../../components/common/dropdowns/VendorsToPay";
-import { Payment } from "../BillsPayables/data";
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import Button from '../../components/common/base/Button';
+import Badge from '../../components/common/base/Badge';
+import Box from '../../components/layout/Box';
+import { RefreshButton } from '../../components/common/base/RefreshButton';
+import VendorsToPay from '../../components/common/dropdowns/VendorsToPay';
+import { Payment } from '../BillsPayables/data';
 
 interface MultiPartyPaymentPageProps {
   payment: Payment;
 }
 
-const MultiPartyPaymentPage: React.FC<MultiPartyPaymentPageProps> = ({ payment }) => {
+const MultiPartyPaymentPage: React.FC<MultiPartyPaymentPageProps> = ({
+  payment,
+}) => {
   const navigate = useNavigate();
 
   const handleBack = () => navigate(-1);
@@ -41,25 +43,25 @@ const MultiPartyPaymentPage: React.FC<MultiPartyPaymentPageProps> = ({ payment }
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
               <div className="text-2xl font-bold">
-                <span className="text-gray-900">{payment.totalAmount}</span>{" "}
+                <span className="text-gray-900">{payment.totalAmount}</span>{' '}
                 <span className="text-gray-500">{payment.amountValute}</span>
               </div>
-              {payment.status === "unprocessed" && (
+              {payment.status === 'unprocessed' && (
                 <Badge icon="flag" iconDirection="left">
                   Unprocessed
                 </Badge>
               )}
-              {payment.status === "processed" && (
+              {payment.status === 'processed' && (
                 <Badge color="blue" icon="in-progress" iconDirection="left">
                   Processing
                 </Badge>
               )}
-              {payment.status === "paid" && (
+              {payment.status === 'paid' && (
                 <Badge color="green" icon="check-circle" iconDirection="left">
                   Paid
                 </Badge>
               )}
-              {payment.status === "failed" && (
+              {payment.status === 'failed' && (
                 <Badge color="red" icon="check-circle" iconDirection="left">
                   Failed
                 </Badge>
@@ -87,7 +89,9 @@ const MultiPartyPaymentPage: React.FC<MultiPartyPaymentPageProps> = ({ payment }
             <div className="text-xs uppercase text-gray-500 mb-1 tracking-wider">
               Bill reference
             </div>
-            <span className="text-base text-gray-700">{payment.billReference}</span>
+            <span className="text-base text-gray-700">
+              {payment.billReference}
+            </span>
           </div>
         </div>
 

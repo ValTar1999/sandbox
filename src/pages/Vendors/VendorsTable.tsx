@@ -1,24 +1,25 @@
-import React, { useCallback, useState } from "react";
-import clsx from "clsx";
-import Icon from "../../components/common/base/Icon";
-import Button from "../../components/common/base/Button";
-import Menu, { useMenuContext } from "../../components/common/base/Menu";
-import { Tooltip, TooltipTrigger, TooltipContent } from "../../components/common/base/Tooltip";
-import MastercardFlag from "../../assets/image/mastercard-flag.svg";
-import Badge from "../../components/common/base/Badge";
+import React, { useCallback, useState } from 'react';
+import clsx from 'clsx';
+import Icon from '../../components/common/base/Icon';
+import Button from '../../components/common/base/Button';
+import Menu, { useMenuContext } from '../../components/common/base/Menu';
 import {
-  Vendor,
-  PaymentNetworkStatus,
-} from "./data";
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from '../../components/common/base/Tooltip';
+import MastercardFlag from '../../assets/image/mastercard-flag.svg';
+import Badge from '../../components/common/base/Badge';
+import { Vendor, PaymentNetworkStatus } from './data';
 import {
   TH_CLASS,
   TH_TEXT_CLASS,
   TD_CLASS,
   FLEX_START,
-} from "../../constants/tableStyles";
-import SmartDisburseIcon from "../../assets/image/SMART-Disburse.svg";
-import ACHGradientIcon from "../../assets/image/ACH-Gradient.svg";
-import SMARTExchangeIcon from "../../assets/image/SMART Exchange.svg";
+} from '../../constants/tableStyles';
+import SmartDisburseIcon from '../../assets/image/SMART-Disburse.svg';
+import ACHGradientIcon from '../../assets/image/ACH-Gradient.svg';
+import SMARTExchangeIcon from '../../assets/image/SMART Exchange.svg';
 
 export type NetworkAction = {
   label: string;
@@ -32,7 +33,10 @@ export type NetworkAction = {
 
 interface VendorsTableProps {
   vendors: Vendor[];
-  onPaymentNetworkChange?: (vendor: Vendor, status: PaymentNetworkStatus) => void;
+  onPaymentNetworkChange?: (
+    vendor: Vendor,
+    status: PaymentNetworkStatus
+  ) => void;
   onNetworkAction?: (action: NetworkAction, vendor: Vendor) => void;
 }
 
@@ -48,121 +52,121 @@ const PAYMENT_NETWORK_CONFIG: Record<
   }
 > = {
   notInNetwork: {
-    label: "Not in Network",
-    icon: "x",
-    IconColor: "text-gray-400",
+    label: 'Not in Network',
+    icon: 'x',
+    IconColor: 'text-gray-400',
     actions: [
       {
-        label: "Invite to network",
-        icon: "plus-circle",
-        iconColor: "text-gray-500",
-        actionType: "modal",
-        modalType: "inviteToNetwork",
+        label: 'Invite to network',
+        icon: 'plus-circle',
+        iconColor: 'text-gray-500',
+        actionType: 'modal',
+        modalType: 'inviteToNetwork',
       },
     ],
   },
   invitationSent: {
-    label: "Invitation sent",
-    icon: "in-progress",
-    IconColor: "text-gray-400",
+    label: 'Invitation sent',
+    icon: 'in-progress',
+    IconColor: 'text-gray-400',
     actions: [
       {
-        label: "Re-send Invitation",
-        icon: "refresh",
-        iconColor: "text-gray-500",
-        actionType: "modal",
-        modalType: "resendInvitation",
+        label: 'Re-send Invitation',
+        icon: 'refresh',
+        iconColor: 'text-gray-500',
+        actionType: 'modal',
+        modalType: 'resendInvitation',
       },
     ],
   },
   linkRequestPending: {
-    label: "Link Request Pending",
-    labelColor: "text-blue-800",
-    icon: "in-progress",
-    IconColor: "text-blue-400",
+    label: 'Link Request Pending',
+    labelColor: 'text-blue-800',
+    icon: 'in-progress',
+    IconColor: 'text-blue-400',
     actions: [
       {
-        label: "Re-send Link Request",
-        icon: "refresh",
-        iconColor: "text-gray-500",
-        actionType: "modal",
-        modalType: "resendLinkRequest",
+        label: 'Re-send Link Request',
+        icon: 'refresh',
+        iconColor: 'text-gray-500',
+        actionType: 'modal',
+        modalType: 'resendLinkRequest',
       },
     ],
   },
   inNetwork: {
-    label: "In Network",
-    labelColor: "text-blue-800",
-    icon: "check",
-    IconColor: "text-blue-400",
+    label: 'In Network',
+    labelColor: 'text-blue-800',
+    icon: 'check',
+    IconColor: 'text-blue-400',
     actions: [
       {
-        label: "Send Link Request",
-        icon: "link",
-        iconColor: "text-gray-500",
-        actionType: "modal",
-        modalType: "sendLinkRequest",
+        label: 'Send Link Request',
+        icon: 'link',
+        iconColor: 'text-gray-500',
+        actionType: 'modal',
+        modalType: 'sendLinkRequest',
       },
     ],
   },
   requestReceived: {
-    label: "Request Received",
-    labelColor: "text-yellow-800",
-    icon: "inbox-in",
-    IconColor: "text-yellow-400",
+    label: 'Request Received',
+    labelColor: 'text-yellow-800',
+    icon: 'inbox-in',
+    IconColor: 'text-yellow-400',
     actions: [
       {
-        label: "Send Link Request",
-        icon: "check",
-        iconColor: "text-green-500",
-        labelColor: "text-green-600",
-        actionType: "modal",
-        modalType: "sendLinkRequest",
+        label: 'Send Link Request',
+        icon: 'check',
+        iconColor: 'text-green-500',
+        labelColor: 'text-green-600',
+        actionType: 'modal',
+        modalType: 'sendLinkRequest',
       },
       {
-        label: "Reject",
-        icon: "x",
-        iconColor: "text-red-500",
-        labelColor: "text-red-600",
-        actionType: "modal",
-        modalType: "rejectRequest",
+        label: 'Reject',
+        icon: 'x',
+        iconColor: 'text-red-500',
+        labelColor: 'text-red-600',
+        actionType: 'modal',
+        modalType: 'rejectRequest',
       },
     ],
   },
   rejected: {
-    label: "Rejected",
-    labelColor: "text-red-800",
-    icon: "x",
-    IconColor: "text-red-400",
+    label: 'Rejected',
+    labelColor: 'text-red-800',
+    icon: 'x',
+    IconColor: 'text-red-400',
     actions: [],
   },
   track: {
-    label: "Track",
+    label: 'Track',
     iconImageSrc: MastercardFlag,
     actions: [
       {
-        label: "View Payment Preferences",
-        icon: "adjustments",
-        iconColor: "text-gray-500",
-        actionType: "modal",
-        modalType: "viewPaymentPreferences",
+        label: 'View Payment Preferences',
+        icon: 'adjustments',
+        iconColor: 'text-gray-500',
+        actionType: 'modal',
+        modalType: 'viewPaymentPreferences',
       },
       {
-        label: "Delete Link",
-        icon: "disconnect",
-        iconColor: "text-red-500",
-        labelColor: "text-red-600",
-        actionType: "modal",
-        modalType: "deleteLink",
+        label: 'Delete Link',
+        icon: 'disconnect',
+        iconColor: 'text-red-500',
+        labelColor: 'text-red-600',
+        actionType: 'modal',
+        modalType: 'deleteLink',
       },
     ],
   },
 };
 
 const PAYMENT_METHOD_ICONS: Record<string, { icon: string; label: string }> = {
-  card: { icon: SmartDisburseIcon, label: "SMART Disburse" },
-  bank: { icon: ACHGradientIcon, label: "ACH" },
-  cash: { icon: SMARTExchangeIcon, label: "SMART Exchange" },
+  card: { icon: SmartDisburseIcon, label: 'SMART Disburse' },
+  bank: { icon: ACHGradientIcon, label: 'ACH' },
+  cash: { icon: SMARTExchangeIcon, label: 'SMART Exchange' },
 };
 
 const ThWithInfo: React.FC<{
@@ -208,10 +212,13 @@ const NetworkActionButton: React.FC<{
       onClick={handleClick}
       className={clsx(
         'w-full flex items-center gap-3 px-3 py-2 text-sm leading-5 text-left transition-colors duration-300 hover:bg-gray-50 cursor-pointer',
-        action.labelColor ? action.labelColor : "text-gray-800"
+        action.labelColor ? action.labelColor : 'text-gray-800'
       )}
     >
-      <Icon icon={action.icon} className={`w-5 h-5 ${action.iconColor ?? "text-gray-500"}`} />
+      <Icon
+        icon={action.icon}
+        className={`w-5 h-5 ${action.iconColor ?? 'text-gray-500'}`}
+      />
       <span className="flex-1">{action.label}</span>
     </button>
   );
@@ -223,27 +230,55 @@ const PaymentNetworkSelect: React.FC<{
   onActionClick?: (action: NetworkAction, vendor: Vendor) => void;
 }> = ({ vendor, onSelect, onActionClick }) => {
   const config = PAYMENT_NETWORK_CONFIG[vendor.paymentNetworkStatus];
-  const isRequestReceived = vendor.paymentNetworkStatus === "requestReceived";
+  const isRequestReceived = vendor.paymentNetworkStatus === 'requestReceived';
 
   return (
     <Menu.Root placement="bottom-end">
-      <div className={clsx("inline-flex items-center", isRequestReceived ? "ring-4 ring-yellow-400/20 rounded-sm" : "")}>
+      <div
+        className={clsx(
+          'inline-flex items-center',
+          isRequestReceived ? 'ring-4 ring-yellow-400/20 rounded-sm' : ''
+        )}
+      >
         <div
           className={clsx(
-            "flex items-center gap-0.5 py-1.5 pl-1.5 pr-2.5 border-l border-y bg-white rounded-l-sm",
-            isRequestReceived ? "border-yellow-300" : "border-gray-300"
+            'flex items-center gap-0.5 py-1.5 pl-1.5 pr-2.5 border-l border-y bg-white rounded-l-sm',
+            isRequestReceived ? 'border-yellow-300' : 'border-gray-300'
           )}
         >
           {config.icon && (
-            <Icon icon={config.icon} className={`w-3.5 h-3.5 ${config.IconColor}`} />
-          )}        
-          {config.iconImageSrc && (
-            <img src={config.iconImageSrc} alt={config.label} className="w-3.5 h-3.5" />
+            <Icon
+              icon={config.icon}
+              className={`w-3.5 h-3.5 ${config.IconColor}`}
+            />
           )}
-          <div className={`text-xs leading-4 font-medium text-nowrap ${config.labelColor ?? "text-gray-800"}`}>{config.label}</div>
+          {config.iconImageSrc && (
+            <img
+              src={config.iconImageSrc}
+              alt={config.label}
+              className="w-3.5 h-3.5"
+            />
+          )}
+          <div
+            className={`text-xs leading-4 font-medium text-nowrap ${config.labelColor ?? 'text-gray-800'}`}
+          >
+            {config.label}
+          </div>
         </div>
-        <Menu.Trigger as="button" className={clsx("cursor-pointer p-1.5 border bg-white rounded-r-sm focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 transition-all duration-300", isRequestReceived ? "border-yellow-300" : "border-gray-300")}>
-          <Icon icon="chevron-down" className={clsx("w-4 h-4", isRequestReceived ? "text-yellow-500" : "text-gray-500")} />
+        <Menu.Trigger
+          as="button"
+          className={clsx(
+            'cursor-pointer p-1.5 border bg-white rounded-r-sm focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 transition-all duration-300',
+            isRequestReceived ? 'border-yellow-300' : 'border-gray-300'
+          )}
+        >
+          <Icon
+            icon="chevron-down"
+            className={clsx(
+              'w-4 h-4',
+              isRequestReceived ? 'text-yellow-500' : 'text-gray-500'
+            )}
+          />
         </Menu.Trigger>
       </div>
       <Menu.Portal>
@@ -272,8 +307,10 @@ const VendorsTable: React.FC<VendorsTableProps> = ({
   onPaymentNetworkChange,
   onNetworkAction,
 }) => {
-  const [sortField, setSortField] = useState<"companyName" | null>("companyName");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [sortField, setSortField] = useState<'companyName' | null>(
+    'companyName'
+  );
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
   const handlePaymentNetworkSelect = useCallback(
     (vendor: Vendor, status: PaymentNetworkStatus) => {
@@ -290,8 +327,10 @@ const VendorsTable: React.FC<VendorsTableProps> = ({
   );
 
   const handleSortCompany = useCallback(() => {
-    setSortField((prev) => (prev === "companyName" ? "companyName" : "companyName"));
-    setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+    setSortField((prev) =>
+      prev === 'companyName' ? 'companyName' : 'companyName'
+    );
+    setSortDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
   }, []);
 
   const sortedVendors = React.useMemo(() => {
@@ -300,7 +339,7 @@ const VendorsTable: React.FC<VendorsTableProps> = ({
       const aVal = a[sortField];
       const bVal = b[sortField];
       const cmp = String(aVal).localeCompare(String(bVal));
-      return sortDir === "asc" ? cmp : -cmp;
+      return sortDir === 'asc' ? cmp : -cmp;
     });
   }, [vendors, sortField, sortDir]);
 
@@ -328,33 +367,39 @@ const VendorsTable: React.FC<VendorsTableProps> = ({
             <th
               className={clsx(
                 TH_CLASS,
-                "max-w-[156px] min-w-[156px] w-[156px]"
+                'max-w-[156px] min-w-[156px] w-[156px]'
               )}
             >
               <div className={FLEX_START}>
                 <span className={TH_TEXT_CLASS}># OF OPEN PAYABLES</span>
               </div>
             </th>
-            <th className={clsx(
-              TH_CLASS,
-              "max-w-[283px] min-w-[283px] w-[283px]"
-            )}>
+            <th
+              className={clsx(
+                TH_CLASS,
+                'max-w-[283px] min-w-[283px] w-[283px]'
+              )}
+            >
               <div className={FLEX_START}>
                 <span className={TH_TEXT_CLASS}>PAYMENT TERMS</span>
               </div>
             </th>
-            <th className={clsx(
-              TH_CLASS,
-              "max-w-[206px] min-w-[206px] w-[206px]"
-            )}>
+            <th
+              className={clsx(
+                TH_CLASS,
+                'max-w-[206px] min-w-[206px] w-[206px]'
+              )}
+            >
               <div className={FLEX_START}>
                 <span className={TH_TEXT_CLASS}>METHOD OF PAYMENT</span>
               </div>
             </th>
-            <th className={clsx(
-              TH_CLASS,
-              "max-w-[220px] min-w-[220px] w-[220px]"
-            )}>
+            <th
+              className={clsx(
+                TH_CLASS,
+                'max-w-[220px] min-w-[220px] w-[220px]'
+              )}
+            >
               <div className="flex items-center gap-1">
                 <ThWithInfo
                   tooltipContent={
@@ -363,8 +408,8 @@ const VendorsTable: React.FC<VendorsTableProps> = ({
                         Payment Network
                       </div>
                       <div className="text-sm leading-5 text-gray-400">
-                        An electronic payment network digitally connects buyers and
-                        suppliers to facilitate payment transactions.
+                        An electronic payment network digitally connects buyers
+                        and suppliers to facilitate payment transactions.
                       </div>
                     </div>
                   }
@@ -374,10 +419,7 @@ const VendorsTable: React.FC<VendorsTableProps> = ({
                 <Button icon="filter" size="xs" variant="linkSecondary" />
               </div>
             </th>
-            <th className={clsx(
-              TH_CLASS,
-              "max-w-40 min-w-40 w-40"
-            )}>
+            <th className={clsx(TH_CLASS, 'max-w-40 min-w-40 w-40')}>
               <div className="flex items-center gap-1">
                 <ThWithInfo
                   tooltipContent={
@@ -386,16 +428,14 @@ const VendorsTable: React.FC<VendorsTableProps> = ({
                         Early Payment Option
                       </div>
                       <div className="text-sm leading-5 text-gray-400">
-                        You can offer this vendor an early payment option, which means
-                        you can pay their invoice(s) before the due date and receive a
-                        discount or other incentive.
+                        You can offer this vendor an early payment option, which
+                        means you can pay their invoice(s) before the due date
+                        and receive a discount or other incentive.
                       </div>
                     </div>
                   }
                 >
-                  <div className="text-end">
-                    EARLY PAYMENT OPTION
-                  </div>
+                  <div className="text-end">EARLY PAYMENT OPTION</div>
                 </ThWithInfo>
               </div>
             </th>
@@ -418,31 +458,44 @@ const VendorsTable: React.FC<VendorsTableProps> = ({
               <td
                 className={clsx(
                   TD_CLASS,
-                  "max-w-[156px] min-w-[156px] w-[156px]"
+                  'max-w-[156px] min-w-[156px] w-[156px]'
                 )}
               >
-                <div className="text-sm text-gray-900">{vendor.openPayables}</div>
+                <div className="text-sm text-gray-900">
+                  {vendor.openPayables}
+                </div>
               </td>
               <td
                 className={clsx(
                   TD_CLASS,
-                  "max-w-[283px] min-w-[283px] w-[283px]"
+                  'max-w-[283px] min-w-[283px] w-[283px]'
                 )}
               >
-                <div className="text-sm text-gray-700">{vendor.paymentTerms}</div>
+                <div className="text-sm text-gray-700">
+                  {vendor.paymentTerms}
+                </div>
               </td>
-              <td className={clsx(
-                TD_CLASS,
-                "max-w-[206px] min-w-[206px] w-[206px]"
-              )}>
+              <td
+                className={clsx(
+                  TD_CLASS,
+                  'max-w-[206px] min-w-[206px] w-[206px]'
+                )}
+              >
                 <div className="flex items-center gap-2">
                   {vendor.paymentMethods.map((method) => {
                     const cfg = PAYMENT_METHOD_ICONS[method];
                     if (!cfg) return null;
                     return (
                       <Tooltip key={method} trigger="hover" placement="top">
-                        <TooltipTrigger as="span" className="inline-flex cursor-default">
-                          <img src={cfg.icon} alt={cfg.label} className="w-4.5 h-4.5" />
+                        <TooltipTrigger
+                          as="span"
+                          className="inline-flex cursor-default"
+                        >
+                          <img
+                            src={cfg.icon}
+                            alt={cfg.label}
+                            className="w-4.5 h-4.5"
+                          />
                         </TooltipTrigger>
                         <TooltipContent className="bg-gray-900 text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-dropdown">
                           {cfg.label}
@@ -452,10 +505,12 @@ const VendorsTable: React.FC<VendorsTableProps> = ({
                   })}
                 </div>
               </td>
-              <td className={clsx(
-                TD_CLASS,
-                "max-w-[220px] min-w-[220px] w-[220px]"
-              )}>
+              <td
+                className={clsx(
+                  TD_CLASS,
+                  'max-w-[220px] min-w-[220px] w-[220px]'
+                )}
+              >
                 <div className="flex items-center justify-end">
                   <PaymentNetworkSelect
                     vendor={vendor}
@@ -467,30 +522,44 @@ const VendorsTable: React.FC<VendorsTableProps> = ({
               <td className={TD_CLASS}>
                 <div className="flex items-center justify-end">
                   <Tooltip trigger="hover" placement="top-end">
-                    <TooltipTrigger as="span" className="inline-flex cursor-default">
+                    <TooltipTrigger
+                      as="span"
+                      className="inline-flex cursor-default"
+                    >
                       <Badge
-                        color={vendor.earlyPaymentOption ? "green" : "gray"}
+                        color={vendor.earlyPaymentOption ? 'green' : 'gray'}
                         size="sm"
                         rounded
                       >
-                        {vendor.earlyPaymentOption ? "Available" : "Not available"}
+                        {vendor.earlyPaymentOption
+                          ? 'Available'
+                          : 'Not available'}
                       </Badge>
                     </TooltipTrigger>
                     <TooltipContent className="bg-gray-900 w-full max-w-[360px] text-gray-50 text-sm leading-5 font-medium px-2.5 py-2 rounded-lg shadow-dropdown">
                       {vendor.earlyPaymentOption ? (
                         <span>
-                          You can offer this vendor an early payment option, which means you can pay their invoice(s) before the due date and receive a discount or other incentive.
+                          You can offer this vendor an early payment option,
+                          which means you can pay their invoice(s) before the
+                          due date and receive a discount or other incentive.
                         </span>
                       ) : (
                         <div className="flex flex-col items-start">
                           <span>
-                            The early payment option is not available.<br />However, you can activate this feature by contacting the vendor directly and requesting it.
+                            The early payment option is not available.
+                            <br />
+                            However, you can activate this feature by contacting
+                            the vendor directly and requesting it.
                           </span>
                           <button
                             type="button"
                             className="font-medium group text-blue-500 hover:text-blue-600 flex items-center gap-1 cursor-pointer transition-colors duration-300"
                           >
-                            Contact vendor <Icon icon="arrow-right" className="w-2.5 h-2.5 text-blue-500 group-hover:text-blue-600 transition-colors duration-300" />
+                            Contact vendor{' '}
+                            <Icon
+                              icon="arrow-right"
+                              className="w-2.5 h-2.5 text-blue-500 group-hover:text-blue-600 transition-colors duration-300"
+                            />
                           </button>
                         </div>
                       )}

@@ -37,20 +37,18 @@ const WrapModal: React.FC<Props> = ({
             <div
               className={clsx(
                 'flex w-full items-center text-lg font-medium',
-                header && 'border-b border-gray-200',
+                header && 'border-b border-gray-200'
               )}
             >
               {header && (
-                <div className="flex items-center px-6 py-4">
-                  {header}
-                </div>
+                <div className="flex items-center px-6 py-4">{header}</div>
               )}
               {onClose && (
                 <Button
                   icon="x"
                   size="xl"
                   variant="linkSecondary"
-                  className='my-3 ml-auto mr-4'
+                  className="my-3 ml-auto mr-4"
                   onClick={onClose}
                 />
               )}
@@ -62,9 +60,7 @@ const WrapModal: React.FC<Props> = ({
       <div className={classContent}>{children}</div>
 
       {isSlotFooterNotEmpty && (
-        <div className="border-t border-gray-200 px-6 py-5">
-          {footer}
-        </div>
+        <div className="border-t border-gray-200 px-6 py-5">{footer}</div>
       )}
     </div>
   );

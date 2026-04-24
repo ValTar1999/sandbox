@@ -8,7 +8,11 @@ type AccordionProps = {
   children: React.ReactNode;
 };
 
-export default function Accordion({ title, children, className }: AccordionProps) {
+export default function Accordion({
+  title,
+  children,
+  className,
+}: AccordionProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -26,11 +30,14 @@ export default function Accordion({ title, children, className }: AccordionProps
         className="w-full flex justify-between items-center border-b border-gray-200 py-4 text-left transition cursor-pointer select-none"
       >
         <span className="text-lg font-medium text-gray-900">{title}</span>
-        <Icon 
+        <Icon
           icon="chevron-down"
-          className={clsx('h-5 w-5 text-gray-400 transition-transform duration-300', {
-            'rotate-180': isOpen,
-          })}
+          className={clsx(
+            'h-5 w-5 text-gray-400 transition-transform duration-300',
+            {
+              'rotate-180': isOpen,
+            }
+          )}
         />
       </div>
 

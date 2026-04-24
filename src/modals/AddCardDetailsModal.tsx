@@ -1,11 +1,11 @@
-import React, { useState } from "react";
-import clsx from "clsx";
-import LayoutModal from "../components/common/modal/LayoutModal";
-import WrapModal from "../components/common/modal/WrapModal";
-import Button from "../components/common/base/Button";
-import Input from "../components/common/base/Input";
-import Icon from "../components/common/base/Icon";
-import WrapSelect from "../components/common/base/WrapSelect";
+import React, { useState } from 'react';
+import clsx from 'clsx';
+import LayoutModal from '../components/common/modal/LayoutModal';
+import WrapModal from '../components/common/modal/WrapModal';
+import Button from '../components/common/base/Button';
+import Input from '../components/common/base/Input';
+import Icon from '../components/common/base/Icon';
+import WrapSelect from '../components/common/base/WrapSelect';
 
 export type CardDetailsFormData = {
   cardNumber: string;
@@ -21,11 +21,11 @@ export type CardDetailsFormData = {
 };
 
 const countryOptions = [
-  { label: "United States", value: "us" },
-  { label: "Canada", value: "ca" },
-  { label: "United Kingdom", value: "uk" },
-  { label: "Germany", value: "de" },
-  { label: "France", value: "fr" },
+  { label: 'United States', value: 'us' },
+  { label: 'Canada', value: 'ca' },
+  { label: 'United Kingdom', value: 'uk' },
+  { label: 'Germany', value: 'de' },
+  { label: 'France', value: 'fr' },
 ];
 
 interface AddCardDetailsModalProps {
@@ -42,40 +42,40 @@ const AddCardDetailsModal: React.FC<AddCardDetailsModalProps> = ({
   const [moreInfoOpen, setMoreInfoOpen] = useState(false);
   const [touched, setTouched] = useState(false);
   const [formData, setFormData] = useState<CardDetailsFormData>({
-    cardNumber: "",
-    expiry: "",
-    cvc: "",
-    nameOnCard: "",
-    country: "",
-    addressLine1: "",
-    addressLine2: "",
-    city: "",
-    zipCode: "",
-    state: "",
+    cardNumber: '',
+    expiry: '',
+    cvc: '',
+    nameOnCard: '',
+    country: '',
+    addressLine1: '',
+    addressLine2: '',
+    city: '',
+    zipCode: '',
+    state: '',
   });
 
   if (!open) return null;
 
   const resetForm = () => {
     setFormData({
-      cardNumber: "",
-      expiry: "",
-      cvc: "",
-      nameOnCard: "",
-      country: "",
-      addressLine1: "",
-      addressLine2: "",
-      city: "",
-      zipCode: "",
-      state: "",
+      cardNumber: '',
+      expiry: '',
+      cvc: '',
+      nameOnCard: '',
+      country: '',
+      addressLine1: '',
+      addressLine2: '',
+      city: '',
+      zipCode: '',
+      state: '',
     });
     setTouched(false);
   };
 
   const requiredFieldsValid =
-    formData.cardNumber.trim() !== "" &&
-    formData.expiry.replace(/\D/g, "").length >= 4 &&
-    formData.cvc.trim() !== "";
+    formData.cardNumber.trim() !== '' &&
+    formData.expiry.replace(/\D/g, '').length >= 4 &&
+    formData.cvc.trim() !== '';
 
   const handleAdd = () => {
     setTouched(true);
@@ -99,8 +99,8 @@ const AddCardDetailsModal: React.FC<AddCardDetailsModalProps> = ({
 
   const showError = (field: keyof CardDetailsFormData) =>
     touched &&
-    typeof formData[field] === "string" &&
-    formData[field].trim() === "";
+    typeof formData[field] === 'string' &&
+    formData[field].trim() === '';
 
   return (
     <LayoutModal>
@@ -130,13 +130,13 @@ const AddCardDetailsModal: React.FC<AddCardDetailsModalProps> = ({
               placeholder="0000 0000 0000 0000"
               value={formData.cardNumber}
               onChange={(e) => {
-                const digits = e.target.value.replace(/\D/g, "").slice(0, 16);
+                const digits = e.target.value.replace(/\D/g, '').slice(0, 16);
                 const formatted = digits
-                  .replace(/(\d{4})(?=\d)/g, "$1 ")
+                  .replace(/(\d{4})(?=\d)/g, '$1 ')
                   .trim();
-                updateField("cardNumber", formatted);
+                updateField('cardNumber', formatted);
               }}
-              error={showError("cardNumber")}
+              error={showError('cardNumber')}
               icon="credit-card"
             />
           </div>
@@ -149,14 +149,14 @@ const AddCardDetailsModal: React.FC<AddCardDetailsModalProps> = ({
                 placeholder="MM / YY"
                 value={formData.expiry}
                 onChange={(e) => {
-                  const digits = e.target.value.replace(/\D/g, "").slice(0, 4);
+                  const digits = e.target.value.replace(/\D/g, '').slice(0, 4);
                   const formatted =
                     digits.length > 2
                       ? `${digits.slice(0, 2)} / ${digits.slice(2)}`
                       : digits;
-                  updateField("expiry", formatted);
+                  updateField('expiry', formatted);
                 }}
-                error={showError("expiry")}
+                error={showError('expiry')}
               />
             </div>
             <div>
@@ -169,10 +169,10 @@ const AddCardDetailsModal: React.FC<AddCardDetailsModalProps> = ({
                 placeholder="CVC"
                 value={formData.cvc}
                 onChange={(e) => {
-                  const v = e.target.value.replace(/\D/g, "").slice(0, 3);
-                  updateField("cvc", v);
+                  const v = e.target.value.replace(/\D/g, '').slice(0, 3);
+                  updateField('cvc', v);
                 }}
-                error={showError("cvc")}
+                error={showError('cvc')}
               />
             </div>
           </div>
@@ -187,8 +187,8 @@ const AddCardDetailsModal: React.FC<AddCardDetailsModalProps> = ({
                 <Icon
                   icon="chevron-down"
                   className={clsx(
-                    "h-5 w-5 text-blue-600 transition-transform duration-200",
-                    moreInfoOpen && "rotate-180"
+                    'h-5 w-5 text-blue-600 transition-transform duration-200',
+                    moreInfoOpen && 'rotate-180'
                   )}
                 />
                 <span className="text-base font-semibold text-blue-600">
@@ -199,8 +199,8 @@ const AddCardDetailsModal: React.FC<AddCardDetailsModalProps> = ({
             </button>
             <div
               className={clsx(
-                "overflow-hidden transition-all duration-200",
-                moreInfoOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+                'overflow-hidden transition-all duration-200',
+                moreInfoOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
               )}
             >
               <div className="space-y-4 pt-4">
@@ -211,9 +211,7 @@ const AddCardDetailsModal: React.FC<AddCardDetailsModalProps> = ({
                   <Input
                     placeholder="Full Name"
                     value={formData.nameOnCard}
-                    onChange={(e) =>
-                      updateField("nameOnCard", e.target.value)
-                    }
+                    onChange={(e) => updateField('nameOnCard', e.target.value)}
                   />
                 </div>
                 <div>
@@ -224,7 +222,7 @@ const AddCardDetailsModal: React.FC<AddCardDetailsModalProps> = ({
                     placeholder="Select Country"
                     options={countryOptions}
                     selectedValue={formData.country}
-                    onSelect={(v) => updateField("country", v)}
+                    onSelect={(v) => updateField('country', v)}
                   />
                 </div>
                 <div>
@@ -235,7 +233,7 @@ const AddCardDetailsModal: React.FC<AddCardDetailsModalProps> = ({
                     placeholder="Address Line 1"
                     value={formData.addressLine1}
                     onChange={(e) =>
-                      updateField("addressLine1", e.target.value)
+                      updateField('addressLine1', e.target.value)
                     }
                   />
                 </div>
@@ -247,7 +245,7 @@ const AddCardDetailsModal: React.FC<AddCardDetailsModalProps> = ({
                     placeholder="Address Line 2"
                     value={formData.addressLine2}
                     onChange={(e) =>
-                      updateField("addressLine2", e.target.value)
+                      updateField('addressLine2', e.target.value)
                     }
                   />
                 </div>
@@ -258,7 +256,7 @@ const AddCardDetailsModal: React.FC<AddCardDetailsModalProps> = ({
                   <Input
                     placeholder="City"
                     value={formData.city}
-                    onChange={(e) => updateField("city", e.target.value)}
+                    onChange={(e) => updateField('city', e.target.value)}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -269,9 +267,7 @@ const AddCardDetailsModal: React.FC<AddCardDetailsModalProps> = ({
                     <Input
                       placeholder="ZIP Code"
                       value={formData.zipCode}
-                      onChange={(e) =>
-                        updateField("zipCode", e.target.value)
-                      }
+                      onChange={(e) => updateField('zipCode', e.target.value)}
                     />
                   </div>
                   <div>
@@ -281,9 +277,7 @@ const AddCardDetailsModal: React.FC<AddCardDetailsModalProps> = ({
                     <Input
                       placeholder="State"
                       value={formData.state}
-                      onChange={(e) =>
-                        updateField("state", e.target.value)
-                      }
+                      onChange={(e) => updateField('state', e.target.value)}
                     />
                   </div>
                 </div>

@@ -3,8 +3,8 @@ import React, {
   useContext,
   useState,
   PropsWithChildren,
-} from "react";
-import clsx from "clsx";
+} from 'react';
+import clsx from 'clsx';
 import {
   useFloating,
   offset,
@@ -18,8 +18,8 @@ import {
   useInteractions,
   FloatingPortal,
   useClick,
-} from "@floating-ui/react";
-import type { Placement } from "@floating-ui/react";
+} from '@floating-ui/react';
+import type { Placement } from '@floating-ui/react';
 
 type TooltipContextType = ReturnType<typeof useTooltipInternal>;
 
@@ -28,15 +28,15 @@ const TooltipContext = createContext<TooltipContextType | null>(null);
 const useTooltipContext = () => {
   const ctx = useContext(TooltipContext);
   if (!ctx) {
-    throw new Error("Tooltip components must be used within <Tooltip />");
+    throw new Error('Tooltip components must be used within <Tooltip />');
   }
   return ctx;
 };
 
 const useTooltipInternal = (
   initialOpen = false,
-  trigger: "hover" | "click" = "hover",
-  placement: Placement = "top"
+  trigger: 'hover' | 'click' = 'hover',
+  placement: Placement = 'top'
 ) => {
   const [open, setOpen] = useState(initialOpen);
 
@@ -55,12 +55,10 @@ const useTooltipInternal = (
   const focus = useFocus(floating.context);
   const click = useClick(floating.context);
   const dismiss = useDismiss(floating.context);
-  const role = useRole(floating.context, { role: "tooltip" });
+  const role = useRole(floating.context, { role: 'tooltip' });
 
   const interactions = useInteractions(
-    trigger === "click"
-      ? [click, dismiss, role]
-      : [hover, focus, dismiss, role]
+    trigger === 'click' ? [click, dismiss, role] : [hover, focus, dismiss, role]
   );
 
   return {
@@ -73,7 +71,7 @@ const useTooltipInternal = (
 
 interface TooltipRootProps {
   initialOpen?: boolean;
-  trigger?: "hover" | "click";
+  trigger?: 'hover' | 'click';
   placement?: Placement;
 }
 
@@ -91,19 +89,19 @@ export const Tooltip = ({
 };
 
 type TooltipTriggerProps = React.HTMLAttributes<HTMLElement> & {
-  as?: "button" | "span";
+  as?: 'button' | 'span';
 };
 
 export const TooltipTrigger = ({
   children,
-  as = "span",
+  as = 'span',
   className,
   ...props
 }: PropsWithChildren<TooltipTriggerProps>) => {
   const { getReferenceProps, refs } = useTooltipContext();
 
-  const Component = as === "button" ? "button" : "span";
-  const elementProps = as === "button" ? { type: "button" as const } : {};
+  const Component = as === 'button' ? 'button' : 'span';
+  const elementProps = as === 'button' ? { type: 'button' as const } : {};
 
   const referenceProps = getReferenceProps({
     ...props,
@@ -126,8 +124,7 @@ export const TooltipTrigger = ({
   );
 };
 
-interface TooltipContentProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+interface TooltipContentProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
 }
 
@@ -153,7 +150,7 @@ export const TooltipContent = ({
         }}
         {...getFloatingProps({
           className: clsx(
-            "z-50 rounded-md p-3 text-xs font-normal text-gray-50 shadow-dropdown",
+            'z-50 rounded-md p-3 text-xs font-normal text-gray-50 shadow-dropdown',
             className
           ),
           ...props,

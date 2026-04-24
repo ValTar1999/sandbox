@@ -1,8 +1,3 @@
-export const Colors = [
-  'yellow',
-  'blue',
-  'red',
-  'green',
-] as const
+export const Colors = ['yellow', 'blue', 'red', 'green'] as const;
 
-export type TColors = (typeof Colors)[number]
+export type TColors = (typeof Colors)[number];

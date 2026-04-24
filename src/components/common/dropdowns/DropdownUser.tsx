@@ -1,17 +1,19 @@
 import clsx from 'clsx';
+import { useNavigate } from 'react-router-dom';
 import { focusButton, focusItem } from '../../../config/commonStyles';
 
 import { Dropdown } from './Dropdown';
 import { Avatar } from '../base/Avatar';
-import Icon from '../base/Icon'; 
+import Icon from '../base/Icon';
 
 // Img
-import avatarImg from "../../../assets/image/layout/avatar-example.jpeg";
+import avatarImg from '../../../assets/image/layout/avatar-example.jpeg';
 
 interface DropdownItem {
-  icon: string; 
+  icon: string;
   title: string;
   href: string;
+  path?: string;
 }
 
 interface UserInfo {
@@ -25,6 +27,7 @@ const dropdownItems: DropdownItem[] = [
     icon: 'user', // Иконка профиля
     title: 'Profile', // Название элемента
     href: '#', // Ссылка
+    path: '/settings/profile',
   },
   {
     icon: 'logout', // Иконка выхода
@@ -34,12 +37,26 @@ const dropdownItems: DropdownItem[] = [
 ];
 
 const userInfo: UserInfo = {
-  name: 'Emil Schaefer', 
+  name: 'Emil Schaefer',
   role: 'Role',
   avatar: avatarImg,
 };
 
 export const DropdownUser: React.FC = () => {
+  const navigate = useNavigate();
+
+  const handleMenuItemClick = (
+    event: React.MouseEvent<HTMLAnchorElement>,
+    item: DropdownItem
+  ) => {
+    if (!item.path) {
+      return;
+    }
+
+    event.preventDefault();
+    navigate(item.path);
+  };
+
   const menuContent = (
     <>
       <div className="px-4 py-4">
@@ -55,6 +72,7 @@ export const DropdownUser: React.FC = () => {
           <a
             key={item.title}
             href={item.href}
+            onClick={(event) => handleMenuItemClick(event, item)}
             className={clsx(
               'relative inline-flex items-center w-full px-4 py-3 text-sm font-normal text-gray-900 hover:bg-gray-50 last:rounded-b',
               focusItem()
@@ -74,17 +92,14 @@ export const DropdownUser: React.FC = () => {
 
   return (
     <Dropdown
-      menuClass='w-50 rounded bg-white shadow-dropdown divide-y divide-gray-200 right-0 border border-gray-200 mt-1'
+      menuClass="w-50 rounded bg-white shadow-dropdown divide-y divide-gray-200 right-0 border border-gray-200 mt-1"
       trigger={
         <div
           onClick={handleClick}
           className={clsx('rounded-full cursor-pointer', focusButton())}
           aria-label="User menu"
         >
-          <Avatar
-            size="md"
-            imageSrc={userInfo.avatar}
-          />
+          <Avatar size="md" imageSrc={userInfo.avatar} />
         </div>
       }
       menu={menuContent}

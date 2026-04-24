@@ -8,15 +8,11 @@ export const Colors = [
   'purple',
   'pink',
   'custom',
-] as const
-export type TColors = (typeof Colors)[number]
+] as const;
+export type TColors = (typeof Colors)[number];
 
-export const Sizes = [
-  'lg',
-  'sm',
-  'xs',
-] as const
-export type TSizes = (typeof Sizes)[number]
+export const Sizes = ['lg', 'sm', 'xs'] as const;
+export type TSizes = (typeof Sizes)[number];
 
 export const classes = {
   lg: {
@@ -34,4 +30,4 @@ export const classes = {
     left: 'pl-[2.8px] pr-[5.6px]',
     right: 'pl-[2.8px] pr-[5.6px]',
   },
-}
+};

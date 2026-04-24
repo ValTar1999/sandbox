@@ -1,8 +1,8 @@
-import React from "react";
-import LayoutModal from "../components/common/modal/LayoutModal";
-import Modal from "../components/common/modal/Modal";
-import Button from "../components/common/base/Button";
-import Icon from "../components/common/base/Icon";
+import React from 'react';
+import LayoutModal from '../components/common/modal/LayoutModal';
+import Modal from '../components/common/modal/Modal';
+import Button from '../components/common/base/Button';
+import Icon from '../components/common/base/Icon';
 
 interface UnsupportedBulkPaymentMethodModalProps {
   open: boolean;
@@ -12,7 +12,9 @@ interface UnsupportedBulkPaymentMethodModalProps {
   isUnsupportedMethod?: boolean;
 }
 
-const UnsupportedBulkPaymentMethodModal: React.FC<UnsupportedBulkPaymentMethodModalProps> = ({
+const UnsupportedBulkPaymentMethodModal: React.FC<
+  UnsupportedBulkPaymentMethodModalProps
+> = ({
   open,
   onClose,
   onChangePaymentMethod,
@@ -31,7 +33,11 @@ const UnsupportedBulkPaymentMethodModal: React.FC<UnsupportedBulkPaymentMethodMo
 
   const warningIcon = (
     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100 mt-6 -mb-2">
-      <Icon icon="exclamation" variant="outline" className="h-6 w-6 text-yellow-500" />
+      <Icon
+        icon="exclamation"
+        variant="outline"
+        className="h-6 w-6 text-yellow-500"
+      />
     </div>
   );
 
@@ -64,8 +70,8 @@ const UnsupportedBulkPaymentMethodModal: React.FC<UnsupportedBulkPaymentMethodMo
         className="w-128"
         title="Are you sure you want to discard this information?"
         description="If you discard this information, any progress or changes you've made will be lost. Please ensure that you've saved any important changes before proceeding."
-          icon={warningIcon}
-          footer={
+        icon={warningIcon}
+        footer={
           <div className="flex items-center justify-start gap-4">
             <Button variant="primary" size="md" onClick={handleDiscard}>
               Discard

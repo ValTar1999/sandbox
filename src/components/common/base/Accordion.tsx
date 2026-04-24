@@ -16,7 +16,9 @@ export const Accordion: React.FC<AccordionProps> = ({
   className,
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
-  const [maxHeight, setMaxHeight] = useState<number | 'auto'>(defaultOpen ? 1000 : 0);
+  const [maxHeight, setMaxHeight] = useState<number | 'auto'>(
+    defaultOpen ? 1000 : 0
+  );
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -59,7 +61,7 @@ export const Accordion: React.FC<AccordionProps> = ({
       <div
         id="accordion-content"
         ref={contentRef}
-        className="overflow-hidden transition-all duration-300 ease-in-out mb-2 rounded-b-lg shadow"  
+        className="overflow-hidden transition-all duration-300 ease-in-out mb-2 rounded-b-lg shadow"
         style={{ maxHeight: maxHeight === 'auto' ? 'none' : `${maxHeight}px` }}
       >
         <div className="">{children}</div>
@@ -67,4 +69,3 @@ export const Accordion: React.FC<AccordionProps> = ({
     </div>
   );
 };
-

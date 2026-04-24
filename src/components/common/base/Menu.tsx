@@ -3,8 +3,8 @@ import React, {
   useContext,
   useState,
   PropsWithChildren,
-} from "react";
-import clsx from "clsx";
+} from 'react';
+import clsx from 'clsx';
 import {
   useFloating,
   offset,
@@ -16,8 +16,8 @@ import {
   useInteractions,
   FloatingPortal,
   arrow as floatingArrow,
-} from "@floating-ui/react";
-import type { Placement } from "@floating-ui/react";
+} from '@floating-ui/react';
+import type { Placement } from '@floating-ui/react';
 
 type MenuContextType = ReturnType<typeof useMenuInternal> & {
   arrowRef: React.MutableRefObject<SVGSVGElement | null>;
@@ -28,14 +28,14 @@ const MenuContext = createContext<MenuContextType | null>(null);
 export const useMenuContext = () => {
   const ctx = useContext(MenuContext);
   if (!ctx) {
-    throw new Error("Menu components must be used within <Menu.Root />");
+    throw new Error('Menu components must be used within <Menu.Root />');
   }
   return ctx;
 };
 
 const useMenuInternal = (
   initialOpen = false,
-  placement: Placement = "bottom-start"
+  placement: Placement = 'bottom-start'
 ) => {
   const [open, setOpen] = useState(initialOpen);
   const arrowRef = React.useRef<SVGSVGElement | null>(null);
@@ -54,7 +54,7 @@ const useMenuInternal = (
   });
 
   const dismiss = useDismiss(floating.context);
-  const role = useRole(floating.context, { role: "menu" });
+  const role = useRole(floating.context, { role: 'menu' });
 
   const interactions = useInteractions([dismiss, role]);
 
@@ -82,15 +82,48 @@ const Root = ({
   return <MenuContext.Provider value={value}>{children}</MenuContext.Provider>;
 };
 
+function mergeRefs<T>(
+  ...refs: (React.Ref<T> | undefined | null)[]
+): React.RefCallback<T> {
+  return (value) => {
+    refs.forEach((r) => {
+      if (!r) return;
+      if (typeof r === 'function') {
+        r(value);
+      } else {
+        (r as React.MutableRefObject<T | null>).current = value;
+      }
+    });
+  };
+}
+
+function getReactElementRef<T>(
+  element: React.ReactElement
+): React.Ref<T> | undefined {
+  const legacy = element as unknown as { ref?: React.Ref<T> };
+  if (legacy.ref) return legacy.ref;
+  const propsRef = (
+    element.props as unknown as {
+      ref?: React.Ref<T>;
+    }
+  ).ref;
+  return propsRef;
+}
+
 type MenuTriggerProps = React.HTMLAttributes<HTMLElement> & {
-  as?: "button" | "span";
+  as?: 'button' | 'span';
+  asChild?: boolean;
 };
 
-const Trigger = ({ children, className, onClick, as = "button", ...props }: MenuTriggerProps) => {
+const Trigger = ({
+  children,
+  className,
+  onClick,
+  as = 'button',
+  asChild = false,
+  ...props
+}: MenuTriggerProps) => {
   const { refs, getReferenceProps, open, setOpen } = useMenuContext();
-
-  const Component = as === "span" ? "span" : "button";
-  const elementProps = as === "button" ? { type: "button" as const } : {};
 
   const referenceProps = getReferenceProps({
     ...props,
@@ -98,18 +131,65 @@ const Trigger = ({ children, className, onClick, as = "button", ...props }: Menu
       onClick?.(event);
       setOpen(!open);
     },
-  });
+  }) as React.HTMLAttributes<HTMLElement> & {
+    ref?: React.Ref<HTMLElement>;
+  };
 
-  const mergedClassName = clsx(
-    className,
-    (referenceProps as React.HTMLAttributes<HTMLElement>).className
-  );
+  if (asChild) {
+    if (!React.isValidElement(children)) {
+      throw new Error(
+        'Menu.Trigger with asChild expects a single React element child.'
+      );
+    }
+
+    const child = children as React.ReactElement<
+      React.HTMLAttributes<HTMLElement> & { ref?: React.Ref<HTMLElement> }
+    >;
+
+    const {
+      ref: referenceRef,
+      className: referenceClassName,
+      ...restReferenceProps
+    } = referenceProps;
+
+    const mergedClassName = clsx(
+      className,
+      child.props.className,
+      referenceClassName
+    );
+
+    return React.cloneElement(child, {
+      ...child.props,
+      ...restReferenceProps,
+      ref: mergeRefs(
+        refs.setReference,
+        referenceRef as React.Ref<HTMLElement | null> | undefined,
+        getReactElementRef<HTMLElement | null>(child)
+      ),
+      className: mergedClassName,
+      onClick: (event: React.MouseEvent<HTMLElement>) => {
+        child.props.onClick?.(event);
+        referenceProps.onClick?.(event);
+      },
+    } as Partial<React.HTMLAttributes<HTMLElement>>);
+  }
+
+  const Component = as === 'span' ? 'span' : 'button';
+  const elementProps = as === 'button' ? { type: 'button' as const } : {};
+
+  const {
+    ref: referenceRefCallback,
+    className: referenceClassName,
+    ...restReferenceProps
+  } = referenceProps;
+
+  const mergedClassName = clsx(className, referenceClassName);
 
   return (
     <Component
-      ref={refs.setReference}
+      ref={mergeRefs(refs.setReference, referenceRefCallback)}
       {...elementProps}
-      {...referenceProps}
+      {...restReferenceProps}
       className={mergedClassName}
     >
       {children}
@@ -161,7 +241,7 @@ const Popup = ({ children, className, ...props }: PopupProps) => {
   return (
     <div
       {...getFloatingProps({
-        className: clsx("text-sm text-gray-900", className),
+        className: clsx('text-sm text-gray-900', className),
         ...props,
       })}
     >
@@ -197,7 +277,7 @@ const Item = ({ children, className, ...props }: ItemProps) => {
     <button
       type="button"
       className={clsx(
-        "flex w-full items-center px-3 py-1.5 text-left text-sm text-gray-900 hover:bg-gray-100",
+        'flex w-full items-center px-3 py-1.5 text-left text-sm text-gray-900 hover:bg-gray-100',
         className
       )}
       {...props}
@@ -208,7 +288,7 @@ const Item = ({ children, className, ...props }: ItemProps) => {
 };
 
 const Separator = ({ className }: { className?: string }) => (
-  <div className={clsx("my-1 h-px bg-gray-200", className)} />
+  <div className={clsx('my-1 h-px bg-gray-200', className)} />
 );
 
 export const Menu = {
@@ -223,4 +303,3 @@ export const Menu = {
 };
 
 export default Menu;
-

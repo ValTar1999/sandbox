@@ -1,63 +1,79 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import clsx from "clsx";
-import LayoutModal from "../components/common/modal/LayoutModal";
-import WrapModal from "../components/common/modal/WrapModal";
-import Button from "../components/common/base/Button";
-import WrapSelect from "../components/common/base/WrapSelect";
-import Input from "../components/common/base/Input";
-import InfoBox from "../components/common/base/InfoBox";
-import CheckboxField from "../components/common/modules/CheckboxField";
-import Icon from "../components/common/base/Icon";
-import SmartDisburseIcon from "../assets/image/SMART-Disburse.svg";
-import { PayableItem } from "../pages/BillsPayables/data";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from 'react';
+import clsx from 'clsx';
+import LayoutModal from '../components/common/modal/LayoutModal';
+import WrapModal from '../components/common/modal/WrapModal';
+import Button from '../components/common/base/Button';
+import WrapSelect from '../components/common/base/WrapSelect';
+import Input from '../components/common/base/Input';
+import InfoBox from '../components/common/base/InfoBox';
+import CheckboxField from '../components/common/modules/CheckboxField';
+import Icon from '../components/common/base/Icon';
+import SmartDisburseIcon from '../assets/image/SMART-Disburse.svg';
+import { PayableItem } from '../pages/BillsPayables/data';
 
 type SmartDisburseContact = {
   id: string;
-  type: "email" | "phone";
+  type: 'email' | 'phone';
   value: string;
   label?: string;
   subLabel?: string;
 };
 
 const smartDisburseContacts: SmartDisburseContact[] = [
-  { id: "email-1", type: "email", value: "gary@company.eu" },
-  { id: "email-2", type: "email", value: "gary.kovalchek@mail.eu" },
-  { id: "phone-1", type: "phone", value: "+1 357-22-13546", label: "Main Office" },
+  { id: 'email-1', type: 'email', value: 'gary@company.eu' },
+  { id: 'email-2', type: 'email', value: 'gary.kovalchek@mail.eu' },
   {
-    id: "phone-2",
-    type: "phone",
-    value: "+1 357-22-01546",
-    label: "Finances Department",
+    id: 'phone-1',
+    type: 'phone',
+    value: '+1 357-22-13546',
+    label: 'Main Office',
+  },
+  {
+    id: 'phone-2',
+    type: 'phone',
+    value: '+1 357-22-01546',
+    label: 'Finances Department',
   },
 ];
 
 const unavailableMessage =
-  "Payment method is not available for this bank account. Please select another bank account or contact support for more information.";
+  'Payment method is not available for this bank account. Please select another bank account or contact support for more information.';
 
 const paymentMethodOptions = [
-  { label: "ACH", value: "ach", description: "1–3 business days", badge: "Recommended" },
-  { label: "Wire", value: "wire", description: "Same business day" },
   {
-    label: "SMART Disburse",
-    value: "smart-disburse",
+    label: 'ACH',
+    value: 'ach',
+    description: '1–3 business days',
+    badge: 'Recommended',
+  },
+  { label: 'Wire', value: 'wire', description: 'Same business day' },
+  {
+    label: 'SMART Disburse',
+    value: 'smart-disburse',
     iconImageSrc: SmartDisburseIcon,
-    iconImageAlt: "SMART Disburse",
+    iconImageAlt: 'SMART Disburse',
   },
   {
-    label: "RTP",
-    value: "rtp",
+    label: 'RTP',
+    value: 'rtp',
     inactive: true,
     inactiveDescription: unavailableMessage,
   },
   {
-    label: "Check",
-    value: "check",
+    label: 'Check',
+    value: 'check',
     inactive: true,
     inactiveDescription: unavailableMessage,
   },
   {
-    label: "SMART Exchange",
-    value: "smart",
+    label: 'SMART Exchange',
+    value: 'smart',
     inactive: true,
     inactiveDescription: unavailableMessage,
   },
@@ -65,25 +81,25 @@ const paymentMethodOptions = [
 
 const bankAccountOptions = [
   {
-    label: "Secondary Bank Account",
-    value: "secondary",
-    description: "Bank AG ••••1010",
-    descriptionPosition: "below" as const,
-    rightValue: "$111,921.02",
+    label: 'Secondary Bank Account',
+    value: 'secondary',
+    description: 'Bank AG ••••1010',
+    descriptionPosition: 'below' as const,
+    rightValue: '$111,921.02',
   },
   {
-    label: "Main Bank Account",
-    value: "main",
-    description: "Bank AG ••••1010",
-    descriptionPosition: "below" as const,
-    rightValue: "$111,921.02",
+    label: 'Main Bank Account',
+    value: 'main',
+    description: 'Bank AG ••••1010',
+    descriptionPosition: 'below' as const,
+    rightValue: '$111,921.02',
   },
   {
-    label: "Insurance Bank Account",
-    value: "insurance",
-    description: "Bank AG ••••1911",
-    descriptionPosition: "below" as const,
-    rightValue: "$56,921.02",
+    label: 'Insurance Bank Account',
+    value: 'insurance',
+    description: 'Bank AG ••••1911',
+    descriptionPosition: 'below' as const,
+    rightValue: '$56,921.02',
     inactive: true,
   },
 ];
@@ -113,19 +129,22 @@ const SelectPaymentMethodModal: React.FC<SelectPaymentMethodModalProps> = ({
   onClose,
   onConfirm,
   payables = [],
-  initialEmail = "",
+  initialEmail = '',
   initialContacts,
-  initialPaymentMethod = "",
-  initialBankAccount = "",
+  initialPaymentMethod = '',
+  initialBankAccount = '',
   isBulkPayment = false,
 }) => {
-  const [selectedValue, setSelectedValue] = useState("");
-  const [selectedBankAccount, setSelectedBankAccount] = useState("");
-  const [email, setEmail] = useState("gary@company.eu");
-  const [selectedSmartDisburseContacts, setSelectedSmartDisburseContacts] = useState<SmartDisburseContact[]>([]);
-  const [smartDisburseQuery, setSmartDisburseQuery] = useState("");
-  const [isSmartDisburseDropdownOpen, setIsSmartDisburseDropdownOpen] = useState(false);
-  const [isSmartDisburseInputFocused, setIsSmartDisburseInputFocused] = useState(false);
+  const [selectedValue, setSelectedValue] = useState('');
+  const [selectedBankAccount, setSelectedBankAccount] = useState('');
+  const [email, setEmail] = useState('gary@company.eu');
+  const [selectedSmartDisburseContacts, setSelectedSmartDisburseContacts] =
+    useState<SmartDisburseContact[]>([]);
+  const [smartDisburseQuery, setSmartDisburseQuery] = useState('');
+  const [isSmartDisburseDropdownOpen, setIsSmartDisburseDropdownOpen] =
+    useState(false);
+  const [isSmartDisburseInputFocused, setIsSmartDisburseInputFocused] =
+    useState(false);
   const [makeDefault, setMakeDefault] = useState(false);
   const smartDisburseInputRef = useRef<HTMLDivElement>(null);
 
@@ -133,15 +152,15 @@ const SelectPaymentMethodModal: React.FC<SelectPaymentMethodModalProps> = ({
     if (open) {
       setSelectedValue(initialPaymentMethod);
       setSelectedBankAccount(initialBankAccount);
-      setEmail(initialEmail || "gary@company.eu");
+      setEmail(initialEmail || 'gary@company.eu');
       // Если есть начальные контакты для SMART Disburse, используем их
-      if (initialPaymentMethod === "smart-disburse") {
+      if (initialPaymentMethod === 'smart-disburse') {
         if (initialContacts && initialContacts.length > 0) {
           setSelectedSmartDisburseContacts(initialContacts);
         } else if (initialEmail) {
           const defaultContact: SmartDisburseContact = {
             id: `email-default-${Date.now()}`,
-            type: "email",
+            type: 'email',
             value: initialEmail,
           };
           setSelectedSmartDisburseContacts([defaultContact]);
@@ -149,30 +168,36 @@ const SelectPaymentMethodModal: React.FC<SelectPaymentMethodModalProps> = ({
           // Если нет начального email, добавляем дефолтный gary@company.eu
           const defaultContact: SmartDisburseContact = {
             id: `email-default-gary`,
-            type: "email",
-            value: "gary@company.eu",
+            type: 'email',
+            value: 'gary@company.eu',
           };
           setSelectedSmartDisburseContacts([defaultContact]);
         }
       } else {
         setSelectedSmartDisburseContacts([]);
       }
-      setSmartDisburseQuery("");
+      setSmartDisburseQuery('');
       setIsSmartDisburseDropdownOpen(false);
       setIsSmartDisburseInputFocused(false);
       setMakeDefault(false);
     }
-  }, [open, initialEmail, initialContacts, initialPaymentMethod, initialBankAccount]);
+  }, [
+    open,
+    initialEmail,
+    initialContacts,
+    initialPaymentMethod,
+    initialBankAccount,
+  ]);
 
   // Автоматически добавляем дефолтный контакт при выборе SMART Disburse
   useEffect(() => {
-    if (selectedValue === "smart-disburse") {
+    if (selectedValue === 'smart-disburse') {
       setSelectedSmartDisburseContacts((prev) => {
         if (prev.length === 0) {
           const defaultContact: SmartDisburseContact = {
             id: `email-default-gary`,
-            type: "email",
-            value: "gary@company.eu",
+            type: 'email',
+            value: 'gary@company.eu',
           };
           return [defaultContact];
         }
@@ -201,36 +226,45 @@ const SelectPaymentMethodModal: React.FC<SelectPaymentMethodModalProps> = ({
     };
 
     if (open) {
-      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener('mousedown', handleClickOutside);
       return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
+        document.removeEventListener('mousedown', handleClickOutside);
       };
     }
   }, [open]);
 
-  const needsBankAccount = selectedValue === "ach" || selectedValue === "wire";
-  const isSmartDisburse = selectedValue === "smart-disburse";
+  const needsBankAccount = selectedValue === 'ach' || selectedValue === 'wire';
+  const isSmartDisburse = selectedValue === 'smart-disburse';
 
   // Мемоизация флагов выбранных типов контактов
-  const smartDisburseContactTypes = useMemo(() => ({
-    hasEmail: selectedSmartDisburseContacts.some((item) => item.type === "email"),
-    hasPhone: selectedSmartDisburseContacts.some((item) => item.type === "phone"),
-    selectedIds: new Set(selectedSmartDisburseContacts.map((item) => item.id)),
-  }), [selectedSmartDisburseContacts]);
+  const smartDisburseContactTypes = useMemo(
+    () => ({
+      hasEmail: selectedSmartDisburseContacts.some(
+        (item) => item.type === 'email'
+      ),
+      hasPhone: selectedSmartDisburseContacts.some(
+        (item) => item.type === 'phone'
+      ),
+      selectedIds: new Set(
+        selectedSmartDisburseContacts.map((item) => item.id)
+      ),
+    }),
+    [selectedSmartDisburseContacts]
+  );
 
   const filteredSmartDisburseContacts = useMemo(() => {
     if (!isSmartDisburseDropdownOpen) return [];
-    
+
     const query = smartDisburseQuery.trim().toLowerCase();
     const { selectedIds, hasEmail, hasPhone } = smartDisburseContactTypes;
-    
+
     const filtered = smartDisburseContacts.filter((item) => {
       // Исключаем уже выбранные контакты
       if (selectedIds.has(item.id)) return false;
       // Если уже есть email, не показываем другие email
-      if (item.type === "email" && hasEmail) return false;
+      if (item.type === 'email' && hasEmail) return false;
       // Если уже есть телефон, не показываем другие телефоны
-      if (item.type === "phone" && hasPhone) return false;
+      if (item.type === 'phone' && hasPhone) return false;
       // Если нет запроса, показываем все доступные
       if (!query) return true;
       // Фильтруем по запросу
@@ -240,36 +274,48 @@ const SelectPaymentMethodModal: React.FC<SelectPaymentMethodModalProps> = ({
         item.subLabel?.toLowerCase().includes(query)
       );
     });
-    
+
     return filtered;
-  }, [smartDisburseQuery, smartDisburseContactTypes, isSmartDisburseDropdownOpen]);
+  }, [
+    smartDisburseQuery,
+    smartDisburseContactTypes,
+    isSmartDisburseDropdownOpen,
+  ]);
 
   const handleSmartDisburseAdd = useCallback((item: SmartDisburseContact) => {
     setSelectedSmartDisburseContacts((prev) => {
-      const hasEmail = prev.some((contact) => contact.type === "email");
-      const hasPhone = prev.some((contact) => contact.type === "phone");
-      
-      if ((item.type === "email" && hasEmail) || (item.type === "phone" && hasPhone)) {
+      const hasEmail = prev.some((contact) => contact.type === 'email');
+      const hasPhone = prev.some((contact) => contact.type === 'phone');
+
+      if (
+        (item.type === 'email' && hasEmail) ||
+        (item.type === 'phone' && hasPhone)
+      ) {
         return prev;
       }
-      
+
       return [...prev, item];
     });
-    setSmartDisburseQuery("");
+    setSmartDisburseQuery('');
     setIsSmartDisburseDropdownOpen(false);
   }, []);
 
   const handleSmartDisburseRemove = useCallback((id: string) => {
-    setSelectedSmartDisburseContacts((prev) => prev.filter((item) => item.id !== id));
+    setSelectedSmartDisburseContacts((prev) =>
+      prev.filter((item) => item.id !== id)
+    );
   }, []);
 
-  const handleSmartDisburseInputChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value;
-    if (selectedSmartDisburseContacts.length < 2) {
-      setSmartDisburseQuery(value);
-      setIsSmartDisburseDropdownOpen(true);
-    }
-  }, [selectedSmartDisburseContacts.length]);
+  const handleSmartDisburseInputChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const value = event.target.value;
+      if (selectedSmartDisburseContacts.length < 2) {
+        setSmartDisburseQuery(value);
+        setIsSmartDisburseDropdownOpen(true);
+      }
+    },
+    [selectedSmartDisburseContacts.length]
+  );
 
   const handleSmartDisburseInputFocus = useCallback(() => {
     setIsSmartDisburseInputFocused(true);
@@ -295,62 +341,82 @@ const SelectPaymentMethodModal: React.FC<SelectPaymentMethodModalProps> = ({
     }, 200);
   }, []);
 
-  const handleSmartDisburseInputClick = useCallback((e: React.MouseEvent<HTMLInputElement>) => {
-    e.stopPropagation();
-    if (selectedSmartDisburseContacts.length < 2) {
-      setIsSmartDisburseDropdownOpen(true);
-    }
-  }, [selectedSmartDisburseContacts.length]);
-
-  const handleSmartDisburseInputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    const isMaxContacts = selectedSmartDisburseContacts.length === 2;
-    const isEmpty = smartDisburseQuery === "";
-    const hasContacts = selectedSmartDisburseContacts.length > 0;
-    const isDeleteKey = e.key === "Delete" || e.key === "Backspace";
-    const isTextKey = e.key.length === 1 && !e.ctrlKey && !e.metaKey;
-
-    // Удаление последнего контакта при пустом инпуте
-    if (isDeleteKey && isEmpty && hasContacts) {
-      e.preventDefault();
-      const lastContact = selectedSmartDisburseContacts[selectedSmartDisburseContacts.length - 1];
-      handleSmartDisburseRemove(lastContact.id);
-      setSmartDisburseQuery("");
-      if (selectedSmartDisburseContacts.length > 1) {
+  const handleSmartDisburseInputClick = useCallback(
+    (e: React.MouseEvent<HTMLInputElement>) => {
+      e.stopPropagation();
+      if (selectedSmartDisburseContacts.length < 2) {
         setIsSmartDisburseDropdownOpen(true);
       }
-    }
-    // Блокируем ввод текста когда выбраны оба контакта
-    if (isMaxContacts && isTextKey) {
-      e.preventDefault();
-    }
-  }, [smartDisburseQuery, selectedSmartDisburseContacts, handleSmartDisburseRemove]);
+    },
+    [selectedSmartDisburseContacts.length]
+  );
+
+  const handleSmartDisburseInputKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      const isMaxContacts = selectedSmartDisburseContacts.length === 2;
+      const isEmpty = smartDisburseQuery === '';
+      const hasContacts = selectedSmartDisburseContacts.length > 0;
+      const isDeleteKey = e.key === 'Delete' || e.key === 'Backspace';
+      const isTextKey = e.key.length === 1 && !e.ctrlKey && !e.metaKey;
+
+      // Удаление последнего контакта при пустом инпуте
+      if (isDeleteKey && isEmpty && hasContacts) {
+        e.preventDefault();
+        const lastContact =
+          selectedSmartDisburseContacts[
+            selectedSmartDisburseContacts.length - 1
+          ];
+        handleSmartDisburseRemove(lastContact.id);
+        setSmartDisburseQuery('');
+        if (selectedSmartDisburseContacts.length > 1) {
+          setIsSmartDisburseDropdownOpen(true);
+        }
+      }
+      // Блокируем ввод текста когда выбраны оба контакта
+      if (isMaxContacts && isTextKey) {
+        e.preventDefault();
+      }
+    },
+    [
+      smartDisburseQuery,
+      selectedSmartDisburseContacts,
+      handleSmartDisburseRemove,
+    ]
+  );
 
   const handleSmartDisburseLabelClick = useCallback(() => {
     if (selectedSmartDisburseContacts.length < 2) {
       setIsSmartDisburseDropdownOpen(true);
-      document.getElementById("smart-disburse-input-modal")?.focus();
+      document.getElementById('smart-disburse-input-modal')?.focus();
     }
   }, [selectedSmartDisburseContacts.length]);
 
   const handleSmartDisburseContainerClick = useCallback(() => {
-    document.getElementById("smart-disburse-input-modal")?.focus();
+    document.getElementById('smart-disburse-input-modal')?.focus();
     if (selectedSmartDisburseContacts.length < 2) {
       setIsSmartDisburseDropdownOpen(true);
     }
   }, [selectedSmartDisburseContacts.length]);
 
   const smartDisbursePlaceholder = useMemo(
-    () => selectedSmartDisburseContacts.length === 0 && !isSmartDisburseInputFocused ? "Email address or phone number" : "",
+    () =>
+      selectedSmartDisburseContacts.length === 0 && !isSmartDisburseInputFocused
+        ? 'Email address or phone number'
+        : '',
     [selectedSmartDisburseContacts.length, isSmartDisburseInputFocused]
   );
 
-  const smartDisburseContainerClassName = useMemo(() => clsx(
-    "mt-1 flex flex-wrap items-center gap-2 rounded-md border bg-white px-3 py-2 shadow-sm text-base placeholder-gray-400 min-h-[42px]",
-    "cursor-text",
-    isSmartDisburseInputFocused || isSmartDisburseDropdownOpen
-      ? "border-blue-600 ring-1 ring-blue-600"
-      : "border-gray-300"
-  ), [isSmartDisburseInputFocused, isSmartDisburseDropdownOpen]);
+  const smartDisburseContainerClassName = useMemo(
+    () =>
+      clsx(
+        'mt-1 flex flex-wrap items-center gap-2 rounded-md border bg-white px-3 py-2 shadow-sm text-base placeholder-gray-400 min-h-[42px]',
+        'cursor-text',
+        isSmartDisburseInputFocused || isSmartDisburseDropdownOpen
+          ? 'border-blue-600 ring-1 ring-blue-600'
+          : 'border-gray-300'
+      ),
+    [isSmartDisburseInputFocused, isSmartDisburseDropdownOpen]
+  );
 
   if (!open) return null;
 
@@ -361,15 +427,15 @@ const SelectPaymentMethodModal: React.FC<SelectPaymentMethodModalProps> = ({
       .filter((ba): ba is string => Boolean(ba))
   );
   const hasMultipleBankAccounts = uniqueBankAccounts.size > 1;
-  
+
   // Показываем предупреждение только если bulk payment включен и есть несколько банковских счетов
   const showWarning = isBulkPayment && hasMultipleBankAccounts;
 
   const isValid =
-    selectedValue !== "" &&
-    (!needsBankAccount || selectedBankAccount !== "") &&
+    selectedValue !== '' &&
+    (!needsBankAccount || selectedBankAccount !== '') &&
     (!isSmartDisburse || selectedSmartDisburseContacts.length > 0) &&
-    (isSmartDisburse || email.trim() !== "");
+    (isSmartDisburse || email.trim() !== '');
 
   const handleConfirm = () => {
     const option = paymentMethodOptions.find((o) => o.value === selectedValue);
@@ -382,7 +448,7 @@ const SelectPaymentMethodModal: React.FC<SelectPaymentMethodModalProps> = ({
       paymentMethodLabel: option?.label ?? selectedValue,
       bankAccount: needsBankAccount ? selectedBankAccount : undefined,
       bankAccountLabel: needsBankAccount
-        ? bankAccountOption?.description ?? bankAccountOption?.label
+        ? (bankAccountOption?.description ?? bankAccountOption?.label)
         : undefined,
       email: isSmartDisburse ? undefined : email.trim(),
       contacts: isSmartDisburse ? selectedSmartDisburseContacts : undefined,
@@ -425,7 +491,8 @@ const SelectPaymentMethodModal: React.FC<SelectPaymentMethodModalProps> = ({
                   Who would you like to send the bill to?
                 </div>
                 <div className="text-gray-500">
-                  Please enter the email address or phone number of the payee where the bill will be sent.
+                  Please enter the email address or phone number of the payee
+                  where the bill will be sent.
                 </div>
               </div>
               <Input
@@ -453,10 +520,10 @@ const SelectPaymentMethodModal: React.FC<SelectPaymentMethodModalProps> = ({
                   Where would you like to send the payment link?
                 </div>
                 <div className="mt-2.5 text-sm text-gray-500">
-                  Provide your payee&apos;s email address and/or phone number where the SMART
-                  Disburse payment token will be sent to.
+                  Provide your payee&apos;s email address and/or phone number
+                  where the SMART Disburse payment token will be sent to.
                 </div>
-                <div 
+                <div
                   className="mt-4 text-sm font-medium text-gray-700 cursor-pointer"
                   onClick={handleSmartDisburseLabelClick}
                 >
@@ -475,21 +542,25 @@ const SelectPaymentMethodModal: React.FC<SelectPaymentMethodModalProps> = ({
                         className="inline-flex items-center gap-0.5 rounded-full border border-gray-200 bg-gray-100 px-1 py-0.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
                         onClick={(e) => e.stopPropagation()}
                         onKeyDown={(e) => {
-                          if (e.key === "Delete" || e.key === "Backspace") {
+                          if (e.key === 'Delete' || e.key === 'Backspace') {
                             e.preventDefault();
                             e.stopPropagation();
                             handleSmartDisburseRemove(item.id);
                             setTimeout(() => {
-                              document.getElementById("smart-disburse-input-modal")?.focus();
+                              document
+                                .getElementById('smart-disburse-input-modal')
+                                ?.focus();
                             }, 0);
                           }
                         }}
                       >
                         <Icon
-                          icon={item.type === "email" ? "mail" : "phone"}
+                          icon={item.type === 'email' ? 'mail' : 'phone'}
                           className="h-3.5 w-3.5 text-gray-400"
                         />
-                        <span className="text-gray-900 text-sm leading-5">{item.value}</span>
+                        <span className="text-gray-900 text-sm leading-5">
+                          {item.value}
+                        </span>
                       </span>
                     ))}
                     {selectedSmartDisburseContacts.length < 2 && (
@@ -507,36 +578,41 @@ const SelectPaymentMethodModal: React.FC<SelectPaymentMethodModalProps> = ({
                       />
                     )}
                   </div>
-                  {isSmartDisburseDropdownOpen && filteredSmartDisburseContacts.length > 0 && (
-                    <div className="absolute left-0 right-0 z-10 mt-1 py-1 rounded-md bg-white shadow-lg max-h-60 overflow-y-auto">
-                      {filteredSmartDisburseContacts.map((item) => (
-                        <button
-                          key={item.id}
-                          type="button"
-                          className="flex w-full cursor-pointer items-center gap-3 p-4 text-left text-base hover:bg-gray-100 transition-colors duration-300"
-                          onMouseDown={(e) => {
-                            e.preventDefault(); // Предотвращаем blur перед кликом
-                          }}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleSmartDisburseAdd(item);
-                          }}
-                        >
-                          <Icon
-                            icon={item.type === "email" ? "mail" : "phone"}
-                            className="h-5 w-5 text-gray-500"
-                          />
-                          <div className="flex items-center gap-2">
-                            <span className="text-gray-900">{item.value}</span>
-                            {item.label && (
-                              <span className="text-gray-500">{item.label}</span>
-                            )}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                  {isSmartDisburseDropdownOpen &&
+                    filteredSmartDisburseContacts.length > 0 && (
+                      <div className="absolute left-0 right-0 z-10 mt-1 py-1 rounded-md bg-white shadow-lg max-h-60 overflow-y-auto">
+                        {filteredSmartDisburseContacts.map((item) => (
+                          <button
+                            key={item.id}
+                            type="button"
+                            className="flex w-full cursor-pointer items-center gap-3 p-4 text-left text-base hover:bg-gray-100 transition-colors duration-300"
+                            onMouseDown={(e) => {
+                              e.preventDefault(); // Предотвращаем blur перед кликом
+                            }}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleSmartDisburseAdd(item);
+                            }}
+                          >
+                            <Icon
+                              icon={item.type === 'email' ? 'mail' : 'phone'}
+                              className="h-5 w-5 text-gray-500"
+                            />
+                            <div className="flex items-center gap-2">
+                              <span className="text-gray-900">
+                                {item.value}
+                              </span>
+                              {item.label && (
+                                <span className="text-gray-500">
+                                  {item.label}
+                                </span>
+                              )}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                 </div>
               </div>
             </div>

@@ -3,11 +3,10 @@ import clsx from 'clsx';
 import DOMPurify from 'dompurify';
 import CheckBox from '../base/CheckBox';
 
-interface Props
-  extends Omit<
-    React.ComponentProps<typeof CheckBox>,
-    'label' | 'labelClassName' | 'wrapperClassName'
-  > {
+interface Props extends Omit<
+  React.ComponentProps<typeof CheckBox>,
+  'label' | 'labelClassName' | 'wrapperClassName'
+> {
   title?: string;
   text?: string;
   subtitle?: string;

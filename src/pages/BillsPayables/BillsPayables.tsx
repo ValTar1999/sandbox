@@ -1,22 +1,22 @@
-import { useState, useMemo, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import Box from "../../components/layout/Box";
-import Pagination from "../../components/common/base/Pagination";
-import BoxHeader from "../../components/layout/BoxHeader";
-import { ButtonTab } from "../../components/common/base/ButtonTab";
-import RootTable from "../../components/common/base/RootTable";
-import { payments } from "./data";
-import CancelPaymentModal from "../../modals/CancelPaymentModal";
-import CancelBulkPaymentModal from "../../modals/CancelBulkPaymentModal";
-import ReRunPaymentModal from "../../modals/ReRunPaymentModal";
-import TableWithLoading from "../../components/common/base/TableWithLoading";
-import { LOADING_DURATION_MS } from "../../constants/animations";
+import { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Box from '../../components/layout/Box';
+import Pagination from '../../components/common/base/Pagination';
+import BoxHeader from '../../components/layout/BoxHeader';
+import { ButtonTab } from '../../components/common/base/ButtonTab';
+import RootTable from '../../components/common/base/RootTable';
+import { payments } from './data';
+import CancelPaymentModal from '../../modals/CancelPaymentModal';
+import CancelBulkPaymentModal from '../../modals/CancelBulkPaymentModal';
+import ReRunPaymentModal from '../../modals/ReRunPaymentModal';
+import TableWithLoading from '../../components/common/base/TableWithLoading';
+import { LOADING_DURATION_MS } from '../../constants/animations';
 
 const statusMap = {
   'Ready to Pay': 'unprocessed',
   'In Progress': ['processed', 'pastDue'],
-  'Paid': 'paid',
-  'Exceptions': 'failed'
+  Paid: 'paid',
+  Exceptions: 'failed',
 } as const;
 
 type StatusLabel = keyof typeof statusMap;
@@ -29,7 +29,8 @@ const BillsPayables = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
-  const [isCancelBulkPaymentModalOpen, setIsCancelBulkPaymentModalOpen] = useState(false);
+  const [isCancelBulkPaymentModalOpen, setIsCancelBulkPaymentModalOpen] =
+    useState(false);
   const [isReRunModalOpen, setIsReRunModalOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
@@ -71,8 +72,10 @@ const BillsPayables = () => {
 
   const filteredPayments = useMemo(() => {
     const status = statusMap[activeTab];
-    return payments.filter(payment =>
-      Array.isArray(status) ? status.includes(payment.status) : payment.status === status
+    return payments.filter((payment) =>
+      Array.isArray(status)
+        ? status.includes(payment.status)
+        : payment.status === status
     );
   }, [activeTab]);
 
@@ -94,12 +97,12 @@ const BillsPayables = () => {
     setCurrentPage(1);
   };
 
-  const handleCancelClick = (payment: typeof payments[0]) => {
+  const handleCancelClick = (payment: (typeof payments)[0]) => {
     void payment;
     setIsCancelModalOpen(true);
   };
 
-  const handleReRunClick = (payment: typeof payments[0]) => {
+  const handleReRunClick = (payment: (typeof payments)[0]) => {
     void payment;
     setIsReRunModalOpen(true);
   };
@@ -116,7 +119,7 @@ const BillsPayables = () => {
     setIsCancelModalOpen(false);
   };
 
-  const handleCancelBulkPaymentClick = (payment: typeof payments[0]) => {
+  const handleCancelBulkPaymentClick = (payment: (typeof payments)[0]) => {
     void payment;
     setIsCancelBulkPaymentModalOpen(true);
   };
@@ -143,7 +146,7 @@ const BillsPayables = () => {
           onDeselect={() => setSelectedIds([])}
           onPay={() => {
             if (selectedIds.length > 0) {
-              navigate("/payables/multiple", { state: { selectedIds } });
+              navigate('/payables/multiple', { state: { selectedIds } });
             }
           }}
         />
@@ -163,13 +166,13 @@ const BillsPayables = () => {
     >
       <div className="px-6 py-4">
         <div className="flex gap-9">
-          {(Object.keys(statusMap) as StatusLabel[]).map(label => (
+          {(Object.keys(statusMap) as StatusLabel[]).map((label) => (
             <ButtonTab
               key={label}
               active={activeTab === label}
               onClick={() => handleTabClick(label)}
               count={`${tabCounts[label] || 0}`}
-              variant={label === "Exceptions" ? "red" : undefined}
+              variant={label === 'Exceptions' ? 'red' : undefined}
             >
               {label}
             </ButtonTab>

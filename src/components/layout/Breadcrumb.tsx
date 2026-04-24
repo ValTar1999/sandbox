@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useMemo } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { focusButton } from '../../config/commonStyles';
 import Icon from '../common/base/Icon';
 import clsx from 'clsx';
@@ -10,12 +10,16 @@ interface BreadcrumbSegmentProps {
   isLast: boolean;
 }
 
-const BreadcrumbSegment: React.FC<BreadcrumbSegmentProps> = ({ segment, pathTo, isLast }) => {
+const BreadcrumbSegment: React.FC<BreadcrumbSegmentProps> = ({
+  segment,
+  pathTo,
+  isLast,
+}) => {
   // Preserve hyphen for IDs (e.g. XZ1-A, KQ5-B), replace for slugs (e.g. business-details)
   const formattedSegment =
     segment.length <= 12 && /^[A-Za-z0-9]+-[A-Za-z0-9]+$/.test(segment)
       ? segment
-      : segment.replace(/-/g, " ");
+      : segment.replace(/-/g, ' ');
 
   if (isLast) {
     return (
@@ -29,7 +33,7 @@ const BreadcrumbSegment: React.FC<BreadcrumbSegmentProps> = ({ segment, pathTo, 
     <Link
       to={pathTo}
       className={clsx(
-        "text-gray-500 text-sm font-medium hover:text-gray-700 transition-all duration-300 capitalize",
+        'text-gray-500 text-sm font-medium hover:text-gray-700 transition-all duration-300 capitalize',
         focusButton()
       )}
     >
@@ -41,13 +45,31 @@ const BreadcrumbSegment: React.FC<BreadcrumbSegmentProps> = ({ segment, pathTo, 
 const Breadcrumb: React.FC = () => {
   const location = useLocation();
 
-  const pathnames = useMemo(() =>
-    location.pathname.split("/").filter(Boolean),
+  const breadcrumbItems = useMemo(
+    () =>
+      location.pathname
+        .split('/')
+        .filter(Boolean)
+        .map((segment, index, segments) => ({
+          segment,
+          pathTo: `/${segments.slice(0, index + 1).join('/')}`,
+        }))
+        .filter(({ segment }, index, items) => {
+          const isProfileUnderSettings =
+            items[0]?.segment === 'settings' && items[1]?.segment === 'profile';
+          if (isProfileUnderSettings && index === 0 && segment === 'settings') {
+            return false;
+          }
+          return true;
+        }),
     [location.pathname]
   );
 
   return (
-    <nav aria-label="breadcrumb" className="flex items-center border-t border-gray-200 py-4 space-x-4">
+    <nav
+      aria-label="breadcrumb"
+      className="flex items-center border-t border-gray-200 py-4 space-x-4"
+    >
       <div className="flex items-center">
         <div className="text-xl font-semibold text-gray-900">
           Current location
@@ -58,7 +80,7 @@ const Breadcrumb: React.FC = () => {
         <Link
           to="/"
           className={clsx(
-            "inline-flex rounded text-gray-400 hover:text-gray-500",
+            'inline-flex rounded text-gray-400 hover:text-gray-500',
             focusButton('focus-visible:ring-blue-600')
           )}
         >
@@ -66,9 +88,8 @@ const Breadcrumb: React.FC = () => {
         </Link>
       </div>
 
-      {pathnames.map((segment, index) => {
-        const pathTo = `/${pathnames.slice(0, index + 1).join("/")}`;
-        const isLast = index === pathnames.length - 1;
+      {breadcrumbItems.map(({ segment, pathTo }, index) => {
+        const isLast = index === breadcrumbItems.length - 1;
 
         return (
           <React.Fragment key={pathTo}>

@@ -11,6 +11,7 @@
    - В разделе "Source" выберите "GitHub Actions"
 
 2. **Закоммитьте и запушьте изменения:**
+
    ```bash
    git add .
    git commit -m "Setup GitHub Pages deployment"
@@ -31,13 +32,14 @@
    ```bash
    npm install
    ```
-   
 2. **Соберите проект:**
+
    ```bash
    npm run build
    ```
 
 3. **Задеплойте на GitHub Pages:**
+
    ```bash
    npm run deploy
    ```
@@ -59,14 +61,17 @@
 ## Устранение проблем
 
 ### Сайт не обновляется после деплоя
+
 - Очистите кэш браузера (Ctrl+Shift+R или Cmd+Shift+R)
 - Проверьте, что деплой завершился успешно в Actions
 
 ### 404 ошибки на страницах
+
 - Убедитесь, что `base` в `vite.config.ts` правильный
 - Проверьте, что React Router настроен для работы с base path
 
 ### Деплой не запускается автоматически
+
 - Проверьте, что workflow файл находится в `.github/workflows/deploy.yml`
 - Убедитесь, что вы пушите в ветку `main` или `master`
 - Проверьте настройки Pages в Settings репозитория

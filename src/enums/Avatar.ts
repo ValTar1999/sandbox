@@ -1,14 +1,6 @@
-export const Sizes = [
-  'xs',
-  'sm',
-  'md',
-  'lg',
-  'xl',
-  'xxl',
-  'xxxl',
-] as const
+export const Sizes = ['xs', 'sm', 'md', 'lg', 'xl', 'xxl', 'xxxl'] as const;
 
-export type TSizes = (typeof Sizes)[number]
+export type TSizes = (typeof Sizes)[number];
 
 export const classes = {
   xs: {
@@ -46,4 +38,4 @@ export const classes = {
     notifications: 'w-5 h-5',
     text: 'text-2xl',
   },
-}
+};

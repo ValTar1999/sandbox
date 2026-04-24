@@ -1,16 +1,22 @@
-import React, { useCallback, useMemo, useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import clsx from "clsx";
-import CheckBox from "./CheckBox";
-import Icon from "./Icon";
-import Button from "./Button";
-import Badge from "./Badge";
-import ExpandableTableRow from "./ExpandableTableRow";
-import ExpandableRow from "./ExpandableRow";
-import Menu, { useMenuContext } from "./Menu";
-import Input from "./Input";
-import { Payment } from "../../../pages/BillsPayables/data";
-import { STATUS_BADGES } from "../../../constants/tableStatusBadges";
+import React, {
+  useCallback,
+  useMemo,
+  useState,
+  useRef,
+  useEffect,
+} from 'react';
+import { useNavigate } from 'react-router-dom';
+import clsx from 'clsx';
+import CheckBox from './CheckBox';
+import Icon from './Icon';
+import Button from './Button';
+import Badge from './Badge';
+import ExpandableTableRow from './ExpandableTableRow';
+import ExpandableRow from './ExpandableRow';
+import Menu, { useMenuContext } from './Menu';
+import Input from './Input';
+import { Payment } from '../../../pages/BillsPayables/data';
+import { STATUS_BADGES } from '../../../constants/tableStatusBadges';
 import {
   TH_CLASS,
   TH_TEXT_CLASS,
@@ -18,8 +24,8 @@ import {
   FLEX_END,
   FLEX_START,
   FLEX_CENTER,
-} from "../../../constants/tableStyles";
-import SD from "../../../assets/image/SMART-Disburse.svg";
+} from '../../../constants/tableStyles';
+import SD from '../../../assets/image/SMART-Disburse.svg';
 
 interface RootTableProps {
   payments: Payment[];
@@ -30,7 +36,7 @@ interface RootTableProps {
   onCancelBulkPaymentClick?: (payment: Payment) => void;
 }
 
-const renderStatusBadge = (status: Payment["status"]) => {
+const renderStatusBadge = (status: Payment['status']) => {
   const config = STATUS_BADGES[status as keyof typeof STATUS_BADGES];
   if (!config) return null;
   return (
@@ -50,7 +56,7 @@ const RootTable: React.FC<RootTableProps> = ({
 }) => {
   const [selectedPayees, setSelectedPayees] = useState<string[]>([]);
   const [tempSelectedPayees, setTempSelectedPayees] = useState<string[]>([]);
-  const [payeeSearch, setPayeeSearch] = useState("");
+  const [payeeSearch, setPayeeSearch] = useState('');
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const masterCheckboxRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -107,7 +113,7 @@ const RootTable: React.FC<RootTableProps> = ({
   };
 
   const hasPaymentType = useMemo(
-    () => payments.some(payment => payment.paymentType),
+    () => payments.some((payment) => payment.paymentType),
     [payments]
   );
 
@@ -123,7 +129,7 @@ const RootTable: React.FC<RootTableProps> = ({
 
   const handleOpenPayeeFilter = () => {
     setTempSelectedPayees(selectedPayees);
-    setPayeeSearch("");
+    setPayeeSearch('');
   };
 
   const handleApplyPayeeFilter = () => {
@@ -169,8 +175,7 @@ const RootTable: React.FC<RootTableProps> = ({
             size="lg"
             onClick={handleClose}
             icon="x"
-          >
-          </Button>
+          ></Button>
         </div>
         <div className="px-6 py-4">
           <div>
@@ -202,10 +207,20 @@ const RootTable: React.FC<RootTableProps> = ({
           </div>
         </div>
         <div className="px-6 py-5 flex items-center justify-between gap-4">
-          <Button className="w-full" variant="secondary" size="lg" onClick={handleResetPayeeFilter}>
+          <Button
+            className="w-full"
+            variant="secondary"
+            size="lg"
+            onClick={handleResetPayeeFilter}
+          >
             Reset all
           </Button>
-          <Button className="w-full" variant="primary" size="lg" onClick={handleApply}>
+          <Button
+            className="w-full"
+            variant="primary"
+            size="lg"
+            onClick={handleApply}
+          >
             Apply
           </Button>
         </div>
@@ -219,11 +234,13 @@ const RootTable: React.FC<RootTableProps> = ({
         <thead>
           <tr className="border-b border-dashed border-gray-200">
             <th className="w-[52px] max-w-[52px] min-w-[52px]"></th>
-            <th className={clsx("w-8 max-w-8 min-w-8", TD_CLASS)}>
+            <th className={clsx('w-8 max-w-8 min-w-8', TD_CLASS)}>
               <div className={FLEX_CENTER}>
                 <CheckBox
                   ref={masterCheckboxRef}
-                  checked={filteredPayments.length > 0 ? allCurrentSelected : false}
+                  checked={
+                    filteredPayments.length > 0 ? allCurrentSelected : false
+                  }
                   onChange={() => handleMasterCheckboxChange()}
                 />
               </div>
@@ -252,18 +269,14 @@ const RootTable: React.FC<RootTableProps> = ({
             </th>
 
             <th className={TH_CLASS}>
-              <div className={clsx("flex items-center gap-1", "justify-start")}>
+              <div className={clsx('flex items-center gap-1', 'justify-start')}>
                 <button className="flex items-center gap-1">
                   <div className={TH_TEXT_CLASS}>payee</div>
                   <Icon icon="selector" className="text-gray-400" />
                 </button>
                 <Menu.Root placement="bottom-end">
                   <Menu.Trigger as="span" onClick={handleOpenPayeeFilter}>
-                    <Button
-                      icon="filter"
-                      size="xs"
-                      variant="linkSecondary"
-                    />
+                    <Button icon="filter" size="xs" variant="linkSecondary" />
                   </Menu.Trigger>
                   <Menu.Portal>
                     <Menu.Positioner>
@@ -279,7 +292,9 @@ const RootTable: React.FC<RootTableProps> = ({
 
             {hasPaymentType && (
               <th className={TH_CLASS}>
-                <div className={clsx("flex items-center gap-1", "justify-start")}>
+                <div
+                  className={clsx('flex items-center gap-1', 'justify-start')}
+                >
                   <div className={TH_TEXT_CLASS}>Payment Type</div>
                   <Button icon="filter" size="xs" variant="linkSecondary" />
                 </div>
@@ -287,32 +302,29 @@ const RootTable: React.FC<RootTableProps> = ({
             )}
 
             <th className={TH_CLASS}>
-              <div className={clsx("flex items-center gap-1", "justify-start")}>
+              <div className={clsx('flex items-center gap-1', 'justify-start')}>
                 <div className={TH_TEXT_CLASS}>source</div>
-                <Button
-                  icon="filter"
-                  size="xs"
-                  variant="linkSecondary"
-                />
+                <Button icon="filter" size="xs" variant="linkSecondary" />
               </div>
             </th>
 
             <th className={TH_CLASS}>
-              <div className={clsx("flex items-center gap-1", "justify-start")}>
-                <div className={clsx("text-nowrap", TH_TEXT_CLASS)}>Due Date</div>
+              <div className={clsx('flex items-center gap-1', 'justify-start')}>
+                <div className={clsx('text-nowrap', TH_TEXT_CLASS)}>
+                  Due Date
+                </div>
                 <Icon icon="selector" className="text-gray-400" />
               </div>
             </th>
 
             <th className={TH_CLASS}>
-              <div className={clsx("flex items-center gap-1", "justify-start")}>
+              <div className={clsx('flex items-center gap-1', 'justify-start')}>
                 <div className={TH_TEXT_CLASS}>status</div>
               </div>
             </th>
-
           </tr>
         </thead>
-        
+
         <tbody>
           {filteredPayments.map((payment) => (
             <React.Fragment key={payment.id}>
@@ -320,8 +332,8 @@ const RootTable: React.FC<RootTableProps> = ({
                 onClick={() => toggleExpand(payment.id)}
                 className={clsx(
                   'hover:bg-gray-50 cursor-pointer transition-colors duration-300 ease-in-out',
-                  expandedRow === payment.id && "bg-gray-100",
-                  selectedSet.has(payment.id) && "bg-blue-50"
+                  expandedRow === payment.id && 'bg-gray-100',
+                  selectedSet.has(payment.id) && 'bg-blue-50'
                 )}
               >
                 <td className="w-[52px] max-w-[52px] min-w-[52px]">
@@ -329,13 +341,15 @@ const RootTable: React.FC<RootTableProps> = ({
                     icon="chevron-right"
                     className={clsx(
                       'ml-4 transition-transform duration-300 ease-in-out',
-                      selectedSet.has(payment.id) ? "text-blue-500" : "text-gray-500",
-                      expandedRow === payment.id && "rotate-90"
+                      selectedSet.has(payment.id)
+                        ? 'text-blue-500'
+                        : 'text-gray-500',
+                      expandedRow === payment.id && 'rotate-90'
                     )}
                   />
                 </td>
 
-                <td className={clsx("w-8 max-w-8 min-w-8", TD_CLASS)}>
+                <td className={clsx('w-8 max-w-8 min-w-8', TD_CLASS)}>
                   <div className={FLEX_CENTER}>
                     <CheckBox
                       checked={selectedSet.has(payment.id)}
@@ -347,24 +361,47 @@ const RootTable: React.FC<RootTableProps> = ({
                   </div>
                 </td>
 
-                <td className={clsx("w-[186px] max-w-[186px] min-w-[186px]", TD_CLASS)}>
-                  <div className={clsx("flex items-center gap-1", "justify-end")}>
+                <td
+                  className={clsx(
+                    'w-[186px] max-w-[186px] min-w-[186px]',
+                    TD_CLASS
+                  )}
+                >
+                  <div
+                    className={clsx('flex items-center gap-1', 'justify-end')}
+                  >
                     {payment.lock ? (
                       <Icon className="text-gray-500" icon="lock-closed" />
                     ) : null}
-                    <div className="font-medium text-gray-900 text-sm">{payment.totalAmount}</div>
+                    <div className="font-medium text-gray-900 text-sm">
+                      {payment.totalAmount}
+                    </div>
                     <div className="text-gray-500">{payment.amountValute}</div>
                   </div>
                 </td>
 
-                <td className={clsx("w-[140px] max-w-[140px] min-w-[140px]", TD_CLASS)}>
-                  <div className={clsx("text-sm text-gray-500 flex", "justify-start")}>
+                <td
+                  className={clsx(
+                    'w-[140px] max-w-[140px] min-w-[140px]',
+                    TD_CLASS
+                  )}
+                >
+                  <div
+                    className={clsx(
+                      'text-sm text-gray-500 flex',
+                      'justify-start'
+                    )}
+                  >
                     {payment.billReference}
                   </div>
                 </td>
 
-                <td className={clsx("min-w-0 max-w-xs overflow-hidden", TD_CLASS)}>
-                  <div className={clsx("flex items-center gap-2", "justify-start")}> 
+                <td
+                  className={clsx('min-w-0 max-w-xs overflow-hidden', TD_CLASS)}
+                >
+                  <div
+                    className={clsx('flex items-center gap-2', 'justify-start')}
+                  >
                     {payment.vendors && payment.vendors.length > 0 && (
                       <Badge size="lg" rounded color="gray">
                         {payment.vendors.length}
@@ -378,7 +415,12 @@ const RootTable: React.FC<RootTableProps> = ({
 
                 {payment.paymentType && (
                   <td className={TD_CLASS}>
-                    <div className={clsx("flex items-center gap-2", "justify-start")}> 
+                    <div
+                      className={clsx(
+                        'flex items-center gap-2',
+                        'justify-start'
+                      )}
+                    >
                       {payment.paymentType === 'sd' ? (
                         <>
                           <img
@@ -388,27 +430,41 @@ const RootTable: React.FC<RootTableProps> = ({
                             loading="lazy"
                             decoding="async"
                           />
-                          <div className="text-sm text-gray-900">SMART Disburse</div>
+                          <div className="text-sm text-gray-900">
+                            SMART Disburse
+                          </div>
                         </>
                       ) : (
-                        <div className="text-sm text-gray-900">{payment.paymentType}</div>
+                        <div className="text-sm text-gray-900">
+                          {payment.paymentType}
+                        </div>
                       )}
                     </div>
                   </td>
                 )}
 
                 <td className={TD_CLASS}>
-                  <div className={clsx("text-sm text-gray-900 flex font-medium", "justify-start")}>
+                  <div
+                    className={clsx(
+                      'text-sm text-gray-900 flex font-medium',
+                      'justify-start'
+                    )}
+                  >
                     {payment.source}
                   </div>
                 </td>
 
                 <td className={TD_CLASS}>
-                  <div className={clsx("text-sm flex", "justify-start")}>
-                    {payment.status === "pastDue" ? (
+                  <div className={clsx('text-sm flex', 'justify-start')}>
+                    {payment.status === 'pastDue' ? (
                       <div className="flex items-center gap-1">
-                        <div className="text-yellow-600 text-nowrap">{payment.dueDate}</div>
-                        <Icon className="text-yellow-500" icon="exclamation-circle"/>
+                        <div className="text-yellow-600 text-nowrap">
+                          {payment.dueDate}
+                        </div>
+                        <Icon
+                          className="text-yellow-500"
+                          icon="exclamation-circle"
+                        />
                       </div>
                     ) : (
                       <div className="text-gray-500 text-nowrap">
@@ -419,22 +475,28 @@ const RootTable: React.FC<RootTableProps> = ({
                 </td>
 
                 <td className={TD_CLASS}>
-                  <div className={FLEX_START}>{renderStatusBadge(payment.status)}</div>
+                  <div className={FLEX_START}>
+                    {renderStatusBadge(payment.status)}
+                  </div>
                 </td>
 
-                {payment.status === "unprocessed" && (
+                {payment.status === 'unprocessed' && (
                   <td className="pl-4">
                     <div className={FLEX_END}>
-                    <Button size="md"  onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/payables/${payment.id}`);
-                    }}>Pay
-                    </Button>
+                      <Button
+                        size="md"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/payables/${payment.id}`);
+                        }}
+                      >
+                        Pay
+                      </Button>
                     </div>
                   </td>
                 )}
 
-                {payment.status === "processed" && (
+                {payment.status === 'processed' && (
                   <td className="pl-4">
                     <div className={FLEX_END}>
                       <Button
@@ -448,33 +510,37 @@ const RootTable: React.FC<RootTableProps> = ({
                   </td>
                 )}
 
-                {payment.status === "failed" && (
+                {payment.status === 'failed' && (
                   <td className="pl-4">
                     <div className={FLEX_END}>
-                    <Button 
-                      icon="x" 
-                      iconDirection="right" 
-                      variant="gray" 
-                      size="md" 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onReRunClick(payment);
-                      }}
-                    >
-                      Re-Run
-                    </Button>
+                      <Button
+                        icon="x"
+                        iconDirection="right"
+                        variant="gray"
+                        size="md"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onReRunClick(payment);
+                        }}
+                      >
+                        Re-Run
+                      </Button>
                     </div>
                   </td>
                 )}
 
-                {payment.status === "pastDue" && <td className={TD_CLASS}></td>}
-
+                {payment.status === 'pastDue' && <td className={TD_CLASS}></td>}
               </tr>
 
-              <ExpandableTableRow colSpan={8} isExpanded={expandedRow === payment.id}>
+              <ExpandableTableRow
+                colSpan={8}
+                isExpanded={expandedRow === payment.id}
+              >
                 <div className="flex flex-col">
                   <ExpandableRow label="Notes">
-                    <span className="text-sm font-medium text-gray-900">{payment.notes}</span>
+                    <span className="text-sm font-medium text-gray-900">
+                      {payment.notes}
+                    </span>
                   </ExpandableRow>
                   <ExpandableRow label="Status">
                     {renderStatusBadge(payment.status)}
@@ -482,7 +548,7 @@ const RootTable: React.FC<RootTableProps> = ({
                   <ExpandableRow label="Attachments" borderTop>
                     <Badge>{payment.attachments}</Badge>
                   </ExpandableRow>
-                  {payment.status === "processed" && (
+                  {payment.status === 'processed' && (
                     <ExpandableRow label="Actions" borderTop>
                       <Button
                         variant="gray"

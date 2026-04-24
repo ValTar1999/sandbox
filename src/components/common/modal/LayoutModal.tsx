@@ -1,4 +1,5 @@
-import React, { ReactNode, useEffect, useState } from "react";
+import React, { ReactNode, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 interface LayoutModalProps {
   children: ReactNode;
@@ -15,14 +16,16 @@ const LayoutModal: React.FC<LayoutModalProps> = ({ children }) => {
   }, []);
 
   const timingStyle = {
-    transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" as const,
+    transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' as const,
   };
 
-  return (
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     <div className="fixed inset-0 z-50 overflow-y-auto p-4">
       <div
         className={`absolute inset-0 bg-gray-900/75 transition-opacity duration-300 ${
-          isVisible ? "opacity-100" : "opacity-0"
+          isVisible ? 'opacity-100' : 'opacity-0'
         }`}
         style={timingStyle}
         aria-hidden
@@ -32,15 +35,16 @@ const LayoutModal: React.FC<LayoutModalProps> = ({ children }) => {
         <div
           className={`w-full max-w-full transition-all duration-300 ${
             isVisible
-              ? "opacity-100 scale-100 translate-y-0"
-              : "opacity-0 scale-95 translate-y-2"
+              ? 'opacity-100 scale-100 translate-y-0'
+              : 'opacity-0 scale-95 translate-y-2'
           }`}
           style={timingStyle}
         >
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

@@ -1,28 +1,29 @@
-import { useState, useMemo, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import Box from "../../components/layout/Box";
-import Pagination from "../../components/common/base/Pagination";
-import BoxHeader from "../../components/layout/BoxHeader";
-import { ButtonTab } from "../../components/common/base/ButtonTab";
-import ReceivablesTable from "./ReceivablesTable";
+import { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Box from '../../components/layout/Box';
+import Pagination from '../../components/common/base/Pagination';
+import BoxHeader from '../../components/layout/BoxHeader';
+import { ButtonTab } from '../../components/common/base/ButtonTab';
+import ReceivablesTable from './ReceivablesTable';
 import {
   receivables,
   statusMap,
   Receivable,
   ReceivableStatus,
   PaymentMethodItem,
-} from "./data";
-import TableWithLoading from "../../components/common/base/TableWithLoading";
-import { LOADING_DURATION_MS } from "../../constants/animations";
+} from './data';
+import TableWithLoading from '../../components/common/base/TableWithLoading';
+import { LOADING_DURATION_MS } from '../../constants/animations';
 
 const InvoicesReceivables = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<ReceivableStatus>("Ready to Invoice");
+  const [activeTab, setActiveTab] =
+    useState<ReceivableStatus>('Ready to Invoice');
   const [nextTab, setNextTab] = useState<ReceivableStatus | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (!isLoading || !nextTab) return;
@@ -63,7 +64,9 @@ const InvoicesReceivables = () => {
   const filteredReceivables = useMemo(() => {
     const status = statusMap[activeTab];
     let result = receivables.filter((rec) =>
-      Array.isArray(status) ? status.includes(rec.status) : rec.status === status
+      Array.isArray(status)
+        ? status.includes(rec.status)
+        : rec.status === status
     );
 
     if (searchQuery.trim()) {
@@ -129,15 +132,15 @@ const InvoicesReceivables = () => {
   };
 
   const handleReRunClick = (receivable: Receivable) => {
-    void receivable
+    void receivable;
   };
 
   const handleCancelClick = (
     receivable: Receivable,
     paymentMethod?: PaymentMethodItem
   ) => {
-    void receivable
-    void paymentMethod
+    void receivable;
+    void paymentMethod;
   };
 
   return (
@@ -171,7 +174,7 @@ const InvoicesReceivables = () => {
               active={activeTab === label}
               onClick={() => handleTabClick(label)}
               count={`${tabCounts[label] || 0}`}
-              variant={label === "Exceptions" ? "red" : undefined}
+              variant={label === 'Exceptions' ? 'red' : undefined}
             >
               {label}
             </ButtonTab>

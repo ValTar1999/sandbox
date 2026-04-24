@@ -1,5 +1,5 @@
-import Button from "./Button";
-import Icon from "./Icon";
+import Button from './Button';
+import Icon from './Icon';
 
 const ScheduleForBox = ({
   selectedDate,
@@ -18,12 +18,7 @@ const ScheduleForBox = ({
         </div>
         <div className="flex items-center border-y border-r border-gray-200 rounded-r-md">
           <span className="text-blue-600 pl-2">{selectedDate}</span>
-          <Button
-            size="sm"
-            icon="x"
-            variant="add_on"
-            onClick={onClear}
-          />
+          <Button size="sm" icon="x" variant="add_on" onClick={onClear} />
         </div>
       </div>
     </div>

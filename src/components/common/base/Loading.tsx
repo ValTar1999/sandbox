@@ -1,4 +1,4 @@
-import Spinner from "./Spinner";
+import Spinner from './Spinner';
 
 const Loading = () => (
   <div className="flex items-center justify-center">

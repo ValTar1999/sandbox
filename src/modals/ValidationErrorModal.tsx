@@ -1,8 +1,8 @@
-import React from "react";
-import LayoutModal from "../components/common/modal/LayoutModal";
-import Modal from "../components/common/modal/Modal";
-import Button from "../components/common/base/Button";
-import Icon from "../components/common/base/Icon";
+import React from 'react';
+import LayoutModal from '../components/common/modal/LayoutModal';
+import Modal from '../components/common/modal/Modal';
+import Button from '../components/common/base/Button';
+import Icon from '../components/common/base/Icon';
 
 interface ValidationErrorModalProps {
   open: boolean;
@@ -13,7 +13,7 @@ interface ValidationErrorModalProps {
 const ValidationErrorModal: React.FC<ValidationErrorModalProps> = ({
   open,
   onClose,
-  message = "Please fill in all required fields: Customer Details, Receiving Account, Payment Workflow, and Accounts on File.",
+  message = 'Please fill in all required fields: Customer Details, Receiving Account, Payment Workflow, and Accounts on File.',
 }) => {
   if (!open) return null;
 
@@ -24,10 +24,7 @@ const ValidationErrorModal: React.FC<ValidationErrorModalProps> = ({
         title="Validation Error"
         description={message}
         icon={
-          <Icon
-            icon="exclamation-circle"
-            className="h-11 w-11 text-red-500"
-          />
+          <Icon icon="exclamation-circle" className="h-11 w-11 text-red-500" />
         }
         onClose={onClose}
         footer={

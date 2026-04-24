@@ -1,7 +1,7 @@
 import React from 'react';
-import { clsx } from 'clsx'; 
+import { clsx } from 'clsx';
 import Input from '../common/base/Input';
-import Button from '../common/base/Button'; 
+import Button from '../common/base/Button';
 import { RefreshButton } from '../common/base/RefreshButton';
 
 interface BoxHeaderProps {
@@ -37,7 +37,9 @@ const BoxHeader: React.FC<BoxHeaderProps> = ({
     <div className={clsx('flex w-full items-center flex-wrap', className)}>
       <div className="grid gap-1 pr-12">
         <h3 className="text-lg font-medium">{title}</h3>
-        {description && <div className="text-xs text-gray-500">{description}</div>}
+        {description && (
+          <div className="text-xs text-gray-500">{description}</div>
+        )}
       </div>
 
       {hasSelection && (
@@ -70,11 +72,7 @@ const BoxHeader: React.FC<BoxHeaderProps> = ({
           onChange={handleSearch}
         />
         {showFilter && (
-          <Button
-            size="lg"
-            variant="secondary"
-            icon="chevron-down"
-          >
+          <Button size="lg" variant="secondary" icon="chevron-down">
             Filter
           </Button>
         )}

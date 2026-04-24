@@ -53,7 +53,11 @@ const Pagination: React.FC<PaginationProps> = ({
 
       <div className="flex items-center">
         <div className="mr-2">
-          Showing <b className="font-semibold">{startItem} - {endItem}</b> of <b className="font-semibold">{totalItems}</b> results
+          Showing{' '}
+          <b className="font-semibold">
+            {startItem} - {endItem}
+          </b>{' '}
+          of <b className="font-semibold">{totalItems}</b> results
         </div>
 
         <div className="grid grid-flow-col gap-2">

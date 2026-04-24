@@ -1,15 +1,15 @@
-import { useState, useMemo, useCallback } from "react";
-import Box from "../../components/layout/Box";
-import Pagination from "../../components/common/base/Pagination";
-import BoxHeader from "../../components/layout/BoxHeader";
-import VendorsTable from "./VendorsTable";
-import type { NetworkAction } from "./VendorsTable";
-import { vendors as vendorsData, Vendor, PaymentNetworkStatus } from "./data";
-import NetworkSearchInviteModal from "../../modals/NetworkSearchInviteModal";
-import type { ModalStage } from "../../modals/NetworkSearchInviteModal";
+import { useState, useMemo, useCallback } from 'react';
+import Box from '../../components/layout/Box';
+import Pagination from '../../components/common/base/Pagination';
+import BoxHeader from '../../components/layout/BoxHeader';
+import VendorsTable from './VendorsTable';
+import type { NetworkAction } from './VendorsTable';
+import { vendors as vendorsData, Vendor, PaymentNetworkStatus } from './data';
+import NetworkSearchInviteModal from '../../modals/NetworkSearchInviteModal';
+import type { ModalStage } from '../../modals/NetworkSearchInviteModal';
 
 const Vendors = () => {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [vendors, setVendors] = useState<Vendor[]>(vendorsData);
@@ -43,16 +43,19 @@ const Vendors = () => {
     ModalStage | undefined
   >(undefined);
   const [inviteModalType, setInviteModalType] = useState<
-    | "inviteToNetwork"
-    | "resendInvitation"
-    | "sendLinkRequest"
-    | "resendLinkRequest"
-    | "rejectRequest"
-    | "deleteLink"
+    | 'inviteToNetwork'
+    | 'resendInvitation'
+    | 'sendLinkRequest'
+    | 'resendLinkRequest'
+    | 'rejectRequest'
+    | 'deleteLink'
     | undefined
   >(undefined);
 
-  const handlePaymentNetworkChange = (vendor: Vendor, status: PaymentNetworkStatus) => {
+  const handlePaymentNetworkChange = (
+    vendor: Vendor,
+    status: PaymentNetworkStatus
+  ) => {
     setVendors((prev) =>
       prev.map((v) =>
         v.id === vendor.id ? { ...v, paymentNetworkStatus: status } : v
@@ -63,26 +66,26 @@ const Vendors = () => {
   const handleNetworkAction = useCallback(
     (action: NetworkAction, vendor: Vendor) => {
       if (
-        action.modalType === "inviteToNetwork" ||
-        action.modalType === "resendInvitation" ||
-        action.modalType === "sendLinkRequest" ||
-        action.modalType === "resendLinkRequest" ||
-        action.modalType === "rejectRequest" ||
-        action.modalType === "deleteLink"
+        action.modalType === 'inviteToNetwork' ||
+        action.modalType === 'resendInvitation' ||
+        action.modalType === 'sendLinkRequest' ||
+        action.modalType === 'resendLinkRequest' ||
+        action.modalType === 'rejectRequest' ||
+        action.modalType === 'deleteLink'
       ) {
         setActiveVendor(vendor);
         setInviteModalType(action.modalType as typeof inviteModalType);
         setInviteModalInitialStage(
-          action.modalType === "resendInvitation"
-            ? "invite"
-            : action.modalType === "sendLinkRequest" ||
-                action.modalType === "resendLinkRequest"
-              ? "linkRequest"
-              : action.modalType === "deleteLink"
-                ? "unlinkVendor"
-              : action.modalType === "rejectRequest"
-                ? "rejectRequest"
-              : "search"
+          action.modalType === 'resendInvitation'
+            ? 'invite'
+            : action.modalType === 'sendLinkRequest' ||
+                action.modalType === 'resendLinkRequest'
+              ? 'linkRequest'
+              : action.modalType === 'deleteLink'
+                ? 'unlinkVendor'
+                : action.modalType === 'rejectRequest'
+                  ? 'rejectRequest'
+                  : 'search'
         );
         setInviteModalOpen(true);
       }
@@ -102,7 +105,10 @@ const Vendors = () => {
       setVendors((prev) =>
         prev.map((v) =>
           v.id === activeVendor.id
-            ? { ...v, paymentNetworkStatus: "invitationSent" as PaymentNetworkStatus }
+            ? {
+                ...v,
+                paymentNetworkStatus: 'invitationSent' as PaymentNetworkStatus,
+              }
             : v
         )
       );
@@ -114,7 +120,10 @@ const Vendors = () => {
       setVendors((prev) =>
         prev.map((v) =>
           v.id === activeVendor.id
-            ? { ...v, paymentNetworkStatus: "notInNetwork" as PaymentNetworkStatus }
+            ? {
+                ...v,
+                paymentNetworkStatus: 'notInNetwork' as PaymentNetworkStatus,
+              }
             : v
         )
       );

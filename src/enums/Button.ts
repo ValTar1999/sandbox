@@ -1,4 +1,4 @@
-import { focusButton } from '../config/commonStyles'
+import { focusButton } from '../config/commonStyles';
 
 export const Variants = [
   'primary',
@@ -14,9 +14,9 @@ export const Variants = [
   'linkSecondary',
   'linkError',
   'add_on',
-] as const
+] as const;
 
-export type TVariants = (typeof Variants)[number]
+export type TVariants = (typeof Variants)[number];
 
 export const sizes = {
   buttonSize: {
@@ -74,10 +74,11 @@ export const sizes = {
     sm: 'rounded',
     xs: 'rounded',
   },
-}
+};
 
 export const classes = {
-  common: 'inline-flex h-fit items-center justify-center font-medium text-center whitespace-nowrap cursor-pointer transition-all duration-300',
+  common:
+    'inline-flex h-fit items-center justify-center font-medium text-center whitespace-nowrap cursor-pointer transition-all duration-300',
   disabled: 'opacity-40 pointer-events-none',
   colors: {
     primary: `bg-smart-main text-white shadow-sm hover:bg-smart-main-darken ${focusButton('focus-visible:ring-blue-600')}`,
@@ -109,4 +110,4 @@ export const classes = {
     linkError: 'text-red-400 group-hover:text-red-500',
     add_on: 'text-gray-400',
   },
-}
+};

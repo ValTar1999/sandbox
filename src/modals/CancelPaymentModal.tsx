@@ -1,9 +1,9 @@
 // src/components/common/base/CancelPaymentModal.tsx
-import React from "react";
-import Icon from "../components/common/base/Icon";
-import Button from "../components/common/base/Button";
-import LayoutModal from "../components/common/modal/LayoutModal";
-import Modal from "../components/common/modal/Modal";
+import React from 'react';
+import Icon from '../components/common/base/Icon';
+import Button from '../components/common/base/Button';
+import LayoutModal from '../components/common/modal/LayoutModal';
+import Modal from '../components/common/modal/Modal';
 
 interface CancelPaymentModalProps {
   open: boolean;
@@ -11,7 +11,11 @@ interface CancelPaymentModalProps {
   onConfirm: () => void;
 }
 
-const CancelPaymentModal: React.FC<CancelPaymentModalProps> = ({ open, onClose, onConfirm }) => {
+const CancelPaymentModal: React.FC<CancelPaymentModalProps> = ({
+  open,
+  onClose,
+  onConfirm,
+}) => {
   if (!open) return null;
   return (
     <LayoutModal>
@@ -20,12 +24,31 @@ const CancelPaymentModal: React.FC<CancelPaymentModalProps> = ({ open, onClose, 
         titleCenter={true}
         title="Cancel Payment"
         description="Are you sure you want to cancel payment?"
-        icon={<Icon icon="exclamation" className="-mb-2 -mt-4 h-11 w-11 text-red-500" />}
+        icon={
+          <Icon
+            icon="exclamation"
+            className="-mb-2 -mt-4 h-11 w-11 text-red-500"
+          />
+        }
         onClose={onClose}
         footer={
           <div className="grid grid-cols-2 items-center gap-6">
-            <Button variant="secondary" size="xl"className="w-full" onClick={onClose}>Go Back</Button>
-            <Button variant="primaryDistructive" size="xl"className="w-full" onClick={onConfirm}>Cancel Payment</Button>
+            <Button
+              variant="secondary"
+              size="xl"
+              className="w-full"
+              onClick={onClose}
+            >
+              Go Back
+            </Button>
+            <Button
+              variant="primaryDistructive"
+              size="xl"
+              className="w-full"
+              onClick={onConfirm}
+            >
+              Cancel Payment
+            </Button>
           </div>
         }
       />

@@ -1,7 +1,7 @@
-import React from "react";
-import clsx from "clsx";
-import Loading from "./Loading";
-import { LOADING_TRANSITION_CLASS } from "../../../constants/animations";
+import React from 'react';
+import clsx from 'clsx';
+import Loading from './Loading';
+import { LOADING_TRANSITION_CLASS } from '../../../constants/animations';
 
 interface TableWithLoadingProps {
   isLoading: boolean;
@@ -16,7 +16,7 @@ const TableWithLoading: React.FC<TableWithLoadingProps> = ({
     <div
       className={clsx(
         LOADING_TRANSITION_CLASS,
-        isLoading ? "opacity-0 pointer-events-none" : "opacity-100"
+        isLoading ? 'opacity-0 pointer-events-none' : 'opacity-100'
       )}
     >
       {children}
