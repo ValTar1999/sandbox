@@ -465,7 +465,7 @@ const UserManagementPage = () => {
                   <Button
                     size="lg"
                     variant="primary"
-                    icon="users"
+                    icon="user-add"
                     iconDirection="left"
                     onClick={handleAddUser}
                   >
@@ -475,6 +475,8 @@ const UserManagementPage = () => {
                   <Button
                     size="lg"
                     variant="primary"
+                    icon="user-add"
+                    iconDirection="left"
                     onClick={() => {
                       setCreateRoleInitialData(undefined);
                       setRolesViewMode('create');
@@ -542,6 +544,7 @@ const UserManagementPage = () => {
               users={paginatedRows as UserRow[]}
               onDeleteClick={handleDeleteClick}
               onEditClick={handleEditClick}
+              onInviteClick={handleAddUser}
             />
           ) : (
             <RolesTable
@@ -1003,10 +1006,12 @@ const UsersTable = memo(
     users,
     onDeleteClick,
     onEditClick,
+    onInviteClick,
   }: {
     users: UserRow[];
     onDeleteClick: (user: UserRow) => void;
     onEditClick: (user: UserRow) => void;
+    onInviteClick: () => void;
   }) => (
     <div className="overflow-x-auto w-full px-6">
       <table className="table-fixed w-full min-w-full">
@@ -1086,6 +1091,7 @@ const UsersTable = memo(
                         icon="arrow-right"
                         iconDirection="right"
                         className="-ml-2"
+                        onClick={onInviteClick}
                       >
                         {user.role}
                       </Button>
@@ -1248,7 +1254,7 @@ const RolesTable = memo(
                             className="px-4 py-3 text-sm leading-5 font-medium text-gray-900 hover:bg-gray-50 cursor-pointer transition-colors duration-300"
                             onClick={() => onViewClick(role)}
                           >
-                            View
+                            Edit
                           </Menu.Item>
                           <Menu.Item
                             className="px-4 py-3 text-sm leading-5 font-medium text-gray-900 hover:bg-gray-50 cursor-pointer transition-colors duration-300"

@@ -557,7 +557,7 @@ const CreateRoleView = ({
                       )}
                     >
                       <div className="overflow-hidden">
-                        <div className="flex flex-wrap gap-2.5">
+                        <div className="flex flex-wrap gap-2.5 mx-px">
                           {permissions.map((permission) => (
                             <span
                               key={`${item.id}-${permission}`}
@@ -638,7 +638,17 @@ const CreateRoleView = ({
   return (
     <div className="bg-white rounded-[10px] shadow-sm border border-gray-200">
       <div className="px-6 py-4 border-b border-gray-200 flex items-start justify-between">
-        <h2 className="text-base font-medium text-gray-900">Create Role</h2>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="linkSecondary"
+            size="sm"
+            icon="arrow-left"
+            iconClass="text-gray-500"
+            aria-label="Go back"
+            onClick={onCancel}
+          />
+          <h2 className="text-base font-medium text-gray-900">Create Role</h2>
+        </div>
         <div className="flex flex-col items-end gap-1">
           <Select.Root placement="bottom-end">
             <Select.Trigger as="span" className="inline-flex">
@@ -724,7 +734,7 @@ const CreateRoleView = ({
                   setRoleDescriptionError(false);
                 }}
                 className={clsx(
-                  'transition duration-300 ease-in-out block w-full border border-gray-300 text-base font-normal text-gray-800 placeholder-gray-400 overflow-hidden focus:border-smart-main focus:outline-none focus:ring-1 focus:ring-smart-main rounded-md shadow-sm px-3 py-2 resize-none',
+                  'transition duration-300 ease-in-out block w-full border border-gray-300 text-base font-normal text-gray-800 placeholder-gray-400 overflow-x-hidden overflow-y-auto focus:border-smart-main focus:outline-none focus:ring-1 focus:ring-smart-main rounded-md shadow-sm px-3 py-2 resize-none',
                   roleDescriptionError
                     ? 'border-red-500 placeholder:text-red-300 text-red-900'
                     : 'border-gray-300'
@@ -823,7 +833,7 @@ const CreateRoleView = ({
                     )}
                   >
                     <div className="overflow-hidden">
-                      <div className="flex flex-wrap gap-2.5">
+                      <div className="flex flex-wrap gap-2.5 mx-px">
                         {item.permissions.map((permission) => {
                           const isSelected =
                             selectedPermissions.includes(permission);

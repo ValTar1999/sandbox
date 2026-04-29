@@ -9,6 +9,11 @@ import Badge from '../components/common/base/Badge';
 import Icon from '../components/common/base/Icon';
 import Select from '../components/common/base/Select';
 import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from '../components/common/base/Tooltip';
+import {
   AdvancedPeriodDropdownContent,
   RoleDropdownContent,
   TimeframeDropdownContent,
@@ -49,14 +54,10 @@ const AddNewUserModal = ({
   const [view, setView] = useState<
     'invite' | 'permissions' | 'limits' | 'success'
   >('invite');
-  const [inviteEmail, setInviteEmail] = useState(
-    'shawn.graham@bigkahunaburger.com'
-  );
-  const [inviteFirstName, setInviteFirstName] = useState('Shawn');
-  const [inviteLastName, setInviteLastName] = useState('Graham');
-  const [inviteMessage, setInviteMessage] = useState(
-    'Hi, please help me with setting up the company profile for SMART Hub.'
-  );
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteFirstName, setInviteFirstName] = useState('');
+  const [inviteLastName, setInviteLastName] = useState('');
+  const [inviteMessage, setInviteMessage] = useState('');
   const [limitsType, setLimitsType] = useState<'ap' | 'ar'>('ap');
   const [limitsMode, setLimitsMode] = useState<LimitsMode>('global');
   const [limitsSummaryByType, setLimitsSummaryByType] = useState<{
@@ -115,12 +116,10 @@ const AddNewUserModal = ({
   const handleClose = () => {
     setSelectedRoleId('');
     setView('invite');
-    setInviteEmail('shawn.graham@bigkahunaburger.com');
-    setInviteFirstName('Shawn');
-    setInviteLastName('Graham');
-    setInviteMessage(
-      'Hi, please help me with setting up the company profile for SMART Hub.'
-    );
+    setInviteEmail('');
+    setInviteFirstName('');
+    setInviteLastName('');
+    setInviteMessage('');
     setLimitsType('ap');
     setLimitsMode('global');
     setSelectedTimeframeId('weekly');
@@ -263,10 +262,22 @@ const AddNewUserModal = ({
     setView('invite');
   };
 
+  const requiredLimitsTypes: Array<'ap' | 'ar'> =
+    selectedRoleId === 'ar-only'
+      ? ['ar']
+      : selectedRoleId === 'ap-only'
+        ? ['ap']
+        : selectedRoleId === 'full-access' ||
+            selectedRoleId === 'view-only' ||
+            selectedRoleId === 'technical'
+          ? ['ap', 'ar']
+          : ['ap'];
+
   const handleSendInvite = () => {
     if (!selectedRole) return;
-    const requiredLimitsType = selectedRoleId === 'ar-only' ? 'ar' : 'ap';
-    const hasRequiredLimits = Boolean(limitsSummaryByType[requiredLimitsType]);
+    const hasRequiredLimits = requiredLimitsTypes.every((type) =>
+      Boolean(limitsSummaryByType[type])
+    );
     if (!hasRequiredLimits) {
       setLimitsRequiredError(true);
       return;
@@ -288,7 +299,8 @@ const AddNewUserModal = ({
       : 'User Approval Limits for Accounts Receivable';
   const showAccountsPayableLimits = selectedRoleId !== 'ar-only';
   const showAccountsReceivableLimits = selectedRoleId !== 'ap-only';
-  const requiredLimitsType = selectedRoleId === 'ar-only' ? 'ar' : 'ap';
+  const isAccountsPayableRequired = requiredLimitsTypes.includes('ap');
+  const isAccountsReceivableRequired = requiredLimitsTypes.includes('ar');
 
   if (!open) return null;
   if (view === 'success') {
@@ -342,12 +354,12 @@ const AddNewUserModal = ({
             <div className="flex items-center justify-end gap-3">
               <Button
                 variant="secondary"
-                size="sm"
+                size="lg"
                 onClick={() => setView('invite')}
               >
                 Go back to invite
               </Button>
-              <Button size="sm" onClick={handleAddLimits}>
+              <Button size="lg" onClick={handleAddLimits}>
                 Add
               </Button>
             </div>
@@ -599,7 +611,7 @@ const AddNewUserModal = ({
                   </div>
 
                   <div className="">
-                    <div className="flex space-x-6 items-center py-3 border-b border-gray-200">
+                    <div className="flex space-x-6 items-center py-3 border-b border-gray-200 mb-2.5">
                       <span className="w-full max-w-[200px]" />
                       <span className="w-full max-w-[304px] text-xs leading-4 font-medium text-gray-500 uppercase">
                         Timeframe / Limits
@@ -611,7 +623,7 @@ const AddNewUserModal = ({
                     {advancedLimitMethods.map((method) => (
                       <div
                         key={method}
-                        className="flex space-x-6 items-center py-4"
+                        className="flex space-x-6 items-center py-1.5"
                       >
                         <span className="text-sm font-medium leading-5 text-gray-700 w-full max-w-[200px]">
                           {method}
@@ -756,7 +768,7 @@ const AddNewUserModal = ({
                     ))}
                   </div>
 
-                  <div className="rounded-md bg-gray-50 p-3 text-xs leading-4 text-gray-500 flex w-full items-center gap-3">
+                  <div className="rounded-md bg-gray-50 p-3 mt-2.5 text-xs leading-4 text-gray-500 flex w-full items-center gap-3">
                     <Icon
                       icon="information-circle"
                       className="w-4 h-4 text-gray-400"
@@ -891,10 +903,21 @@ const AddNewUserModal = ({
                       <span className="text-base leading-6 font-medium text-gray-900">
                         User Approval Limits
                       </span>
-                      <Icon
-                        icon="information-circle"
-                        className="w-4.5 h-4.5 text-gray-400"
-                      />
+                      <Tooltip trigger="hover" placement="top">
+                        <TooltipTrigger
+                          as="span"
+                          className="inline-flex cursor-help"
+                        >
+                          <Icon
+                            icon="information-circle"
+                            className="w-4.5 h-4.5 text-gray-400"
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent className="rounded-lg px-3 py-2 text-sm leading-5 bg-gray-900 text-white shadow-lg max-w-[280px]">
+                          Set both AP and AR limits for Full Access, View Only,
+                          and Technical roles.
+                        </TooltipContent>
+                      </Tooltip>
                     </div>
                     {showAccountsPayableLimits && (
                       <div className="flex items-center justify-between gap-6">
@@ -916,11 +939,11 @@ const AddNewUserModal = ({
                               'Set limits for payments initiated by this user.'}
                           </div>
                           {limitsRequiredError &&
-                            requiredLimitsType === 'ap' &&
+                            isAccountsPayableRequired &&
                             !limitsSummaryByType.ap && (
-                            <div className="text-xs leading-4 text-red-500">
-                              Accounts Payable limits are required.
-                            </div>
+                              <div className="text-xs leading-4 text-red-500">
+                                Accounts Payable limits are required.
+                              </div>
                             )}
                         </div>
                         {limitsSummaryByType.ap ? (
@@ -975,7 +998,7 @@ const AddNewUserModal = ({
                               'Set limits for payment requests initiated by this user.'}
                           </div>
                           {limitsRequiredError &&
-                            requiredLimitsType === 'ar' &&
+                            isAccountsReceivableRequired &&
                             !limitsSummaryByType.ar && (
                               <div className="text-xs leading-4 text-red-500">
                                 Accounts Receivable limits are required.
