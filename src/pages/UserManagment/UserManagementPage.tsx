@@ -1,5 +1,6 @@
 import { memo, useCallback, useMemo, useState, type ChangeEvent } from 'react';
 import clsx from 'clsx';
+import { useNavigate } from 'react-router-dom';
 import Box from '../../components/layout/Box';
 import Input from '../../components/common/base/Input';
 import Button from '../../components/common/base/Button';
@@ -59,6 +60,7 @@ const truncateRoleDescription = (value: string) => {
 };
 
 const UserManagementPage = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabType>('users');
   const [rolesViewMode, setRolesViewMode] = useState<RolesViewMode>('list');
   const [searchValue, setSearchValue] = useState('');
@@ -196,9 +198,16 @@ const UserManagementPage = () => {
     setUserToDelete(user);
   }, []);
 
-  const handleEditClick = useCallback((user: UserRow) => {
-    setUserToEdit(user);
-  }, []);
+  const handleEditClick = useCallback(
+    (user: UserRow) => {
+      if (user.isCurrentUser) {
+        navigate('/settings/profile');
+        return;
+      }
+      setUserToEdit(user);
+    },
+    [navigate]
+  );
 
   const getRolePayload = useCallback(
     (role: RoleRow): CreateRolePayload => {
@@ -1134,7 +1143,11 @@ const UsersTable = memo(
                             size="sm"
                             iconClass="text-gray-500 w-4.5 h-4.5"
                             aria-label="Edit profile"
-                            onClick={() => onEditClick(user)}
+                            onClick={(event) => {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              onEditClick(user);
+                            }}
                           />
                         </TooltipTrigger>
                         <TooltipContent className="rounded-lg px-2.5 py-1 text-sm leading-5 bg-gray-900 text-white shadow-lg">
