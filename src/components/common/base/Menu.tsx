@@ -277,7 +277,7 @@ const Item = ({ children, className, ...props }: ItemProps) => {
     <button
       type="button"
       className={clsx(
-        'flex w-full items-center px-3 py-1.5 text-left text-sm text-gray-900 hover:bg-gray-100',
+        'flex w-full items-center px-3 py-1.5 text-left text-sm text-gray-900 hover:bg-gray-100 cursor-pointer transition-colors duration-300',
         className
       )}
       {...props}

@@ -63,7 +63,7 @@ const BoxHeader: React.FC<BoxHeaderProps> = ({
 
       {!hasSelection && <RefreshButton />}
 
-      <div className="ml-auto grid grid-flow-col gap-6 pl-8">
+      <div className="ml-auto grid grid-flow-col items-center gap-6 pl-8">
         <Input
           placeholder="Search"
           type="text"
@@ -76,9 +76,8 @@ const BoxHeader: React.FC<BoxHeaderProps> = ({
             Filter
           </Button>
         )}
+        {children}
       </div>
-
-      {children}
     </div>
   );
 };

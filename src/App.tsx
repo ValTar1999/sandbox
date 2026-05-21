@@ -24,6 +24,10 @@ const ProfilePage = lazy(() => import('./pages/Profile/ProfilePage'));
 const Dashboard = () => <div className="p-4">Dashboard Page</div>;
 const Customers = () => <div className="p-4">Customers Page</div>;
 const Configurator = () => <div className="p-4">Configurator Page</div>;
+const SmartExchange = lazy(() => import('./pages/SmartExchange/SmartExchange'));
+const PaymentPreferences = lazy(
+  () => import('./pages/SmartExchange/PaymentPreferences/PaymentPreferences')
+);
 const SettingsBusinessDetails = () => (
   <div className="p-4">Business Details</div>
 );
@@ -44,6 +48,11 @@ function App() {
             element={<InitiatePaymentRequestPage />}
           />
           <Route path="/customers" element={<Customers />} />
+          <Route path="/smart-exchange" element={<SmartExchange />} />
+          <Route
+            path="/smart-exchange/payment-preferences"
+            element={<PaymentPreferences />}
+          />
           <Route path="/configurator" element={<Configurator />} />
           <Route
             path="/settings/business-details"

@@ -24,6 +24,7 @@ import Select, { useSelectContext } from '../common/base/Select';
 
 import TranscardShield from '../../assets/image/layout/transcard-shield.svg';
 import TranscardText from '../../assets/image/layout/transcard-text.svg';
+import SELogoSvgRaw from '../../assets/image/SE-logo.svg?raw';
 
 interface MenuItem {
   to: string;
@@ -36,6 +37,19 @@ interface MenuItem {
     label: string;
   }>;
 }
+
+/** Inline SVG so `currentColor` follows sidebar classes; wrapper clips flex min-size overflow. */
+const SmartExchangeSidebarIcon = memo((props: React.SVGProps<SVGSVGElement>) => (
+  <span
+    aria-hidden
+    className={clsx(
+      props.className,
+      'flex shrink-0 basis-6 self-center items-center justify-center overflow-hidden leading-none [&>svg]:block [&>svg]:h-6 [&>svg]:w-6 [&>svg]:max-h-6 [&>svg]:max-w-6 [&>svg]:shrink-0'
+    )}
+    dangerouslySetInnerHTML={{ __html: SELogoSvgRaw }}
+  />
+));
+SmartExchangeSidebarIcon.displayName = 'SmartExchangeSidebarIcon';
 
 const menuItems: MenuItem[] = [
   { to: '/dashboard', label: 'Dashboard', icon: HomeIcon, line: true },
@@ -53,6 +67,18 @@ const menuItems: MenuItem[] = [
     badge: 3,
   },
   { to: '/customers', label: 'Customers', icon: BriefcaseIcon, line: true },
+  {
+    to: '/smart-exchange',
+    label: 'SMART Exchange',
+    icon: SmartExchangeSidebarIcon,
+    line: true,
+    children: [
+      {
+        to: '/smart-exchange/payment-preferences',
+        label: 'Payment Preferences',
+      },
+    ],
+  },
   { to: '/configurator', label: 'Configurator', icon: AdjustmentsVerticalIcon },
   {
     to: '/settings',
@@ -75,7 +101,8 @@ const COMMON_CLASSES = {
   icon: 'h-6 w-6 min-w-6 min-h-6 transition-all duration-300',
   iconActive: 'text-blue-600',
   iconInactive: 'text-gray-400',
-  label: 'text-base font-medium pl-3 transition-all duration-300',
+  label:
+    'text-base font-medium pl-3 text-nowrap transition-all duration-300',
   labelActive: 'text-gray-900',
   labelInactive: 'text-gray-600 group-hover:text-gray-900',
   textContainer: 'flex justify-between w-full items-center overflow-hidden',
@@ -522,17 +549,18 @@ const Sidebar: React.FC = () => {
   );
 
   const handleMenuToggle = useCallback(
-    (item: MenuItem, isChildActive: boolean) => {
+    (item: MenuItem, isSectionActive: boolean) => {
       return (event: React.MouseEvent) => {
         if (!item.children || !isOpen) return;
+        if (location.pathname !== item.to) return;
         event.preventDefault();
         setExpandedMenus((prev) => ({
           ...prev,
-          [item.to]: !(prev[item.to] ?? isChildActive),
+          [item.to]: !(prev[item.to] ?? isSectionActive),
         }));
       };
     },
-    [isOpen]
+    [isOpen, location.pathname]
   );
 
   // Общий компонент для содержимого пункта меню
@@ -581,9 +609,13 @@ const Sidebar: React.FC = () => {
       const isExactActive = location.pathname === item.to;
       const isChildActive =
         item.children?.some((child) => location.pathname === child.to) ?? false;
+      const isSectionActive =
+        isChildActive ||
+        location.pathname === item.to ||
+        location.pathname.startsWith(`${item.to}/`);
       const isActive = isDashboardActive || isExactActive;
       const applyActiveStyles = !item.children && isActive;
-      const isExpanded = expandedMenus[item.to] ?? isChildActive;
+      const isExpanded = expandedMenus[item.to] ?? isSectionActive;
       const isLastItem = index === menuItems.length - 1;
       const isSettings = item.to === '/settings';
 
@@ -621,7 +653,7 @@ const Sidebar: React.FC = () => {
         <NavLink
           to={item.to}
           className={linkClasses}
-          onClick={handleMenuToggle(item, isChildActive)}
+          onClick={handleMenuToggle(item, isSectionActive)}
           tabIndex={!isOpen ? -1 : undefined}
         >
           {menuContent}
