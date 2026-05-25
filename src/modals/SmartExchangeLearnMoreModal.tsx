@@ -13,10 +13,11 @@ interface SetupStep {
   subtitle?: string;
   description?: string;
   status: StepStatus;
-  showVerifyButton?: boolean;
+  actionLabel?: string;
+  action?: 'verify' | 'payments';
 }
 
-const SETUP_STEPS: SetupStep[] = [
+const depositVerificationSteps: SetupStep[] = [
   {
     id: 1,
     title: 'Agreement Signature (Acknowledged)',
@@ -30,16 +31,44 @@ const SETUP_STEPS: SetupStep[] = [
   },
   {
     id: 3,
-    title: 'Verify Your Bank Account (Micro Deposit)',
+    title: 'Verify Your Bank Account (Penny Test)',
     description:
       "A small test deposit was sent to your bank account, this may take 2-3 days to appear depending on your bank. You'll need to confirm the exact amount to complete setup.",
     status: 'current',
-    showVerifyButton: true,
+    actionLabel: 'Verify now',
+    action: 'verify',
   },
   {
     id: 4,
-    title: 'Automatic Card Processing Setup Complete',
+    title: 'Automatic Card Processing Activated',
     subtitle: 'Your settlement account has been verified.',
+    status: 'pending',
+  },
+];
+
+const processPaymentSteps: SetupStep[] = [
+  {
+    id: 1,
+    title: 'Agreement Signature (Acknowledged)',
+    subtitle: 'Confirmed at - 04/06/2026, 11:53:17 AM',
+    status: 'completed',
+  },
+  {
+    id: 2,
+    title: 'Process Any Card Payment',
+    description: 'This will provide us with information to confirm eligibility',
+    status: 'current',
+    actionLabel: 'Go to Payments',
+    action: 'payments',
+  },
+  {
+    id: 3,
+    title: 'Verify Your Bank Account (Penny Test)',
+    status: 'pending',
+  },
+  {
+    id: 4,
+    title: 'Automatic Card Processing Activated',
     status: 'pending',
   },
 ];
@@ -90,12 +119,23 @@ interface SmartExchangeLearnMoreModalProps {
   open: boolean;
   onClose: () => void;
   onVerifyNow?: () => void;
+  onGoToPayments?: () => void;
+  mode?: 'deposit-verification' | 'process-payment';
 }
 
 const SmartExchangeLearnMoreModal: React.FC<
   SmartExchangeLearnMoreModalProps
-> = ({ open, onClose, onVerifyNow }) => {
+> = ({
+  open,
+  onClose,
+  onVerifyNow,
+  onGoToPayments,
+  mode = 'deposit-verification',
+}) => {
   if (!open) return null;
+
+  const steps =
+    mode === 'process-payment' ? processPaymentSteps : depositVerificationSteps;
 
   return (
     <LayoutModal>
@@ -123,8 +163,10 @@ const SmartExchangeLearnMoreModal: React.FC<
           </h2>
 
           <ol className="mt-6 space-y-0">
-            {SETUP_STEPS.map((step, index) => {
-              const isLast = index === SETUP_STEPS.length - 1;
+            {steps.map((step, index) => {
+              const isLast = index === steps.length - 1;
+              const handleAction =
+                step.action === 'payments' ? onGoToPayments : onVerifyNow;
 
               return (
                 <li key={step.id} className="flex gap-3">
@@ -155,14 +197,14 @@ const SmartExchangeLearnMoreModal: React.FC<
                         {step.description}
                       </p>
                     )}
-                    {step.showVerifyButton && (
+                    {step.actionLabel && (
                       <Button
                         variant="primary"
                         size="md"
                         className="mt-4"
-                        onClick={onVerifyNow}
+                        onClick={handleAction}
                       >
-                        Verify now
+                        {step.actionLabel}
                       </Button>
                     )}
                   </div>

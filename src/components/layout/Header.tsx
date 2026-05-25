@@ -1,5 +1,5 @@
 import { FC, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import Breadcrumb from '../layout/Breadcrumb';
 import { DropdownUser } from '../common/dropdowns/DropdownUser';
@@ -7,6 +7,8 @@ import Button from '../common/base/Button';
 import Alert from '../common/base/Alert';
 import BankAccountVerificationModal from '../../modals/BankAccountVerificationModal';
 import SmartExchangeLearnMoreModal from '../../modals/SmartExchangeLearnMoreModal';
+import SmartExchangeOptInLearnMoreModal from '../../modals/SmartExchangeOptInLearnMoreModal';
+import SmartExchangeOptInModal from '../../modals/SmartExchangeOptInModal';
 
 interface HeaderProps {
   userName?: string;
@@ -14,17 +16,26 @@ interface HeaderProps {
 }
 
 const SMART_EXCHANGE_PATH_PREFIX = '/smart-exchange';
+const SHOW_SMART_EXCHANGE_SETUP_ALERT = false;
 
 const Header: FC<HeaderProps> = ({
   userName = 'Johnny Anderson',
   companyName = 'Big Kahuna Burger',
 }) => {
   const { pathname } = useLocation();
-  const showSmartExchangeAlert = pathname.startsWith(
-    SMART_EXCHANGE_PATH_PREFIX
-  );
+  const navigate = useNavigate();
+  const isSmartExchangePath = pathname.startsWith(SMART_EXCHANGE_PATH_PREFIX);
+  const showSmartExchangeSetupAlert =
+    isSmartExchangePath && SHOW_SMART_EXCHANGE_SETUP_ALERT;
+  const showSmartExchangeOptInAlert = isSmartExchangePath;
   const [verificationModalOpen, setVerificationModalOpen] = useState(false);
   const [learnMoreModalOpen, setLearnMoreModalOpen] = useState(false);
+  const [learnMoreModalMode, setLearnMoreModalMode] = useState<
+    'deposit-verification' | 'process-payment'
+  >('deposit-verification');
+  const [optInLearnMoreModalOpen, setOptInLearnMoreModalOpen] =
+    useState(false);
+  const [optInModalOpen, setOptInModalOpen] = useState(false);
 
   const headerClasses = clsx('bg-white px-6 border-b border-gray-200');
 
@@ -44,7 +55,7 @@ const Header: FC<HeaderProps> = ({
           <DropdownUser />
         </div>
       </div>
-      {showSmartExchangeAlert &&  (
+      {showSmartExchangeSetupAlert && (
         <div className="pb-4">
           <Alert
             variant="yellow"
@@ -66,7 +77,38 @@ const Header: FC<HeaderProps> = ({
                 <Button
                   variant="linkSecondary"
                   size="xs"
-                  onClick={() => setLearnMoreModalOpen(true)}
+                  onClick={() => {
+                    setLearnMoreModalMode('deposit-verification');
+                    setLearnMoreModalOpen(true);
+                  }}
+                >
+                  Learn more
+                </Button>
+              </>
+            }
+          />
+        </div>
+      )}
+
+      {showSmartExchangeOptInAlert && (
+        <div className="pb-4">
+          <Alert
+            variant="blue"
+            title="Interested in Automated Card Processing?"
+            description="Your business may be eligible for Automated Card Processing. Select Opt in to get started."
+            actions={
+              <>
+                <Button
+                  variant="secondary"
+                  size="xs"
+                  onClick={() => setOptInModalOpen(true)}
+                >
+                  Opt in
+                </Button>
+                <Button
+                  variant="linkSecondary"
+                  size="xs"
+                  onClick={() => setOptInLearnMoreModalOpen(true)}
                 >
                   Learn more
                 </Button>
@@ -79,11 +121,31 @@ const Header: FC<HeaderProps> = ({
 
       <SmartExchangeLearnMoreModal
         open={learnMoreModalOpen}
+        mode={learnMoreModalMode}
         onClose={() => setLearnMoreModalOpen(false)}
+        onGoToPayments={() => {
+          setLearnMoreModalOpen(false);
+          navigate('/smart-exchange');
+        }}
         onVerifyNow={() => {
           setLearnMoreModalOpen(false);
           setVerificationModalOpen(true);
         }}
+      />
+
+      <SmartExchangeOptInLearnMoreModal
+        open={optInLearnMoreModalOpen}
+        onClose={() => setOptInLearnMoreModalOpen(false)}
+      />
+
+      <SmartExchangeOptInModal
+        open={optInModalOpen}
+        onClose={() => setOptInModalOpen(false)}
+        onConfirmed={() => {
+          setLearnMoreModalMode('process-payment');
+          setLearnMoreModalOpen(true);
+        }}
+        signerName={userName}
       />
 
       <BankAccountVerificationModal
