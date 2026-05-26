@@ -6,10 +6,17 @@ import { AUTOMATIC_CARD_PROCESSING_DATE_INITIATED } from './data';
 
 interface PaymentMethodsTabProps {
   onVerifyNow: () => void;
+  onOptIn?: () => void;
+  variant?: 'pending-signature' | 'opt-in';
 }
 
-const PaymentMethodsTab = ({ onVerifyNow }: PaymentMethodsTabProps) => {
+const PaymentMethodsTab = ({
+  onVerifyNow,
+  onOptIn,
+  variant = 'pending-signature',
+}: PaymentMethodsTabProps) => {
   const showMicroDepositAlert = false;
+  const isOptIn = variant === 'opt-in';
 
   return (
     <div className="space-y-6">
@@ -25,18 +32,25 @@ const PaymentMethodsTab = ({ onVerifyNow }: PaymentMethodsTabProps) => {
               <h3 className="text-sm font-semibold text-gray-900 leading-5">
                 Automatic Card Processing
               </h3>
-              <Badge size="sm" color="yellow" rounded>
-                Pending Agreement Signature
-              </Badge>
+              {!isOptIn && (
+                <Badge size="sm" color="yellow" rounded>
+                  Pending Agreement Signature
+                </Badge>
+              )}
             </div>
             <p className="mt-1 text-sm leading-5 text-gray-500">
-              To complete enablement of automatic card processing, signature for
-              Visa agreement is required
+              {isOptIn
+                ? 'Automatically process card payments with no manual steps. You can opt out anytime.'
+                : 'To complete enablement of automatic card processing, signature for Visa agreement is required'}
             </p>
           </div>
         </div>
-        <Button variant="linkSecondary" size="sm">
-          Review
+        <Button
+          variant={isOptIn ? 'primary' : 'linkSecondary'}
+          size="sm"
+          onClick={isOptIn ? onOptIn : undefined}
+        >
+          {isOptIn ? 'Opt in' : 'Review'}
         </Button>
       </div>
 

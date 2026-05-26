@@ -33,8 +33,7 @@ const Header: FC<HeaderProps> = ({
   const [learnMoreModalMode, setLearnMoreModalMode] = useState<
     'deposit-verification' | 'process-payment'
   >('deposit-verification');
-  const [optInLearnMoreModalOpen, setOptInLearnMoreModalOpen] =
-    useState(false);
+  const [optInLearnMoreModalOpen, setOptInLearnMoreModalOpen] = useState(false);
   const [optInModalOpen, setOptInModalOpen] = useState(false);
 
   const headerClasses = clsx('bg-white px-6 border-b border-gray-200');
@@ -141,6 +140,12 @@ const Header: FC<HeaderProps> = ({
       <SmartExchangeOptInModal
         open={optInModalOpen}
         onClose={() => setOptInModalOpen(false)}
+        onCloseButton={() => {
+          setOptInModalOpen(false);
+          navigate('/smart-exchange/payment-preferences', {
+            state: { automaticCardProcessing: 'opt-in' },
+          });
+        }}
         onConfirmed={() => {
           setLearnMoreModalMode('process-payment');
           setLearnMoreModalOpen(true);

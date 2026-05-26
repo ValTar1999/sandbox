@@ -28,7 +28,9 @@ const AGREEMENT_CONFIRMED_AT = '4/6/2026, 11:53:17 AM';
 interface SmartExchangeOptInModalProps {
   open: boolean;
   onClose: () => void;
+  onCloseButton?: () => void;
   onConfirmed?: () => void;
+  onDelegatedPending?: () => void;
   signerName?: string;
 }
 
@@ -36,10 +38,12 @@ const ModalShell = ({
   children,
   footer,
   onClose,
+  onCloseButton,
 }: {
   children: React.ReactNode;
   footer?: React.ReactNode;
   onClose: () => void;
+  onCloseButton?: () => void;
 }) => (
   <LayoutModal>
     <div className="m-auto grid w-full max-w-[800px] grid-cols-[256px_1fr] gap-2 overflow-hidden rounded-3xl bg-white p-2">
@@ -57,7 +61,7 @@ const ModalShell = ({
           size="xl"
           variant="linkSecondary"
           className="absolute right-2 top-2"
-          onClick={onClose}
+          onClick={onCloseButton ?? onClose}
           aria-label="Close"
         />
         <div className="flex-1">{children}</div>
@@ -308,7 +312,9 @@ const PendingAgreementStepper = ({
 const SmartExchangeOptInModal: React.FC<SmartExchangeOptInModalProps> = ({
   open,
   onClose,
+  onCloseButton,
   onConfirmed,
+  onDelegatedPending,
   signerName = 'Johnny Anderson',
 }) => {
   const [step, setStep] = useState<OptInStep>('intro');
@@ -341,6 +347,14 @@ const SmartExchangeOptInModal: React.FC<SmartExchangeOptInModalProps> = ({
   const handleClose = useCallback(() => {
     onClose();
   }, [onClose]);
+
+  const handleCloseButton = useCallback(() => {
+    if (onCloseButton) {
+      onCloseButton();
+      return;
+    }
+    onClose();
+  }, [onClose, onCloseButton]);
 
   const canConfirmAcceptance =
     authorizationChoice === 'authorized' &&
@@ -390,6 +404,11 @@ const SmartExchangeOptInModal: React.FC<SmartExchangeOptInModalProps> = ({
     onConfirmed?.();
   };
 
+  const handleDelegatedPendingConfirm = () => {
+    onClose();
+    onDelegatedPending?.();
+  };
+
   if (!open) return null;
 
   if (step === 'agreement') {
@@ -407,6 +426,7 @@ const SmartExchangeOptInModal: React.FC<SmartExchangeOptInModalProps> = ({
     return (
       <ModalShell
         onClose={handleClose}
+        onCloseButton={handleCloseButton}
         footer={
           <FooterActions
             primaryLabel="Next"
@@ -449,6 +469,7 @@ const SmartExchangeOptInModal: React.FC<SmartExchangeOptInModalProps> = ({
     return (
       <ModalShell
         onClose={handleClose}
+        onCloseButton={handleCloseButton}
         footer={
           <FooterActions
             primaryLabel="Confirm"
@@ -490,10 +511,11 @@ const SmartExchangeOptInModal: React.FC<SmartExchangeOptInModalProps> = ({
     return (
       <ModalShell
         onClose={handleClose}
+        onCloseButton={handleCloseButton}
         footer={
           <FooterActions
             primaryLabel="Confirm"
-            onPrimary={() => setStep('delegated-pending')}
+            onPrimary={handleDelegatedPendingConfirm}
             onRemindLater={handleClose}
           />
         }
@@ -536,7 +558,7 @@ const SmartExchangeOptInModal: React.FC<SmartExchangeOptInModalProps> = ({
 
   if (step === 'delegated-pending') {
     return (
-      <ModalShell onClose={handleClose}>
+      <ModalShell onClose={handleClose} onCloseButton={handleCloseButton}>
         <h2 className="text-3xl font-semibold leading-9 text-gray-900">
           To enable automatic card processing, complete the steps below.
         </h2>
@@ -548,6 +570,7 @@ const SmartExchangeOptInModal: React.FC<SmartExchangeOptInModalProps> = ({
   return (
     <ModalShell
       onClose={handleClose}
+      onCloseButton={handleCloseButton}
       footer={
         <FooterActions
           primaryLabel="Confirm"

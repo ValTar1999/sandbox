@@ -1,14 +1,33 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import clsx from 'clsx';
 import Box from '../../../components/layout/Box';
 import BankAccountVerificationModal from '../../../modals/BankAccountVerificationModal';
+import SmartExchangeOptInModal from '../../../modals/SmartExchangeOptInModal';
 import PaymentMethodsTab from './PaymentMethodsTab';
 import { paymentPreferencesTabs, type PaymentPreferencesTab } from './data';
 
 const PaymentPreferences = () => {
+  const { state } = useLocation();
   const [activeTab, setActiveTab] =
     useState<PaymentPreferencesTab>('payment-methods');
   const [verificationModalOpen, setVerificationModalOpen] = useState(false);
+  const [optInModalOpen, setOptInModalOpen] = useState(false);
+  const initialAutomaticCardProcessingVariant =
+    (state as { automaticCardProcessing?: string } | null)
+      ?.automaticCardProcessing === 'opt-in'
+      ? 'opt-in'
+      : 'pending-signature';
+  const [
+    automaticCardProcessingVariant,
+    setAutomaticCardProcessingVariant,
+  ] = useState<'pending-signature' | 'opt-in'>(
+    initialAutomaticCardProcessingVariant
+  );
+
+  useEffect(() => {
+    setAutomaticCardProcessingVariant(initialAutomaticCardProcessingVariant);
+  }, [initialAutomaticCardProcessingVariant]);
 
   return (
     <>
@@ -56,6 +75,8 @@ const PaymentPreferences = () => {
             <div className="">
               <PaymentMethodsTab
                 onVerifyNow={() => setVerificationModalOpen(true)}
+                onOptIn={() => setOptInModalOpen(true)}
+                variant={automaticCardProcessingVariant}
               />
             </div>
           </div>
@@ -73,6 +94,13 @@ const PaymentPreferences = () => {
       <BankAccountVerificationModal
         open={verificationModalOpen}
         onClose={() => setVerificationModalOpen(false)}
+      />
+      <SmartExchangeOptInModal
+        open={optInModalOpen}
+        onClose={() => setOptInModalOpen(false)}
+        onDelegatedPending={() =>
+          setAutomaticCardProcessingVariant('pending-signature')
+        }
       />
     </>
   );
