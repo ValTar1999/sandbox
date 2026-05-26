@@ -40,7 +40,7 @@ const CopyableValue = ({ value }: { value: string }) => {
       <button
         type="button"
         onClick={handleCopy}
-        className="shrink-0 rounded p-0.5 text-gray-400 transition-colors hover:text-gray-600"
+        className="shrink-0 rounded p-0.5 text-gray-400 transition-colors hover:text-gray-600 cursor-pointer"
         aria-label={copied ? 'Copied' : 'Copy to clipboard'}
       >
         <Icon

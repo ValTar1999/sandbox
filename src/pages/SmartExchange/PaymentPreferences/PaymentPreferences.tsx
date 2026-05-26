@@ -18,12 +18,10 @@ const PaymentPreferences = () => {
       ?.automaticCardProcessing === 'opt-in'
       ? 'opt-in'
       : 'pending-signature';
-  const [
-    automaticCardProcessingVariant,
-    setAutomaticCardProcessingVariant,
-  ] = useState<'pending-signature' | 'opt-in'>(
-    initialAutomaticCardProcessingVariant
-  );
+  const [automaticCardProcessingVariant, setAutomaticCardProcessingVariant] =
+    useState<'pending-signature' | 'opt-in'>(
+      initialAutomaticCardProcessingVariant
+    );
 
   useEffect(() => {
     setAutomaticCardProcessingVariant(initialAutomaticCardProcessingVariant);
