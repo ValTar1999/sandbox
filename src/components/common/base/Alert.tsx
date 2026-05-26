@@ -19,13 +19,15 @@ const VARIANT_STYLES: Record<
   },
   blue: {
     container: 'bg-blue-50 border-blue-200',
-    icon: 'text-blue-500',
+    icon: 'text-blue-600',
     iconName: 'information-circle',
   },
 };
 
 export interface AlertProps {
   variant?: AlertVariant;
+  icon?: string;
+  iconVariant?: 'solid' | 'outline' | 'bicolor' | 'mini';
   title: string;
   description: string;
   /** Slot for action buttons/links (any layout or handlers). */
@@ -35,6 +37,8 @@ export interface AlertProps {
 
 const Alert: React.FC<AlertProps> = ({
   variant = 'yellow',
+  icon,
+  iconVariant = 'solid',
   title,
   description,
   actions,
@@ -53,9 +57,9 @@ const Alert: React.FC<AlertProps> = ({
     >
       <div className="flex min-w-0 flex-1 items-start gap-3">
         <Icon
-          icon={styles.iconName}
-          variant="solid"
-          className={clsx('mt-0.5 h-5 w-5 shrink-0', styles.icon)}
+          icon={icon ?? styles.iconName}
+          variant={iconVariant}
+          className={clsx('mt-1 h-5 w-5 shrink-0', styles.icon)}
         />
         <div className="flex items-start justify-between w-full">
           <div className="text-sm space-y-2 leading-5">

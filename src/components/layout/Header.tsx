@@ -93,6 +93,8 @@ const Header: FC<HeaderProps> = ({
         <div className="pb-4">
           <Alert
             variant="blue"
+            icon="credit-card-sparkle"
+            iconVariant="outline"
             title="Interested in Automated Card Processing?"
             description="Your business may be eligible for Automated Card Processing. Select Opt in to get started."
             actions={
