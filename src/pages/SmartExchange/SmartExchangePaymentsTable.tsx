@@ -14,6 +14,8 @@ import Tooltip, {
   TooltipTrigger,
   TooltipContent,
 } from '../../components/common/base/Tooltip';
+import LayoutModal from '../../components/common/modal/LayoutModal';
+import Modal from '../../components/common/modal/Modal';
 import ExpandableTableRow from '../../components/common/base/ExpandableTableRow';
 import ExpandableRow from '../../components/common/base/ExpandableRow';
 import {
@@ -49,33 +51,51 @@ const PaymentMethodCell = ({
     );
   }
   return (
-    <div className="flex items-center gap-2">
-      {method.brand === 'visa' ? (
-        <img
-          src={VisaCardIcon}
-          alt="Visa"
-          className="h-4 w-6 shrink-0 object-contain"
-          width={24}
-          height={16}
-        />
-      ) : null}
-      <span className="text-sm text-gray-900">{method.last4}</span>
-    </div>
+    <Tooltip trigger="hover" placement="top">
+      <TooltipTrigger as="span" className="inline-flex">
+        <div className="flex cursor-help items-center gap-2">
+          {method.brand === 'visa' ? (
+            <img
+              src={VisaCardIcon}
+              alt="Visa"
+              className="h-4 w-6 shrink-0 object-contain"
+              width={24}
+              height={16}
+            />
+          ) : null}
+          <span className="text-sm text-gray-900">{method.last4}</span>
+        </div>
+      </TooltipTrigger>
+      <TooltipContent className="relative max-w-72 bg-gray-900 p-3 -translate-y-2 text-sm leading-5 text-gray-100 rounded-lg after:absolute after:left-1/2 after:top-full after:-ml-2 after:border-8 after:border-transparent after:border-t-gray-900">
+        This card has been initiated by your Customer.
+      </TooltipContent>
+    </Tooltip>
   );
 };
 
 const StatusCell = ({ status }: { status: SmartExchangeRowStatus }) => {
   if (status === 'pending_your_action') {
     return (
-      <Badge
-        size="sm"
-        color="yellow"
-        icon="clock"
-        iconVariant="solid"
-        iconDirection="left"
-      >
-        Pending Your Action
-      </Badge>
+      <Tooltip trigger="hover" placement="top">
+        <TooltipTrigger as="span" className="inline-flex">
+          <span className="cursor-help">
+            <Badge
+              size="sm"
+              color="yellow"
+              icon="clock"
+              iconVariant="solid"
+              iconDirection="left"
+            >
+              Pending Your Action
+            </Badge>
+          </span>
+        </TooltipTrigger>
+        <TooltipContent className="relative max-w-72 rounded-lg -translate-y-2 bg-gray-900 p-3 text-sm leading-5 text-gray-100 after:absolute after:left-1/2 after:top-full after:-ml-2 after:border-8 after:border-transparent after:border-t-gray-900">
+          Please process the card or check to complete the payment. The payment
+          will be updated to <span className="font-semibold">Paid</span> once
+          Transcard receives confirmation.
+        </TooltipContent>
+      </Tooltip>
     );
   }
   if (status === 'paid') {
@@ -115,9 +135,11 @@ const rowActionItemClass =
 
 const RowKebabMenu = ({
   paymentMethod,
+  onMarkAsPaid,
   onViewCardDetails,
 }: {
   paymentMethod: SmartExchangePayment['paymentMethod'];
+  onMarkAsPaid: () => void;
   onViewCardDetails: () => void;
 }) => {
   return (
@@ -136,7 +158,10 @@ const RowKebabMenu = ({
         <Menu.Portal>
           <Menu.Positioner>
             <Menu.Popup className="z-50 min-w-36 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">
-              <CloseMenuItem className={rowActionItemClass}>
+              <CloseMenuItem
+                className={rowActionItemClass}
+                onClick={onMarkAsPaid}
+              >
                 Mark as paid
               </CloseMenuItem>
               {paymentMethod.kind === 'card' ? (
@@ -176,6 +201,79 @@ const FilterColumnHeader = ({ label }: { label: string }) => (
 
 const TABLE_COL_SPAN = 9;
 
+const MarkPaymentAsPaidModal = ({
+  open,
+  onClose,
+  onConfirm,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+}) => {
+  if (!open) return null;
+
+  return (
+    <LayoutModal>
+      <Modal
+        className="w-128"
+        title="Mark Payment as Paid"
+        description="You are about to change the status of this payment to Paid. Are you sure you want to continue?"
+        titleCenter
+        icon={
+          <Icon
+            icon="information-circle"
+            variant="solid"
+            className="h-11 w-11 text-blue-500"
+          />
+        }
+        onClose={onClose}
+        footer={
+          <div className="grid grid-cols-2 gap-4">
+            <Button variant="secondary" size="lg" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button size="lg" onClick={onConfirm}>
+              Confirm
+            </Button>
+          </div>
+        }
+      />
+    </LayoutModal>
+  );
+};
+
+const MarkPaymentPaidSuccessModal = ({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) => {
+  if (!open) return null;
+
+  return (
+    <LayoutModal>
+      <Modal
+        className="w-128"
+        title="Status successfully changed!"
+        titleCenter
+        icon={
+          <Icon
+            icon="check-circle"
+            variant="solid"
+            className="h-11 w-11 text-green-500"
+          />
+        }
+        onClose={onClose}
+      >
+        <Button size="lg" className="w-full" onClick={onClose}>
+          Done
+        </Button>
+      </Modal>
+    </LayoutModal>
+  );
+};
+
 interface SmartExchangePaymentsTableProps {
   payments: SmartExchangePayment[];
 }
@@ -186,6 +284,14 @@ const SmartExchangePaymentsTable = ({
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [cardDetailsPayment, setCardDetailsPayment] =
     useState<SmartExchangePayment | null>(null);
+  const [markAsPaidPayment, setMarkAsPaidPayment] =
+    useState<SmartExchangePayment | null>(null);
+  const [markPaidSuccessOpen, setMarkPaidSuccessOpen] = useState(false);
+  const [cardDetailsAfterSuccess, setCardDetailsAfterSuccess] =
+    useState<SmartExchangePayment | null>(null);
+  const [paidPaymentIds, setPaidPaymentIds] = useState<Set<string>>(
+    () => new Set()
+  );
 
   const toggleExpand = useCallback((id: string) => {
     setExpandedRow((prev) => (prev === id ? null : id));
@@ -194,6 +300,29 @@ const SmartExchangePaymentsTable = ({
   useEffect(() => {
     setExpandedRow(null);
   }, [payments]);
+
+  const handleConfirmMarkAsPaid = () => {
+    if (!markAsPaidPayment) return;
+
+    setPaidPaymentIds((prev) => {
+      const next = new Set(prev);
+      next.add(markAsPaidPayment.id);
+      return next;
+    });
+    setCardDetailsAfterSuccess(
+      markAsPaidPayment.paymentMethod.kind === 'card' ? markAsPaidPayment : null
+    );
+    setMarkAsPaidPayment(null);
+    setMarkPaidSuccessOpen(true);
+  };
+
+  const handleMarkPaidSuccessClose = () => {
+    setMarkPaidSuccessOpen(false);
+    if (cardDetailsAfterSuccess) {
+      setCardDetailsPayment(cardDetailsAfterSuccess);
+      setCardDetailsAfterSuccess(null);
+    }
+  };
 
   const getExpandableContent = useCallback((row: SmartExchangePayment) => {
     return (
@@ -285,8 +414,9 @@ const SmartExchangePaymentsTable = ({
                         className="h-4 w-4 text-gray-400"
                       />
                     </TooltipTrigger>
-                    <TooltipContent className="max-w-xs bg-gray-900 px-3 py-2 text-xs text-white">
-                      Date when the payment was initiated in SMART Exchange.
+                    <TooltipContent className="relative max-w-72 -translate-y-2 bg-gray-900 p-3 text-xs text-gray-100 rounded-lg after:absolute after:left-1/2 after:top-full after:-ml-2 after:border-8 after:border-transparent after:border-t-gray-900">
+                      The date the payment was initiated by your customer to
+                      you.
                     </TooltipContent>
                   </Tooltip>
                   <button
@@ -308,16 +438,21 @@ const SmartExchangePaymentsTable = ({
             </tr>
           </thead>
           <tbody>
-            {payments.map((row) => (
-              <React.Fragment key={row.id}>
-                <tr
-                  onClick={() => toggleExpand(row.id)}
-                  className={clsx(
-                    'transition-colors duration-300 ease-in-out',
-                    'cursor-pointer hover:bg-gray-50',
-                    expandedRow === row.id && 'bg-gray-100'
-                  )}
-                >
+            {payments.map((row) => {
+              const effectiveRow = paidPaymentIds.has(row.id)
+                ? ({ ...row, status: 'paid' } as SmartExchangePayment)
+                : row;
+
+              return (
+                <React.Fragment key={row.id}>
+                  <tr
+                    onClick={() => toggleExpand(row.id)}
+                    className={clsx(
+                      'transition-colors duration-300 ease-in-out',
+                      'cursor-pointer hover:bg-gray-50',
+                      expandedRow === row.id && 'bg-gray-100'
+                    )}
+                  >
                   <td className="w-[52px] max-w-[52px] min-w-[52px]">
                     <Icon
                       icon="chevron-right"
@@ -373,7 +508,7 @@ const SmartExchangePaymentsTable = ({
                     <PaymentMethodCell method={row.paymentMethod} />
                   </td>
                   <td className={TD_CLASS}>
-                    <StatusCell status={row.status} />
+                    <StatusCell status={effectiveRow.status} />
                   </td>
                   <td
                     className={clsx(TD_CLASS, 'text-right')}
@@ -386,6 +521,7 @@ const SmartExchangePaymentsTable = ({
                     ) : (
                       <RowKebabMenu
                         paymentMethod={row.paymentMethod}
+                        onMarkAsPaid={() => setMarkAsPaidPayment(row)}
                         onViewCardDetails={() => setCardDetailsPayment(row)}
                       />
                     )}
@@ -395,10 +531,11 @@ const SmartExchangePaymentsTable = ({
                   colSpan={TABLE_COL_SPAN}
                   isExpanded={expandedRow === row.id}
                 >
-                  {getExpandableContent(row)}
+                  {getExpandableContent(effectiveRow)}
                 </ExpandableTableRow>
-              </React.Fragment>
-            ))}
+                </React.Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -407,6 +544,15 @@ const SmartExchangePaymentsTable = ({
         open={cardDetailsPayment !== null}
         onClose={() => setCardDetailsPayment(null)}
         payment={cardDetailsPayment}
+      />
+      <MarkPaymentAsPaidModal
+        open={markAsPaidPayment !== null}
+        onClose={() => setMarkAsPaidPayment(null)}
+        onConfirm={handleConfirmMarkAsPaid}
+      />
+      <MarkPaymentPaidSuccessModal
+        open={markPaidSuccessOpen}
+        onClose={handleMarkPaidSuccessClose}
       />
     </>
   );
