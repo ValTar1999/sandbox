@@ -45,10 +45,22 @@ export interface SmartExchangePayment {
   attachments?: string[];
   activityLog?: Array<{
     status: SmartExchangeRowStatus;
+    /** Overrides timeline icon (e.g. Initiated uses in-progress) */
+    iconKey?: 'initiated';
     title: string;
     description: string;
   }>;
+  /** Activity log copy shown on the Get Paid page */
+  getPaidActivityLog?: Array<{
+    status: SmartExchangeRowStatus;
+    iconKey?: 'initiated';
+    title: string;
+    description: string;
+    timestamp: string;
+  }>;
   smartDisburseDetails?: {
+    methodLabel: string;
+    sectionTitle?: string;
     payeeName: string;
     paymentMethod: string;
     amountCents: number;
@@ -63,14 +75,16 @@ export const smartExchangePayments: SmartExchangePayment[] = [
     amountCents: 666_300,
     vendorEntry: 'Pinnacle Group',
     invoiceNumber: 'LC7-C',
-    customer: 'Horizon Inc',
-    dateInitiated: '2024-06-28',
+    customer: 'Rad Roofing Ltd',
+    dateInitiated: '2024-06-25',
     paymentMethod: { kind: 'smart_exchange' },
     status: 'pending_your_action',
     showGetPaid: true,
     notes: 'The payment has been initiated by your client and is pending your action.',
     attachments: ['Adjuster_Report.pdf', 'Adjuster_Report_02.pdf'],
     smartDisburseDetails: {
+      methodLabel: 'SMART Disburse',
+      sectionTitle: 'Single-Party Payment',
       payeeName: 'Big Kahuna Burger Ltd',
       paymentMethod: '-',
       amountCents: 666_300,
@@ -84,8 +98,18 @@ export const smartExchangePayments: SmartExchangePayment[] = [
       },
       {
         status: 'pending_your_action',
+        iconKey: 'initiated',
         title: 'Initiated',
         description: 'Payment for invoice #LC7-C has been initiated',
+      },
+    ],
+    getPaidActivityLog: [
+      {
+        status: 'pending_your_action',
+        title: 'Pending Your Action',
+        description:
+          'Payment with record number #LC7-C has been initiated via SMART Exchange on Jun 25, 2024',
+        timestamp: 'Jun 25, 2024 10:40 AM (EST)',
       },
     ],
   },
@@ -118,7 +142,7 @@ export const smartExchangePayments: SmartExchangePayment[] = [
     status: 'pending_your_action',
     showGetPaid: false,
     notes:
-      'The card payment has been initiated by your client and is awaiting your processing the card. Once processed you can mark the transaction as paid in the portal.',
+      'The card payment has been initiated by your client and is awaiting you processing the card. Once processed your receives confirmation it was paid then the status will be automatically updated.',
     attachments: ['Adjuster_Report.pdf', 'Adjuster_Report_02.pdf'],
     activityLog: [
       {
@@ -128,6 +152,7 @@ export const smartExchangePayments: SmartExchangePayment[] = [
       },
       {
         status: 'pending_your_action',
+        iconKey: 'initiated',
         title: 'Initiated',
         description: 'Payment for invoice #TA6-D has been initiated',
       },

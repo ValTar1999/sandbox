@@ -26,12 +26,23 @@ const HOW_IT_WORKS_STEPS = [
 
 const AGREEMENT_CONFIRMED_AT = '4/6/2026, 11:53:17 AM';
 
+export type AutomaticCardProcessingConfirmation = {
+  signedBy: string;
+  confirmedAt: string;
+};
+
+export type AutomaticCardProcessingDelegation = {
+  delegatedTo: string;
+  email: string;
+  sentAt: string;
+};
+
 interface SmartExchangeOptInModalProps {
   open: boolean;
   onClose: () => void;
   onCloseButton?: () => void;
-  onConfirmed?: () => void;
-  onDelegatedPending?: () => void;
+  onConfirmed?: (details: AutomaticCardProcessingConfirmation) => void;
+  onDelegatedPending?: (details: AutomaticCardProcessingDelegation) => void;
   signerName?: string;
 }
 
@@ -49,8 +60,8 @@ const ModalShell = ({
   onCloseButton?: () => void;
 }) => (
   <LayoutModal open={open}>
-    <div className="m-auto grid w-full max-w-[800px] grid-cols-[256px_1fr] gap-2 overflow-hidden rounded-3xl bg-white p-2">
-      <div className="min-h-[620px] overflow-hidden rounded-2xl">
+    <div className="m-auto grid h-[min(752px,calc(100dvh-6rem))] w-full max-w-[800px] grid-cols-[256px_minmax(0,1fr)] grid-rows-[minmax(0,1fr)] gap-2 overflow-hidden rounded-3xl bg-white p-2">
+      <div className="min-h-0 overflow-hidden rounded-2xl">
         <img
           src={ContentSeImg}
           alt=""
@@ -58,17 +69,21 @@ const ModalShell = ({
         />
       </div>
 
-      <div className="relative flex min-h-[620px] flex-col p-9">
+      <div className="relative flex h-full min-h-0 flex-col overflow-hidden">
         <Button
           icon="x"
           size="xl"
           variant="linkSecondary"
-          className="absolute right-2 top-2"
+          className="absolute right-2 top-2 z-10"
           onClick={onCloseButton ?? onClose}
           aria-label="Close"
         />
-        <div className="flex-1">{children}</div>
-        {footer ? <div className="mt-8">{footer}</div> : null}
+        <div className="min-h-0 flex-1 basis-0 overflow-y-auto overscroll-contain px-9 pb-4 pt-9 pr-10 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          {children}
+        </div>
+        {footer ? (
+          <div className="shrink-0 px-9 pb-9 pt-4">{footer}</div>
+        ) : null}
       </div>
     </div>
   </LayoutModal>
@@ -423,12 +438,19 @@ const SmartExchangeOptInModal: React.FC<SmartExchangeOptInModalProps> = ({
 
   const handleFinalConfirm = () => {
     onClose();
-    onConfirmed?.();
+    onConfirmed?.({
+      signedBy,
+      confirmedAt: AGREEMENT_CONFIRMED_AT,
+    });
   };
 
   const handleDelegatedPendingConfirm = () => {
     onClose();
-    onDelegatedPending?.();
+    onDelegatedPending?.({
+      delegatedTo: delegatedName,
+      email: delegatedEmail,
+      sentAt: AGREEMENT_CONFIRMED_AT,
+    });
   };
 
   if (!shouldRender) return null;
@@ -584,7 +606,11 @@ const SmartExchangeOptInModal: React.FC<SmartExchangeOptInModalProps> = ({
 
   if (step === 'delegated-pending') {
     return (
-      <ModalShell open={open} onClose={handleClose} onCloseButton={handleCloseButton}>
+      <ModalShell
+        open={open}
+        onClose={handleClose}
+        onCloseButton={handleCloseButton}
+      >
         <h2 className="text-3xl font-semibold leading-9 text-gray-900">
           To enable automatic card processing, complete the steps below.
         </h2>

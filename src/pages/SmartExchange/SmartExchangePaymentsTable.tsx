@@ -10,6 +10,7 @@ import clsx from 'clsx';
 import Icon from '../../components/common/base/Icon';
 import Button from '../../components/common/base/Button';
 import Badge from '../../components/common/base/Badge';
+import { Avatar } from '../../components/common/base/Avatar';
 import Menu, { useMenuContext } from '../../components/common/base/Menu';
 import Tooltip, {
   TooltipTrigger,
@@ -28,6 +29,7 @@ import {
 } from '../../constants/tableStyles';
 import type { SmartExchangePayment, SmartExchangeRowStatus } from './data';
 import VisaCardIcon from '../../assets/image/visa-card.svg';
+import SmartDisburseIcon from '../../assets/image/SMART-Disburse.svg';
 import ViewCardDetailsModal from '../../modals/ViewCardDetailsModal';
 
 const formatAmountValue = (amountCents: number) => {
@@ -137,11 +139,11 @@ const rowActionItemClass =
 const RowKebabMenu = ({
   paymentMethod,
   onMarkAsPaid,
-  onViewCardDetails,
+  onViewPaymentDetails,
 }: {
   paymentMethod: SmartExchangePayment['paymentMethod'];
   onMarkAsPaid: () => void;
-  onViewCardDetails: () => void;
+  onViewPaymentDetails: () => void;
 }) => {
   return (
     <div className="flex justify-end">
@@ -168,9 +170,9 @@ const RowKebabMenu = ({
               {paymentMethod.kind === 'card' ? (
                 <CloseMenuItem
                   className={rowActionItemClass}
-                  onClick={onViewCardDetails}
+                  onClick={onViewPaymentDetails}
                 >
-                  View card details
+                  View payment details
                 </CloseMenuItem>
               ) : null}
             </Menu.Popup>
@@ -201,6 +203,304 @@ const FilterColumnHeader = ({ label }: { label: string }) => (
 );
 
 const TABLE_COL_SPAN = 9;
+
+type CardPaymentMethod = Extract<
+  SmartExchangePayment['paymentMethod'],
+  { kind: 'card' }
+>;
+
+const CardDetailsCopyButton = ({ value }: { value: string }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // ignore
+    }
+  }, [value]);
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      className="shrink-0 cursor-pointer rounded p-0.5 text-gray-400 transition-colors hover:text-gray-600"
+      aria-label={copied ? 'Copied' : 'Copy to clipboard'}
+    >
+      <Icon
+        icon={copied ? 'check' : 'duplicate'}
+        variant="solid"
+        className={clsx(
+          'h-4 w-4 transition-colors',
+          copied ? 'text-green-600' : 'text-gray-400'
+        )}
+      />
+    </button>
+  );
+};
+
+const CARD_DETAIL_LABEL_CLASS = 'text-sm font-medium leading-5 text-gray-500';
+
+const CardDetailValue = ({
+  children,
+  copyValue,
+}: {
+  children: React.ReactNode;
+  copyValue?: string;
+}) => (
+  <div className="flex items-start justify-between gap-3">
+    <div className="min-w-0 text-sm font-normal leading-5 text-gray-900">
+      {children}
+    </div>
+    {copyValue ? <CardDetailsCopyButton value={copyValue} /> : null}
+  </div>
+);
+
+const CardPaymentDetailsPanel = ({
+  paymentMethod,
+  revealed,
+  onRevealedChange,
+}: {
+  paymentMethod: CardPaymentMethod;
+  revealed: boolean;
+  onRevealedChange: (revealed: boolean) => void;
+}) => {
+  const { details, last4 } = paymentMethod;
+  const addressLines = [
+    details.addressLine1,
+    details.addressLine2,
+    [details.city, details.state, details.zip].filter(Boolean).join(', '),
+    details.country,
+  ].filter(Boolean);
+
+  return (
+    <div className="flex w-full items-start gap-9">
+      <div className="flex shrink-0 items-center gap-1 text-sm font-semibold leading-5 text-nowrap text-gray-800">
+        <span>Card</span>
+      </div>
+
+      <Icon icon="chevron-right" className="h-5 w-5 shrink-0 text-gray-400" />
+
+      <div className="w-full max-w-96">
+        <div className="grid grid-cols-2 gap-x-6">
+          <h4 className="text-sm font-semibold leading-5 text-gray-900">
+            Card Details
+          </h4>
+          <button
+            type="button"
+            className="inline-flex cursor-pointer items-center justify-end gap-1 text-sm font-medium text-blue-600 transition-colors duration-300 hover:text-blue-700"
+            onClick={() => onRevealedChange(!revealed)}
+          >
+            <Icon
+              icon={revealed ? 'eye-off' : 'eye'}
+              variant="solid"
+              className="h-4 w-4"
+            />
+            {revealed ? 'Hide Details' : 'Reveal Details'}
+          </button>
+        </div>
+
+        <div className="my-2 h-px w-full bg-gray-200" />
+
+        <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+          <div className={CARD_DETAIL_LABEL_CLASS}>Name on Card</div>
+          <CardDetailValue>{details.cardholderName}</CardDetailValue>
+
+          <div className={CARD_DETAIL_LABEL_CLASS}>Address</div>
+          <CardDetailValue>
+            <div className="space-y-0">
+              {addressLines.map((line) => (
+                <div key={line}>{line}</div>
+              ))}
+            </div>
+          </CardDetailValue>
+
+          <div className={CARD_DETAIL_LABEL_CLASS}>Type</div>
+          <CardDetailValue>
+            {paymentMethod.brand === 'visa' ? (
+              <img
+                src={VisaCardIcon}
+                alt="Visa"
+                className="h-4 w-6 object-contain"
+                width={24}
+                height={16}
+              />
+            ) : null}
+          </CardDetailValue>
+
+          <div className={CARD_DETAIL_LABEL_CLASS}>Card Number</div>
+          <CardDetailValue copyValue={details.cardNumber}>
+            {revealed ? details.cardNumber : `•••• ${last4}`}
+          </CardDetailValue>
+
+          <div className={CARD_DETAIL_LABEL_CLASS}>Expires</div>
+          <CardDetailValue copyValue={details.expiry}>
+            {details.expiry}
+          </CardDetailValue>
+
+          <div className={CARD_DETAIL_LABEL_CLASS}>CVC2</div>
+          <CardDetailValue copyValue={details.cvc2}>
+            {revealed ? details.cvc2 : 'CVC2'}
+          </CardDetailValue>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const SmartDisburseDetailsPanel = ({
+  details,
+}: {
+  details: NonNullable<SmartExchangePayment['smartDisburseDetails']>;
+}) => (
+  <div className="flex w-full items-start gap-9">
+    <div className="flex items-center gap-1 text-sm font-semibold text-nowrap leading-5 text-gray-800">
+      <img
+        src={SmartDisburseIcon}
+        alt=""
+        className="h-3.5 w-3.5 shrink-0 object-contain"
+        width={18}
+        height={18}
+      />
+      <span>{details.methodLabel}</span>
+    </div>
+
+    <Icon icon="chevron-right" className="h-5 w-5 shrink-0 text-gray-400" />
+
+    <div className="w-full">
+      <span className="font-semibold text-sm leading-5 text-gray-900 ml-4">
+        {details.sectionTitle ?? 'Single-Party Payment'}
+      </span>
+      <div className="bg-gray-200 w-full h-px my-2"></div>
+      <div className="grid w-full grid-cols-[minmax(0,1fr)_auto_auto_auto] items-center">
+        {(['Payee name', 'Payment method', 'Amount', 'Status'] as const).map(
+          (heading) => (
+            <div
+              key={heading}
+              className={clsx(
+                'py-3 px-4 text-xs font-medium uppercase tracking-wide text-gray-500 leading-4',
+                heading !== 'Payee name' && 'whitespace-nowrap',
+                heading === 'Amount' || heading === 'Status'
+                  ? 'text-right'
+                  : 'text-left'
+              )}
+            >
+              {heading}
+            </div>
+          )
+        )}
+        <div className="col-start-1 row-start-2 flex h-[52px] px-4 min-w-0 items-center gap-2.5 border-t border-dashed border-gray-200 bg-gray-50">
+          <Avatar size="xs" className="shrink-0 [&>div]:ring-0" />
+          <span className="truncate text-sm font-medium leading-5 text-gray-900">
+            {details.payeeName}
+          </span>
+        </div>
+        <div className="col-start-2 row-start-2 flex h-[52px] px-4 items-center whitespace-nowrap border-t border-dashed border-gray-200 bg-gray-50 text-sm font-medium leading-5 text-gray-500">
+          {details.paymentMethod}
+        </div>
+        <div className="col-start-3 row-start-2 flex h-[52px] px-4 items-center whitespace-nowrap border-t border-dashed border-gray-200 bg-gray-50 text-right text-sm font-medium leading-5 text-gray-900">
+          {formatAmountValue(details.amountCents)}{' '}
+          <span className="font-normal text-gray-500">USD</span>
+        </div>
+        <div className="col-start-4 row-start-2 flex h-[52px] px-4 items-center justify-end whitespace-nowrap border-t border-dashed border-gray-200 bg-gray-50">
+          <Badge
+            size="sm"
+            color="gray"
+            icon="clock"
+            iconVariant="solid"
+            iconDirection="left"
+          >
+            {details.statusLabel}
+          </Badge>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+type ActivityLogIconKey = SmartExchangeRowStatus | 'initiated';
+
+const ACTIVITY_LOG_ICONS: Record<
+  ActivityLogIconKey,
+  { icon: string; className: string }
+> = {
+  pending_your_action: {
+    icon: 'clock',
+    className: 'h-3.5 w-3.5 text-yellow-500',
+  },
+  initiated: {
+    icon: 'in-progress',
+    className: 'h-3.5 w-3.5 text-gray-500',
+  },
+  paid: {
+    icon: 'check-circle',
+    className: 'h-3.5 w-3.5 text-green-500',
+  },
+  exception: {
+    icon: 'exclamation-circle',
+    className: 'h-3.5 w-3.5 text-red-500',
+  },
+};
+
+const ACTIVITY_LOG_LINK_CLASS =
+  'cursor-pointer font-semibold text-blue-600 transition-colors duration-300 hover:text-blue-700';
+
+type ActivityLogLink = { text: string; onClick: () => void };
+
+const ActivityLogDescription = ({
+  description,
+  links,
+}: {
+  description: string;
+  links: ActivityLogLink[];
+}) => {
+  const activeLinks = links.filter((link) => description.includes(link.text));
+
+  if (activeLinks.length === 0) {
+    return (
+      <span className="text-sm leading-5 text-gray-700">{description}</span>
+    );
+  }
+
+  const pattern = activeLinks
+    .map((link) => link.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    .sort((a, b) => b.length - a.length)
+    .join('|');
+
+  const parts = description.split(new RegExp(`(${pattern})`, 'g'));
+
+  return (
+    <span className="text-sm leading-5 text-gray-700">
+      {parts.map((part, index) => {
+        if (!part) {
+          return null;
+        }
+
+        const link = activeLinks.find((item) => item.text === part);
+
+        if (link) {
+          return (
+            <button
+              key={`${part}-${index}`}
+              type="button"
+              className={ACTIVITY_LOG_LINK_CLASS}
+              onClick={(e) => {
+                e.stopPropagation();
+                link.onClick();
+              }}
+            >
+              {part}
+            </button>
+          );
+        }
+
+        return <React.Fragment key={index}>{part}</React.Fragment>;
+      })}
+    </span>
+  );
+};
 
 const MarkPaymentAsPaidModal = ({
   open,
@@ -290,6 +590,9 @@ const SmartExchangePaymentsTable = ({
   const [paidPaymentIds, setPaidPaymentIds] = useState<Set<string>>(
     () => new Set()
   );
+  const [revealedCardDetailsRowIds, setRevealedCardDetailsRowIds] = useState<
+    Set<string>
+  >(() => new Set());
 
   const toggleExpand = useCallback((id: string) => {
     setExpandedRow((prev) => (prev === id ? null : id));
@@ -297,7 +600,32 @@ const SmartExchangePaymentsTable = ({
 
   useEffect(() => {
     setExpandedRow(null);
+    setRevealedCardDetailsRowIds(new Set());
   }, [payments]);
+
+  const handleViewPaymentDetails = useCallback((row: SmartExchangePayment) => {
+    setExpandedRow(row.id);
+    setRevealedCardDetailsRowIds((prev) => {
+      const next = new Set(prev);
+      next.add(row.id);
+      return next;
+    });
+  }, []);
+
+  const handleCardDetailsRevealedChange = useCallback(
+    (rowId: string, revealed: boolean) => {
+      setRevealedCardDetailsRowIds((prev) => {
+        const next = new Set(prev);
+        if (revealed) {
+          next.add(rowId);
+        } else {
+          next.delete(rowId);
+        }
+        return next;
+      });
+    },
+    []
+  );
 
   const handleConfirmMarkAsPaid = () => {
     if (!markAsPaidPayment) return;
@@ -322,43 +650,122 @@ const SmartExchangePaymentsTable = ({
     }
   };
 
-  const getExpandableContent = useCallback((row: SmartExchangePayment) => {
-    return (
-      <div className="flex flex-col">
-        <ExpandableRow label="Notes">
-          <span className="text-sm font-medium text-gray-900">
-            {row.notes?.trim() ? row.notes : '-'}
-          </span>
-        </ExpandableRow>
-        <ExpandableRow label="Status">
-          <StatusCell status={row.status} />
-        </ExpandableRow>
-        <ExpandableRow label="Vendor entry">
-          <span className="text-sm font-medium text-gray-900">
-            {row.vendorEntry}
-          </span>
-        </ExpandableRow>
-        <ExpandableRow label="Invoice #">
-          <span className="text-sm font-medium text-gray-900">
-            {row.invoiceNumber}
-          </span>
-        </ExpandableRow>
-        <ExpandableRow label="Customer">
-          <span className="text-sm font-medium text-gray-900">
-            {row.customer}
-          </span>
-        </ExpandableRow>
-        <ExpandableRow label="Date initiated">
-          <span className="text-sm font-medium text-gray-900">
-            {format(parseISO(row.dateInitiated), 'MMM d, yyyy')}
-          </span>
-        </ExpandableRow>
-        <ExpandableRow label="Payment method" borderTop>
-          <PaymentMethodCell method={row.paymentMethod} />
-        </ExpandableRow>
-      </div>
-    );
-  }, []);
+  const getExpandableContent = useCallback(
+    (row: SmartExchangePayment) => {
+      const details = row.smartDisburseDetails;
+
+      return (
+        <div className="flex flex-col">
+          <ExpandableRow label="Notes">
+            <span className="text-sm font-medium text-gray-900">
+              {row.notes?.trim() ? row.notes : '-'}
+            </span>
+          </ExpandableRow>
+          <ExpandableRow label="Status">
+            <StatusCell status={row.status} />
+          </ExpandableRow>
+          <ExpandableRow label="Attachments" borderTop>
+            <div className="flex flex-wrap gap-2">
+              {row.attachments?.length ? (
+                row.attachments.map((filename) => (
+                  <Badge
+                    key={filename}
+                    size="sm"
+                    color="gray"
+                    icon="document-text"
+                    iconDirection="left"
+                  >
+                    {filename}
+                  </Badge>
+                ))
+              ) : (
+                <span className="text-sm text-gray-500">-</span>
+              )}
+            </div>
+          </ExpandableRow>
+          {row.paymentMethod.kind === 'card' && (
+            <ExpandableRow label="Payment method details" borderTop>
+              <CardPaymentDetailsPanel
+                paymentMethod={row.paymentMethod}
+                revealed={revealedCardDetailsRowIds.has(row.id)}
+                onRevealedChange={(revealed) =>
+                  handleCardDetailsRevealedChange(row.id, revealed)
+                }
+              />
+            </ExpandableRow>
+          )}
+          {details && (
+            <ExpandableRow
+              label="Payment method details"
+              borderTop={row.paymentMethod.kind !== 'card'}
+            >
+              <SmartDisburseDetailsPanel details={details} />
+            </ExpandableRow>
+          )}
+          {row.activityLog && row.activityLog.length > 0 && (
+            <ExpandableRow label="Activity log" borderTop>
+              <div className="relative pl-5">
+                <div className="space-y-0">
+                  {row.activityLog.map((item, index) => {
+                    const icon =
+                      ACTIVITY_LOG_ICONS[item.iconKey ?? item.status];
+                    const showLine = index < row.activityLog!.length - 1;
+
+                    return (
+                      <div
+                        key={`${item.title}-${index}`}
+                        className="flex gap-4"
+                      >
+                        <div className="mt-1 flex flex-shrink-0 flex-col items-center -ml-5">
+                          <Icon
+                            icon={icon.icon}
+                            variant="solid"
+                            className={icon.className}
+                          />
+                          {showLine && (
+                            <div className="my-1 min-h-4 w-0.5 flex-1 bg-gray-200" />
+                          )}
+                        </div>
+                        <div className="flex min-w-0 flex-1 flex-col gap-1 pb-6">
+                          <div className="text-base font-medium leading-6 text-gray-900">
+                            {item.title}
+                          </div>
+                          <ActivityLogDescription
+                            description={item.description}
+                            links={[
+                              ...(row.showGetPaid
+                                ? [
+                                    {
+                                      text: 'Get Paid',
+                                      onClick: () =>
+                                        navigate(
+                                          `/smart-exchange/get-paid/${row.id}`
+                                        ),
+                                    },
+                                  ]
+                                : []),
+                              {
+                                text: `#${row.invoiceNumber}`,
+                                onClick: () =>
+                                  navigate(
+                                    `/smart-exchange/get-paid/${row.id}`
+                                  ),
+                              },
+                            ]}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </ExpandableRow>
+          )}
+        </div>
+      );
+    },
+    [navigate, revealedCardDetailsRowIds, handleCardDetailsRevealedChange]
+  );
 
   return (
     <>
@@ -528,7 +935,9 @@ const SmartExchangePaymentsTable = ({
                         <RowKebabMenu
                           paymentMethod={row.paymentMethod}
                           onMarkAsPaid={() => setMarkAsPaidPayment(row)}
-                          onViewCardDetails={() => setCardDetailsPayment(row)}
+                          onViewPaymentDetails={() =>
+                            handleViewPaymentDetails(row)
+                          }
                         />
                       )}
                     </td>

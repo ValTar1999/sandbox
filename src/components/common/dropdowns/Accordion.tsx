@@ -5,6 +5,7 @@ import Icon from '../base/Icon';
 type AccordionProps = {
   title: string;
   className?: string;
+  defaultOpen?: boolean;
   children: React.ReactNode;
 };
 
@@ -12,8 +13,9 @@ export default function Accordion({
   title,
   children,
   className,
+  defaultOpen = false,
 }: AccordionProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
     <div className={clsx('overflow-hidden', className)}>

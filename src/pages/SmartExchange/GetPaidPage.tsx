@@ -1,4 +1,5 @@
 import {
+  Fragment,
   useCallback,
   useEffect,
   useMemo,
@@ -22,7 +23,14 @@ import Input from '../../components/common/base/Input';
 import LayoutModal from '../../components/common/modal/LayoutModal';
 import Modal from '../../components/common/modal/Modal';
 import WrapModal from '../../components/common/modal/WrapModal';
-import { smartExchangePayments } from './data';
+import SmartExchangeOptInModal from '../../modals/SmartExchangeOptInModal';
+import GetPaidSubmittedModal from '../../modals/GetPaidSubmittedModal';
+import ViewCardDetailsModal from '../../modals/ViewCardDetailsModal';
+import {
+  smartExchangePayments,
+  type SmartExchangePayment,
+  type SmartExchangeRowStatus,
+} from './data';
 
 const INITIAL_DISPUTE_FORM = {
   firstName: 'Johnny',
@@ -46,21 +54,97 @@ const formatAmountValue = (amountCents: number) => {
   }).format(n);
 };
 
+type GetPaidActivityLogItem = NonNullable<
+  (typeof smartExchangePayments)[number]['getPaidActivityLog']
+>[number];
+
+type ActivityLogIconKey = SmartExchangeRowStatus | 'initiated';
+
+const GET_PAID_ACTIVITY_LOG_ICONS: Record<
+  ActivityLogIconKey,
+  { icon: string; className: string }
+> = {
+  pending_your_action: {
+    icon: 'clock',
+    className: 'h-3.5 w-3.5 text-yellow-500',
+  },
+  initiated: {
+    icon: 'in-progress',
+    className: 'h-3.5 w-3.5 text-gray-500',
+  },
+  paid: {
+    icon: 'check-circle',
+    className: 'h-3.5 w-3.5 text-green-500',
+  },
+  exception: {
+    icon: 'exclamation-circle',
+    className: 'h-3.5 w-3.5 text-red-500',
+  },
+};
+
+const GET_PAID_ACTIVITY_LINK_CLASS =
+  'cursor-pointer font-semibold text-blue-600 transition-colors duration-300 hover:text-blue-700';
+
+const GetPaidActivityLogDescription = ({
+  description,
+  invoiceNumber,
+}: {
+  description: string;
+  invoiceNumber: string;
+}) => {
+  const invoiceLink = `#${invoiceNumber}`;
+
+  if (!description.includes(invoiceLink)) {
+    return (
+      <span className="text-sm leading-5 text-gray-700">{description}</span>
+    );
+  }
+
+  const parts = description.split(
+    new RegExp(`(${invoiceLink.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'g')
+  );
+
+  return (
+    <span className="text-sm leading-5 text-gray-700">
+      {parts.map((part, index) =>
+        part === invoiceLink ? (
+          <span
+            key={`${part}-${index}`}
+            className={GET_PAID_ACTIVITY_LINK_CLASS}
+          >
+            {part}
+          </span>
+        ) : part ? (
+          <Fragment key={index}>{part}</Fragment>
+        ) : null
+      )}
+    </span>
+  );
+};
+
 const paymentMethodOptions = [
   {
-    label: 'Quick Pay',
+    label: "Accept Payer's Card",
     value: 'quick-pay',
     icon: 'credit-card-sparkle',
     iconVariant: 'custom' as const,
-    description: 'Receive payment by card, no bank account details required.',
+    description: 'No bank account details required, immediate',
     descriptionPosition: 'below' as const,
-    labelLink: 'How this works',
   },
   {
-    label: 'Bank Account',
+    label: 'Send to Bank Account',
     value: 'bank-account',
-    icon: 'library',
-    description: 'You can set up more than one account.',
+    icon: 'building-library',
+    iconVariant: 'solid' as const,
+    description: 'Typically processed in 1-3 business days',
+    descriptionPosition: 'below' as const,
+  },
+  {
+    label: 'Request a Paper Check',
+    value: 'paper-check',
+    icon: 'document-text',
+    iconVariant: 'outline' as const,
+    description: 'Slowest form of payment (approximately 7-10 days)',
     descriptionPosition: 'below' as const,
   },
 ];
@@ -106,6 +190,154 @@ const getAttachmentMeta = (filename: string): AcceptedAttachmentMeta => {
     sizeLabel: sizeMap[base] ?? '1.3 MB',
   };
 };
+
+const getCardholderDetails = (payment: SmartExchangePayment) => {
+  if (payment.paymentMethod.kind === 'card') {
+    const { details } = payment.paymentMethod;
+    const addressLines = [
+      details.addressLine1,
+      details.addressLine2,
+      `${details.city}, ${details.state} ${details.zip}`,
+      details.country,
+    ].filter((line): line is string => Boolean(line?.trim()));
+
+    return {
+      name: details.cardholderName,
+      addressLines,
+    };
+  }
+
+  return {
+    name: payment.customer,
+    addressLines: ['3476 Orphan Road', 'Hayward, WI 54843', 'US'],
+  };
+};
+
+const AutomaticCardProcessingDelegatedPanel = ({
+  delegatedTo,
+  email,
+  sentAt,
+}: {
+  delegatedTo: string;
+  email: string;
+  sentAt: string;
+}) => (
+  <div className="overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+    <div className="flex items-center gap-3 border-b border-gray-200 px-4 py-3">
+      <Icon
+        icon="credit-card-sparkle"
+        variant="outline"
+        className="h-5 w-5 text-blue-600"
+      />
+      <h3 className="text-sm font-semibold leading-5 text-gray-900">
+        Automatic Card Processing
+      </h3>
+    </div>
+    <dl className="grid grid-cols-2 gap-x-6 gap-y-3 px-4 py-3 text-sm leading-5">
+      <dt className="font-medium text-gray-900">Status</dt>
+      <dd>
+        <Badge size="sm" color="blue">
+          In Process
+        </Badge>
+      </dd>
+      <dt className="font-medium text-gray-900">Delegated to</dt>
+      <dd className="break-words text-gray-600">{delegatedTo}</dd>
+      <dt className="font-medium text-gray-900">Email</dt>
+      <dd className="break-words text-gray-600">{email}</dd>
+      <dt className="font-medium text-gray-900">Send at</dt>
+      <dd className="text-gray-600">{sentAt}</dd>
+    </dl>
+    <p className="border-t border-gray-200 px-4 py-3 text-sm leading-5 text-gray-500">
+      <span className="font-medium text-gray-900">{delegatedTo}</span> will
+      receive an email with a secure link to review and acknowledge the Visa AR
+      Manager Participation Agreement.
+    </p>
+  </div>
+);
+
+const AutomaticCardProcessingStatusPanel = ({
+  signedBy,
+  confirmedAt,
+}: {
+  signedBy: string;
+  confirmedAt: string;
+}) => (
+  <div className="overflow-hidden rounded-md border border-gray-200 bg-white">
+    <div className="flex items-center gap-3 border-b border-gray-200 px-4 py-3">
+      <Icon
+        icon="credit-card-sparkle"
+        variant="outline"
+        className="h-5 w-5 text-blue-600"
+      />
+      <h3 className="text-sm font-semibold leading-5 text-gray-900">
+        Automatic Card Processing
+      </h3>
+    </div>
+    <dl className="grid grid-cols-2 gap-x-6 gap-y-3 p-4 text-sm leading-5">
+      <dt className="font-medium text-gray-900">Status</dt>
+      <dd>
+        <Badge size="sm" color="green">
+          Completed
+        </Badge>
+      </dd>
+      <dt className="font-medium text-gray-900">Signed by</dt>
+      <dd className="text-gray-600">{signedBy}</dd>
+      <dt className="font-medium text-gray-900">Confirmed at</dt>
+      <dd className="text-gray-600">{confirmedAt}</dd>
+    </dl>
+  </div>
+);
+
+const AutomaticCardProcessingBanner = ({
+  onClose,
+  onOptIn,
+  onDontShowAgain,
+}: {
+  onClose: () => void;
+  onOptIn: () => void;
+  onDontShowAgain: () => void;
+}) => (
+  <div className="relative rounded-md border border-blue-200 bg-blue-50 p-4">
+    <button
+      type="button"
+      className="absolute right-3 top-3 cursor-pointer transition-colors hover:text-gray-600"
+      onClick={onClose}
+      aria-label="Dismiss"
+    >
+      <Icon icon="x" variant="solid" className="h-3.5 w-3.5 text-gray-400" />
+    </button>
+    <div className="flex items-start gap-3 pr-5">
+      <Icon
+        icon="credit-card-sparkle"
+        variant="outline"
+        className="mt-0.5 h-5 w-5 shrink-0 text-blue-600"
+      />
+      <div className="flex min-w-0 flex-col gap-3">
+        <div>
+          <h3 className="text-sm font-semibold leading-5 text-gray-900">
+            Automatic Card Processing
+          </h3>
+          <p className="mt-1 text-sm leading-5 text-gray-500">
+            Automatically process card payments with no manual steps. You can
+            opt out anytime.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-4">
+          <Button variant="secondary" size="sm" onClick={onOptIn}>
+            Opt in
+          </Button>
+          <button
+            type="button"
+            className="cursor-pointer text-sm font-medium leading-5 text-gray-700 transition-colors hover:text-gray-900"
+            onClick={onDontShowAgain}
+          >
+            Don&apos;t show again
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+);
 
 const DisputeAlertRow = () => (
   <div className="flex items-start gap-3 bg-gray-50 p-4">
@@ -715,7 +947,28 @@ const GetPaidPage = () => {
   const { id } = useParams();
   const [selectedMethod, setSelectedMethod] = useState('');
   const [selectedBankAccount, setSelectedBankAccount] = useState('');
-  const [saveCardAsDefault, setSaveCardAsDefault] = useState(true);
+  const [showAutomaticCardBanner, setShowAutomaticCardBanner] = useState(true);
+  const [automaticCardProcessingOptedIn, setAutomaticCardProcessingOptedIn] =
+    useState(false);
+  const [automaticCardProcessingSignedBy, setAutomaticCardProcessingSignedBy] =
+    useState('');
+  const [
+    automaticCardProcessingConfirmedAt,
+    setAutomaticCardProcessingConfirmedAt,
+  ] = useState('');
+  const [
+    automaticCardProcessingDelegated,
+    setAutomaticCardProcessingDelegated,
+  ] = useState<{
+    delegatedTo: string;
+    email: string;
+    sentAt: string;
+  } | null>(null);
+  const [optInModalOpen, setOptInModalOpen] = useState(false);
+  const [submitSuccessModalOpen, setSubmitSuccessModalOpen] = useState(false);
+  const [cardDetailsModalOpen, setCardDetailsModalOpen] = useState(false);
+  const [navigateAfterCardDetailsClose, setNavigateAfterCardDetailsClose] =
+    useState(false);
   const [savePaymentDetails, setSavePaymentDetails] = useState(true);
   const [setAsDefault, setSetAsDefault] = useState(true);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
@@ -744,6 +997,19 @@ const GetPaidPage = () => {
     [id]
   );
 
+  const cardPaymentForDetails = useMemo(() => {
+    if (!payment) {
+      return null;
+    }
+    if (payment.paymentMethod.kind === 'card') {
+      return payment;
+    }
+    return (
+      smartExchangePayments.find((row) => row.paymentMethod.kind === 'card') ??
+      null
+    );
+  }, [payment]);
+
   if (!payment) {
     return (
       <Box className="max-w-7xl mx-auto">
@@ -758,6 +1024,20 @@ const GetPaidPage = () => {
     year: 'numeric',
   }).format(new Date(payment.dateInitiated));
 
+  const getPaidActivityItems: GetPaidActivityLogItem[] =
+    payment.getPaidActivityLog ??
+    (payment.activityLog?.[0]
+      ? [
+          {
+            status: payment.activityLog[0].status,
+            iconKey: payment.activityLog[0].iconKey,
+            title: payment.activityLog[0].title,
+            description: `Payment with record number #${payment.invoiceNumber} has been initiated via SMART Exchange on ${formattedDate}`,
+            timestamp: `${formattedDate} 10:40 AM (EST)`,
+          },
+        ]
+      : []);
+
   const attachmentItems =
     payment.attachments && payment.attachments.length > 0
       ? payment.attachments
@@ -765,6 +1045,41 @@ const GetPaidPage = () => {
 
   const isBankMethod = selectedMethod === 'bank-account';
   const isQuickPayMethod = selectedMethod === 'quick-pay';
+  const cardholderDetails = getCardholderDetails(payment);
+
+  const cardLast4 =
+    payment.paymentMethod.kind === 'card'
+      ? payment.paymentMethod.last4
+      : cardPaymentForDetails?.paymentMethod.kind === 'card'
+        ? cardPaymentForDetails.paymentMethod.last4
+        : '5612';
+
+  const transactionId = `233DFER${payment.id.replace(/-/g, '').toUpperCase()}EV45GT`;
+
+  const handleSubmitGetPaid = () => {
+    setSubmitSuccessModalOpen(true);
+  };
+
+  const handleSubmitSuccessDone = () => {
+    setSubmitSuccessModalOpen(false);
+
+    if (isQuickPayMethod && cardPaymentForDetails) {
+      setNavigateAfterCardDetailsClose(true);
+      setCardDetailsModalOpen(true);
+      return;
+    }
+
+    navigate('/smart-exchange');
+  };
+
+  const handleCardDetailsClose = () => {
+    setCardDetailsModalOpen(false);
+
+    if (navigateAfterCardDetailsClose) {
+      setNavigateAfterCardDetailsClose(false);
+      navigate('/smart-exchange');
+    }
+  };
   const allDocumentsAccepted = attachmentItems.every((attachment) =>
     Boolean(acceptedAttachments[attachment])
   );
@@ -856,7 +1171,11 @@ const GetPaidPage = () => {
       footer={
         !paymentDisputed ? (
           <div className="flex w-full justify-end">
-            <Button size="md" disabled={!isSubmitReady}>
+            <Button
+              size="md"
+              disabled={!isSubmitReady}
+              onClick={handleSubmitGetPaid}
+            >
               Submit and Get Paid
             </Button>
           </div>
@@ -906,7 +1225,11 @@ const GetPaidPage = () => {
               )}
             </div>
             {!paymentDisputed && (
-              <Button size="md" disabled={!isSubmitReady}>
+              <Button
+                size="md"
+                disabled={!isSubmitReady}
+                onClick={handleSubmitGetPaid}
+              >
                 Submit and Get Paid
               </Button>
             )}
@@ -1091,44 +1414,52 @@ const GetPaidPage = () => {
                   <div className="mt-4 space-y-3">
                     <div className="rounded-md border border-gray-200 bg-gray-50">
                       <div className="border-b border-gray-200 bg-gray-100 px-4 py-2">
-                        <div className="text-sm font-medium text-gray-900 leading-5">
-                          Card Holder Details
+                        <div className="text-sm font-medium leading-5 text-gray-900">
+                          Cardholder Details
                         </div>
                       </div>
                       <div className="px-4 py-3">
-                        <div className="grid grid-cols-2 gap-y-2 gap-x-6 text-sm leading-5">
+                        <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm leading-5">
                           <div className="font-medium text-gray-900">
-                            Name on Card
+                            Cardholder Name
                           </div>
                           <div className="text-gray-900">
-                            {payment.customer}
+                            {cardholderDetails.name}
                           </div>
-                          <div className="font-medium text-gray-700">
-                            Customer&apos;s Address
+                          <div className="font-medium text-gray-900">
+                            Cardholder Address
                           </div>
-                          <div className="text-gray-700">
-                            <div>3476 Orphan Road</div>
-                            <div>Hayward, WI 54843</div>
-                            <div>US</div>
+                          <div className="text-gray-900">
+                            {cardholderDetails.addressLines.map((line) => (
+                              <div key={line}>{line}</div>
+                            ))}
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    <CheckboxField
-                      checked={saveCardAsDefault}
-                      onChange={(e) => setSaveCardAsDefault(e.target.checked)}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-700">
-                          Save and set card as default
-                        </span>
-                        <Icon
-                          icon="information-circle"
-                          className="h-3.5 w-3.5 text-gray-400"
-                        />
-                      </div>
-                    </CheckboxField>
+                    {automaticCardProcessingOptedIn ? (
+                      <AutomaticCardProcessingStatusPanel
+                        signedBy={automaticCardProcessingSignedBy}
+                        confirmedAt={automaticCardProcessingConfirmedAt}
+                      />
+                    ) : automaticCardProcessingDelegated ? (
+                      <AutomaticCardProcessingDelegatedPanel
+                        delegatedTo={
+                          automaticCardProcessingDelegated.delegatedTo
+                        }
+                        email={automaticCardProcessingDelegated.email}
+                        sentAt={automaticCardProcessingDelegated.sentAt}
+                      />
+                    ) : showAutomaticCardBanner ? (
+                      <AutomaticCardProcessingBanner
+                        onClose={() => setShowAutomaticCardBanner(false)}
+                        onOptIn={() => setOptInModalOpen(true)}
+                        onDontShowAgain={() =>
+                          setShowAutomaticCardBanner(false)
+                        }
+                      />
+                    ) : null}
                   </div>
                 )}
 
@@ -1223,6 +1554,50 @@ const GetPaidPage = () => {
               </tbody>
             </table>
           </Accordion>
+
+          {getPaidActivityItems.length > 0 && (
+            <Accordion title="Activity Log" className="" defaultOpen>
+              <div className="relative px-6 pl-5">
+                <div className="space-y-0">
+                  {getPaidActivityItems.map((item, index) => {
+                    const icon =
+                      GET_PAID_ACTIVITY_LOG_ICONS[item.iconKey ?? item.status];
+                    const showLine = index < getPaidActivityItems.length - 1;
+
+                    return (
+                      <div
+                        key={`${item.title}-${index}`}
+                        className="flex gap-4"
+                      >
+                        <div className="mt-1 -ml-5 flex flex-shrink-0 flex-col items-center">
+                          <Icon
+                            icon={icon.icon}
+                            variant="solid"
+                            className={icon.className}
+                          />
+                          {showLine && (
+                            <div className="my-1 min-h-4 w-0.5 flex-1 bg-gray-200" />
+                          )}
+                        </div>
+                        <div className="flex min-w-0 flex-1 flex-col gap-1 pb-6">
+                          <div className="text-base font-medium leading-6 text-gray-900">
+                            {item.title}
+                          </div>
+                          <GetPaidActivityLogDescription
+                            description={item.description}
+                            invoiceNumber={payment.invoiceNumber}
+                          />
+                          <div className="text-xs font-medium leading-4 text-gray-400">
+                            {item.timestamp}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </Accordion>
+          )}
         </div>
       </div>
       <DocumentReviewModal
@@ -1256,6 +1631,51 @@ const GetPaidPage = () => {
           setSignatureModalOpen(false);
           setSignatureSigned(true);
         }}
+      />
+      <SmartExchangeOptInModal
+        open={optInModalOpen}
+        onClose={() => setOptInModalOpen(false)}
+        signerName={cardholderDetails.name}
+        onConfirmed={({ signedBy, confirmedAt }) => {
+          setOptInModalOpen(false);
+          setShowAutomaticCardBanner(false);
+          setAutomaticCardProcessingDelegated(null);
+          setAutomaticCardProcessingOptedIn(true);
+          setAutomaticCardProcessingSignedBy(signedBy);
+          setAutomaticCardProcessingConfirmedAt(confirmedAt);
+        }}
+        onDelegatedPending={({ delegatedTo, email, sentAt }) => {
+          setOptInModalOpen(false);
+          setShowAutomaticCardBanner(false);
+          setAutomaticCardProcessingOptedIn(false);
+          setAutomaticCardProcessingDelegated({
+            delegatedTo,
+            email,
+            sentAt,
+          });
+        }}
+      />
+      <GetPaidSubmittedModal
+        open={submitSuccessModalOpen}
+        onClose={() => setSubmitSuccessModalOpen(false)}
+        onDone={handleSubmitSuccessDone}
+        amountCents={payment.amountCents}
+        paymentDate={payment.dateInitiated}
+        transactionId={transactionId}
+        cardLast4={cardLast4}
+        showCardReveal={isQuickPayMethod}
+        showProcessingNotice={
+          isQuickPayMethod &&
+          showAutomaticCardBanner &&
+          !automaticCardProcessingOptedIn &&
+          !automaticCardProcessingDelegated
+        }
+        onRevealCardDetails={() => setCardDetailsModalOpen(true)}
+      />
+      <ViewCardDetailsModal
+        open={cardDetailsModalOpen}
+        onClose={handleCardDetailsClose}
+        payment={cardPaymentForDetails}
       />
     </Box>
   );

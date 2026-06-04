@@ -22,7 +22,7 @@ const ExpandableRow: React.FC<ExpandableRowProps> = ({
     <div className="p-4 w-40 flex-shrink-0 text-xs font-semibold uppercase text-gray-500">
       {label}
     </div>
-    <div className="px-4 py-3.5 flex-1">{children}</div>
+    <div className="flex-1 p-4">{children}</div>
   </div>
 );
 
