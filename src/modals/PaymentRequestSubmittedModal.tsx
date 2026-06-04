@@ -14,10 +14,8 @@ interface PaymentRequestSubmittedModalProps {
 const PaymentRequestSubmittedModal: React.FC<
   PaymentRequestSubmittedModalProps
 > = ({ open, onClose, onDone }) => {
-  if (!open) return null;
-
   return (
-    <LayoutModal>
+    <LayoutModal open={open}>
       <Modal
         className="w-150"
         title="Payment Request Submitted!"

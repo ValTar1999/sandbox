@@ -39,16 +39,18 @@ interface MenuItem {
 }
 
 /** Inline SVG so `currentColor` follows sidebar classes; wrapper clips flex min-size overflow. */
-const SmartExchangeSidebarIcon = memo((props: React.SVGProps<SVGSVGElement>) => (
-  <span
-    aria-hidden
-    className={clsx(
-      props.className,
-      'flex shrink-0 basis-6 self-center items-center justify-center overflow-hidden leading-none [&>svg]:block [&>svg]:h-6 [&>svg]:w-6 [&>svg]:max-h-6 [&>svg]:max-w-6 [&>svg]:shrink-0'
-    )}
-    dangerouslySetInnerHTML={{ __html: SELogoSvgRaw }}
-  />
-));
+const SmartExchangeSidebarIcon = memo(
+  (props: React.SVGProps<SVGSVGElement>) => (
+    <span
+      aria-hidden
+      className={clsx(
+        props.className,
+        'flex shrink-0 basis-6 self-center items-center justify-center overflow-hidden leading-none [&>svg]:block [&>svg]:h-6 [&>svg]:w-6 [&>svg]:max-h-6 [&>svg]:max-w-6 [&>svg]:shrink-0'
+      )}
+      dangerouslySetInnerHTML={{ __html: SELogoSvgRaw }}
+    />
+  )
+);
 SmartExchangeSidebarIcon.displayName = 'SmartExchangeSidebarIcon';
 
 const menuItems: MenuItem[] = [
@@ -101,8 +103,7 @@ const COMMON_CLASSES = {
   icon: 'h-6 w-6 min-w-6 min-h-6 transition-all duration-300',
   iconActive: 'text-blue-600',
   iconInactive: 'text-gray-400',
-  label:
-    'text-base font-medium pl-3 text-nowrap transition-all duration-300',
+  label: 'text-base font-medium pl-3 text-nowrap transition-all duration-300',
   labelActive: 'text-gray-900',
   labelInactive: 'text-gray-600 group-hover:text-gray-900',
   textContainer: 'flex justify-between w-full items-center overflow-hidden',
@@ -756,7 +757,7 @@ const Sidebar: React.FC = () => {
         </Tooltip>
       </div>
 
-      <nav className="mt-5 grid grid-cols-1 gap-1">
+      <nav className="mt-9 grid grid-cols-1 gap-1">
         {menuItemsList}
 
         <div className="mt-8">

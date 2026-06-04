@@ -58,15 +58,13 @@ const SelectPaymentWorkflowModal: React.FC<SelectPaymentWorkflowModalProps> = ({
     }
   }, [open, selectedWorkflowId, defaultWorkflowId]);
 
-  if (!open) return null;
-
   const handleSave = () => {
     onSave(tempSelected);
     onClose();
   };
 
   return (
-    <LayoutModal>
+    <LayoutModal open={open}>
       <WrapModal
         className="w-[480px] max-w-full"
         onClose={onClose}

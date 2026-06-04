@@ -17,10 +17,8 @@ interface SmartExchangeOptInLearnMoreModalProps {
 const SmartExchangeOptInLearnMoreModal: React.FC<
   SmartExchangeOptInLearnMoreModalProps
 > = ({ open, onClose }) => {
-  if (!open) return null;
-
   return (
-    <LayoutModal>
+    <LayoutModal open={open}>
       <div className="m-auto grid w-full max-w-[800px] grid-cols-[256px_1fr] gap-2 overflow-hidden rounded-3xl bg-white p-2">
         <div className="min-h-[620px] overflow-hidden rounded-2xl">
           <img

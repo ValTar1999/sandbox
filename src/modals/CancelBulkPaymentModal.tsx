@@ -15,10 +15,8 @@ const CancelBulkPaymentModal: React.FC<CancelBulkPaymentModalProps> = ({
   onClose,
   onConfirm,
 }) => {
-  if (!open) return null;
-
   return (
-    <LayoutModal>
+    <LayoutModal open={open}>
       <Modal
         className="w-128"
         titleCenter={true}

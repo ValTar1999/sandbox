@@ -293,11 +293,9 @@ const NetworkSearchInviteModal: React.FC<NetworkSearchInviteModalProps> = ({
     []
   );
 
-  if (!open) return null;
-
   if (stage === 'success') {
     return (
-      <LayoutModal>
+      <LayoutModal open={open}>
         <WrapModal className="w-[600px] max-w-full" onClose={handleClose}>
           <div className="flex flex-col items-center px-6 pb-6">
             {isRejectSuccess ? (
@@ -368,7 +366,7 @@ const NetworkSearchInviteModal: React.FC<NetworkSearchInviteModalProps> = ({
 
   if (stage === 'linkRequest') {
     return (
-      <LayoutModal>
+      <LayoutModal open={open}>
         <WrapModal className="w-128 max-w-full" onClose={handleClose}>
           <div className="flex flex-col items-center px-6 pb-6 space-y-6">
             <Icon icon="check-circle" className="h-11 w-11 text-green-500" />
@@ -407,7 +405,7 @@ const NetworkSearchInviteModal: React.FC<NetworkSearchInviteModalProps> = ({
 
   if (stage === 'rejectRequest') {
     return (
-      <LayoutModal>
+      <LayoutModal open={open}>
         <WrapModal className="w-128 max-w-full" onClose={handleClose}>
           <div className="flex flex-col items-center px-6 pb-6 space-y-6">
             <Icon icon="x" className="h-11 w-11 text-red-500" />
@@ -446,7 +444,7 @@ const NetworkSearchInviteModal: React.FC<NetworkSearchInviteModalProps> = ({
 
   if (stage === 'unlinkVendor') {
     return (
-      <LayoutModal>
+      <LayoutModal open={open}>
         <Modal
           className="w-128"
           titleCenter={true}
@@ -483,7 +481,7 @@ const NetworkSearchInviteModal: React.FC<NetworkSearchInviteModalProps> = ({
 
   if (stage === 'invite') {
     return (
-      <LayoutModal>
+      <LayoutModal open={open}>
         <WrapModal
           className="w-[800px] max-w-full"
           onClose={handleClose}
@@ -593,7 +591,7 @@ const NetworkSearchInviteModal: React.FC<NetworkSearchInviteModalProps> = ({
       : DEFAULT_ADVANCED_SEARCH_SUMMARY;
 
   return (
-    <LayoutModal>
+    <LayoutModal open={open}>
       <WrapModal
         className="w-[800px] max-w-full"
         onClose={handleClose}

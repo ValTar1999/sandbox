@@ -132,13 +132,11 @@ const SmartExchangeLearnMoreModal: React.FC<
   onGoToPayments,
   mode = 'deposit-verification',
 }) => {
-  if (!open) return null;
-
   const steps =
     mode === 'process-payment' ? processPaymentSteps : depositVerificationSteps;
 
   return (
-    <LayoutModal>
+    <LayoutModal open={open}>
       <div className="m-auto w-full max-w-[800px] overflow-hidden rounded-3xl bg-white p-2 space-x-2 grid grid-cols-3">
         <div className="shrink-0 w-3xs">
           <img

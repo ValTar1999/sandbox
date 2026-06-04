@@ -8,6 +8,7 @@ import Input from '../components/common/base/Input';
 import Icon from '../components/common/base/Icon';
 
 type ModalStep = 'verify' | 'success';
+const MODAL_EXIT_MS = 280;
 
 interface BankAccountVerificationModalProps {
   open: boolean;
@@ -40,17 +41,30 @@ const amountsMatch = (entered: string, expectedDollars: number): boolean => {
 const BankAccountVerificationModal: React.FC<
   BankAccountVerificationModalProps
 > = ({ open, onClose }) => {
+  const [shouldRender, setShouldRender] = useState(open);
   const [step, setStep] = useState<ModalStep>('verify');
   const [amount, setAmount] = useState('');
   const [amountMismatch, setAmountMismatch] = useState(false);
 
   useEffect(() => {
-    if (!open) {
+    if (open) {
+      setShouldRender(true);
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setShouldRender(false);
+    }, MODAL_EXIT_MS);
+    return () => window.clearTimeout(timeout);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open && !shouldRender) {
       setStep('verify');
       setAmount('');
       setAmountMismatch(false);
     }
-  }, [open]);
+  }, [open, shouldRender]);
 
   const resetAndClose = useCallback(() => {
     setStep('verify');
@@ -91,11 +105,11 @@ const BankAccountVerificationModal: React.FC<
     if (amountMismatch) setAmountMismatch(false);
   };
 
-  if (!open) return null;
+  if (!shouldRender) return null;
 
   if (step === 'success') {
     return (
-      <LayoutModal>
+      <LayoutModal open={open}>
         <Modal
           className="w-128"
           title="Bank Account Verified Successfully!"
@@ -122,7 +136,7 @@ const BankAccountVerificationModal: React.FC<
   }
 
   return (
-    <LayoutModal>
+    <LayoutModal open={open}>
       <WrapModal
         className="w-[480px] max-w-full"
         onClose={handleClose}

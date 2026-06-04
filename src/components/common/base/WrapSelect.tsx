@@ -5,6 +5,7 @@ import Button from './Button';
 import Badge from './Badge';
 import { Tooltip, TooltipTrigger, TooltipContent } from './Tooltip';
 import type { TColors, TSizes } from '../../../enums/Badge';
+import type { TIconVariant } from '../../../enums/Icon';
 
 interface Option {
   label: string;
@@ -27,10 +28,12 @@ interface Option {
   rightLabel?: string;
   rightValue?: string;
   icon?: string;
+  iconVariant?: TIconVariant;
   iconImageSrc?: string;
   iconImageAlt?: string;
   iconImageClassName?: string;
   inactiveDescription?: string;
+  labelLink?: string;
 }
 
 interface WrapSelectProps {
@@ -51,6 +54,7 @@ interface WrapSelectProps {
   errorMessage?: string;
   /** In trigger: "all" = show all badges, "defaultOnly" = only badgeSecondary (e.g. Default) */
   triggerBadgeMode?: 'all' | 'defaultOnly';
+  onOptionLabelLinkClick?: (value: string) => void;
 }
 
 function WrapSelect({
@@ -70,6 +74,7 @@ function WrapSelect({
   error = false,
   errorMessage = 'Method of Payment is required.',
   triggerBadgeMode = 'all',
+  onOptionLabelLinkClick,
 }: WrapSelectProps) {
   const [open, setOpen] = useState(false);
   const selectId = useId();
@@ -112,7 +117,13 @@ function WrapSelect({
     }
 
     if (option.icon) {
-      return <Icon icon={option.icon} className={className} />;
+      return (
+        <Icon
+          icon={option.icon}
+          variant={option.iconVariant}
+          className={className}
+        />
+      );
     }
 
     if (option.rightValue) {
@@ -304,6 +315,19 @@ function WrapSelect({
                         >
                           {option.label}
                         </div>
+                        {option.labelLink && (
+                          <button
+                            type="button"
+                            className="shrink-0 text-sm font-medium text-blue-600 transition hover:text-blue-700 cursor-pointer inline-flex items-center gap-1"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onOptionLabelLinkClick?.(option.value);
+                            }}
+                          >
+                            {option.labelLink}
+                            <Icon icon="arrow-right" className="w-3 h-3" />
+                          </button>
+                        )}
                         {(option.badge || option.badgeSecondary) &&
                           (option.badgePosition ?? 'right') === 'inline' && (
                             <div className="flex items-center gap-1.5 flex-shrink-0">

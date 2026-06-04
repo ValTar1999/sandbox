@@ -54,8 +54,6 @@ const AddCardDetailsModal: React.FC<AddCardDetailsModalProps> = ({
     state: '',
   });
 
-  if (!open) return null;
-
   const resetForm = () => {
     setFormData({
       cardNumber: '',
@@ -103,7 +101,7 @@ const AddCardDetailsModal: React.FC<AddCardDetailsModalProps> = ({
     formData[field].trim() === '';
 
   return (
-    <LayoutModal>
+    <LayoutModal open={open}>
       <WrapModal
         className="w-[480px] max-w-full"
         onClose={handleClose}

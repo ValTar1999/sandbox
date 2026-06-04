@@ -16,6 +16,7 @@ type OptInStep =
   | 'delegated-complete'
   | 'delegated-pending';
 type AuthorizationChoice = 'authorized' | 'send';
+const MODAL_EXIT_MS = 280;
 
 const HOW_IT_WORKS_STEPS = [
   'Continue processing payments manually until set up is complete.',
@@ -35,17 +36,19 @@ interface SmartExchangeOptInModalProps {
 }
 
 const ModalShell = ({
+  open,
   children,
   footer,
   onClose,
   onCloseButton,
 }: {
+  open: boolean;
   children: React.ReactNode;
   footer?: React.ReactNode;
   onClose: () => void;
   onCloseButton?: () => void;
 }) => (
-  <LayoutModal>
+  <LayoutModal open={open}>
     <div className="m-auto grid w-full max-w-[800px] grid-cols-[256px_1fr] gap-2 overflow-hidden rounded-3xl bg-white p-2">
       <div className="min-h-[620px] overflow-hidden rounded-2xl">
         <img
@@ -148,8 +151,14 @@ const AgreementSummary = ({
   );
 };
 
-const AgreementViewer = ({ onClose }: { onClose: () => void }) => (
-  <LayoutModal>
+const AgreementViewer = ({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) => (
+  <LayoutModal open={open}>
     <div className="m-auto flex h-[86vh] w-full max-w-[980px] flex-col overflow-hidden rounded-lg bg-white shadow-xl">
       <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
         <h2 className="text-base font-semibold text-gray-900">
@@ -317,6 +326,7 @@ const SmartExchangeOptInModal: React.FC<SmartExchangeOptInModalProps> = ({
   onDelegatedPending,
   signerName = 'Johnny Anderson',
 }) => {
+  const [shouldRender, setShouldRender] = useState(open);
   const [step, setStep] = useState<OptInStep>('intro');
   const [agreementOpened, setAgreementOpened] = useState(false);
   const [authorizationChoice, setAuthorizationChoice] =
@@ -330,7 +340,19 @@ const SmartExchangeOptInModal: React.FC<SmartExchangeOptInModalProps> = ({
   const [isConfirming, setIsConfirming] = useState(false);
 
   useEffect(() => {
-    if (!open) {
+    if (open) {
+      setShouldRender(true);
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setShouldRender(false);
+    }, MODAL_EXIT_MS);
+    return () => window.clearTimeout(timeout);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open && !shouldRender) {
       setStep('intro');
       setAgreementOpened(false);
       setAuthorizationChoice(null);
@@ -342,7 +364,7 @@ const SmartExchangeOptInModal: React.FC<SmartExchangeOptInModalProps> = ({
       setDelegatedNote('');
       setIsConfirming(false);
     }
-  }, [open]);
+  }, [open, shouldRender]);
 
   const handleClose = useCallback(() => {
     onClose();
@@ -409,11 +431,12 @@ const SmartExchangeOptInModal: React.FC<SmartExchangeOptInModalProps> = ({
     onDelegatedPending?.();
   };
 
-  if (!open) return null;
+  if (!shouldRender) return null;
 
   if (step === 'agreement') {
     return (
       <AgreementViewer
+        open={open}
         onClose={() => {
           setAgreementOpened(true);
           setStep('review');
@@ -425,6 +448,7 @@ const SmartExchangeOptInModal: React.FC<SmartExchangeOptInModalProps> = ({
   if (step === 'intro') {
     return (
       <ModalShell
+        open={open}
         onClose={handleClose}
         onCloseButton={handleCloseButton}
         footer={
@@ -468,6 +492,7 @@ const SmartExchangeOptInModal: React.FC<SmartExchangeOptInModalProps> = ({
   if (step === 'complete') {
     return (
       <ModalShell
+        open={open}
         onClose={handleClose}
         onCloseButton={handleCloseButton}
         footer={
@@ -510,6 +535,7 @@ const SmartExchangeOptInModal: React.FC<SmartExchangeOptInModalProps> = ({
   if (step === 'delegated-complete') {
     return (
       <ModalShell
+        open={open}
         onClose={handleClose}
         onCloseButton={handleCloseButton}
         footer={
@@ -558,7 +584,7 @@ const SmartExchangeOptInModal: React.FC<SmartExchangeOptInModalProps> = ({
 
   if (step === 'delegated-pending') {
     return (
-      <ModalShell onClose={handleClose} onCloseButton={handleCloseButton}>
+      <ModalShell open={open} onClose={handleClose} onCloseButton={handleCloseButton}>
         <h2 className="text-3xl font-semibold leading-9 text-gray-900">
           To enable automatic card processing, complete the steps below.
         </h2>
@@ -569,6 +595,7 @@ const SmartExchangeOptInModal: React.FC<SmartExchangeOptInModalProps> = ({
 
   return (
     <ModalShell
+      open={open}
       onClose={handleClose}
       onCloseButton={handleCloseButton}
       footer={

@@ -101,14 +101,14 @@ const Header: FC<HeaderProps> = ({
               <>
                 <Button
                   variant="secondary"
-                  size="xs"
+                  size="sm"
                   onClick={() => setOptInModalOpen(true)}
                 >
                   Opt in
                 </Button>
                 <Button
                   variant="linkSecondary"
-                  size="xs"
+                  size="sm"
                   onClick={() => setOptInLearnMoreModalOpen(true)}
                 >
                   Learn more

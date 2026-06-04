@@ -50,10 +50,8 @@ const SmartCollectDetailsModal: React.FC<SmartCollectDetailsModalProps> = ({
 }) => {
   const [makeDefault, setMakeDefault] = useState(false);
 
-  if (!open) return null;
-
   return (
-    <LayoutModal>
+    <LayoutModal open={open}>
       <WrapModal
         className="w-125"
         footer={

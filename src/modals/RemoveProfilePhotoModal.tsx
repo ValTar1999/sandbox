@@ -14,10 +14,8 @@ const RemoveProfilePhotoModal = ({
   onClose,
   onConfirm,
 }: RemoveProfilePhotoModalProps) => {
-  if (!open) return null;
-
   return (
-    <LayoutModal>
+    <LayoutModal open={open}>
       <Modal
         className="w-128"
         title="Remove Profile Photo"

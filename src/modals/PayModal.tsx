@@ -33,11 +33,10 @@ const PayModal: React.FC<PayModalProps> = ({
   contactEmail,
   smartDisburseContacts,
 }) => {
-  if (!open) return null;
   const isCardMethod = paymentMethod === 'card';
   const isSmartDisburse = paymentMethod === 'smart-disburse';
   return (
-    <LayoutModal>
+    <LayoutModal open={open}>
       <Modal
         className="w-125"
         footer={

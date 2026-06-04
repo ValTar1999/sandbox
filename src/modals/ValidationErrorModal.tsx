@@ -15,10 +15,8 @@ const ValidationErrorModal: React.FC<ValidationErrorModalProps> = ({
   onClose,
   message = 'Please fill in all required fields: Customer Details, Receiving Account, Payment Workflow, and Accounts on File.',
 }) => {
-  if (!open) return null;
-
   return (
-    <LayoutModal>
+    <LayoutModal open={open}>
       <Modal
         className="w-128"
         title="Validation Error"

@@ -302,10 +302,9 @@ const AddNewUserModal = ({
   const isAccountsPayableRequired = requiredLimitsTypes.includes('ap');
   const isAccountsReceivableRequired = requiredLimitsTypes.includes('ar');
 
-  if (!open) return null;
   if (view === 'success') {
     return (
-      <LayoutModal>
+      <LayoutModal open={open}>
         <Modal
           className="w-128"
           title="Invitation Sent"
@@ -325,7 +324,7 @@ const AddNewUserModal = ({
   }
 
   return (
-    <LayoutModal>
+    <LayoutModal open={open}>
       <WrapModal
         className="w-full max-w-[980px]"
         onClose={handleClose}

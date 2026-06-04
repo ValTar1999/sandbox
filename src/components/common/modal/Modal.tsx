@@ -11,6 +11,7 @@ interface Props extends React.HTMLAttributes<HTMLDivElement> {
   icon?: ReactNode;
   onClose?: () => void;
   titleCenter?: boolean;
+  titleClassName?: string;
 }
 
 const Modal: React.FC<Props> = ({
@@ -22,6 +23,7 @@ const Modal: React.FC<Props> = ({
   icon,
   onClose,
   titleCenter = false,
+  titleClassName,
 }) => {
   const safeDescription =
     description && typeof window !== 'undefined'
@@ -43,12 +45,16 @@ const Modal: React.FC<Props> = ({
         )}
 
         <div
-          className={clsx('flex flex-col gap-2', titleCenter && 'items-center')}
+          className={clsx(
+            'flex w-full flex-col gap-2',
+            titleCenter && 'items-center'
+          )}
         >
           {title && (
             <div
               className={clsx(
-                'text-lg font-semibold text-gray-900',
+                'font-semibold text-gray-900',
+                titleClassName ?? 'text-lg',
                 titleCenter && 'text-center'
               )}
             >
@@ -58,7 +64,7 @@ const Modal: React.FC<Props> = ({
           {safeDescription && (
             <div
               className={clsx(
-                'text-sm text-gray-500',
+                'text-sm font-normal leading-5 text-gray-500',
                 titleCenter && 'text-center'
               )}
               dangerouslySetInnerHTML={{ __html: safeDescription }}

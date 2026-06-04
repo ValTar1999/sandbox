@@ -295,11 +295,11 @@ const EditUserModal = ({
     ? (roleOptions.find((role) => role.id === pendingRoleId) ?? null)
     : null;
 
-  if (!open || !user) return null;
+  if (!user) return null;
 
   return (
     <>
-      <LayoutModal>
+      <LayoutModal open={open}>
         <WrapModal
           className="w-full max-w-[980px]"
           onClose={onClose}
@@ -1045,8 +1045,8 @@ const EditUserModal = ({
           setIsRemoveUserModalOpen(false);
         }}
       />
-      {isChangeRoleModalOpen && pendingRole && (
-        <LayoutModal>
+      {pendingRole && (
+        <LayoutModal open={isChangeRoleModalOpen}>
           <Modal
             className="w-128"
             title="Are you sure you want to change role?"

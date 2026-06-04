@@ -25,8 +25,6 @@ const ChooseDataModal: React.FC<ChooseDataModalProps> = ({
   setSelectedIndex,
   onSelectDate,
 }) => {
-  if (!open) return null;
-
   const scheduleOptions = [
     { label: 'Tomorrow morning', date: new Date(2025, 7, 5, 9, 0) },
     { label: 'Monday morning', date: new Date(2025, 7, 10, 9, 0) },
@@ -39,7 +37,7 @@ const ChooseDataModal: React.FC<ChooseDataModalProps> = ({
   };
 
   return (
-    <LayoutModal>
+    <LayoutModal open={open}>
       <WrapModal
         className="w-128"
         onClose={onClose}

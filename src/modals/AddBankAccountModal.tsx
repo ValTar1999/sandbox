@@ -52,8 +52,6 @@ const AddBankAccountModal: React.FC<AddBankAccountModalProps> = ({
     state: '',
   });
 
-  if (!open) return null;
-
   const resetForm = () => {
     setFormData({
       accountName: '',
@@ -100,7 +98,7 @@ const AddBankAccountModal: React.FC<AddBankAccountModalProps> = ({
     formData[field].trim() === '';
 
   return (
-    <LayoutModal>
+    <LayoutModal open={open}>
       <WrapModal
         className="w-[480px] max-w-full"
         onClose={handleClose}

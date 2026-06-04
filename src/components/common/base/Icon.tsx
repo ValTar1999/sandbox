@@ -18,6 +18,8 @@ const SPRITE_MAP: Record<TIconVariant, string> = {
   outline: 'heroicons-outline.sprite.svg',
   bicolor: 'bicolor.sprite.svg',
   mini: 'heroicons-mini.sprite.svg',
+  // Fallback to outline sprite for custom product icons.
+  custom: 'heroicons-outline.sprite.svg',
 } as const;
 
 const Icon: React.FC<IconProps> = ({

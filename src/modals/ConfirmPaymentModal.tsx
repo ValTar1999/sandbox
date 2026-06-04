@@ -57,10 +57,8 @@ const ConfirmPaymentModal: React.FC<ConfirmPaymentModalProps> = ({
     return isBulkPayment || vendors.length > 1;
   }, [isBulkPayment, vendors.length]);
 
-  if (!open) return null;
-
   return (
-    <LayoutModal>
+    <LayoutModal open={open}>
       <WrapModal
         className="w-125"
         header={

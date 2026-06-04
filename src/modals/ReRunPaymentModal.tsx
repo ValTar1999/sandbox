@@ -16,9 +16,8 @@ const ReRunPaymentModal: React.FC<ReRunPaymentModalProps> = ({
   onClose,
   onConfirm,
 }) => {
-  if (!open) return null;
   return (
-    <LayoutModal>
+    <LayoutModal open={open}>
       <Modal
         className="w-150"
         title="Payment Re-submitted!"

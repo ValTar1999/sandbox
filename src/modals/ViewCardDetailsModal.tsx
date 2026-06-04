@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import LayoutModal from '../components/common/modal/LayoutModal';
 import clsx from 'clsx';
 import Button from '../components/common/base/Button';
@@ -76,9 +76,19 @@ const ViewCardDetailsModal: React.FC<ViewCardDetailsModalProps> = ({
   onClose,
   payment,
 }) => {
-  if (!open || !payment || payment.paymentMethod.kind !== 'card') return null;
+  const [displayPayment, setDisplayPayment] = useState<SmartExchangePayment | null>(
+    payment
+  );
 
-  const { details } = payment.paymentMethod;
+  useEffect(() => {
+    if (payment && payment.paymentMethod.kind === 'card') {
+      setDisplayPayment(payment);
+    }
+  }, [payment]);
+
+  if (!displayPayment || displayPayment.paymentMethod.kind !== 'card') return null;
+
+  const { details } = displayPayment.paymentMethod;
   const addressLines = [
     details.addressLine1,
     details.addressLine2,
@@ -87,7 +97,7 @@ const ViewCardDetailsModal: React.FC<ViewCardDetailsModalProps> = ({
   ].filter(Boolean);
 
   return (
-    <LayoutModal>
+    <LayoutModal open={open}>
       <div className="relative m-auto w-full max-w-128 overflow-hidden rounded-lg bg-white shadow-xl">
         <div className="flex justify-end">
           <Button
@@ -111,7 +121,7 @@ const ViewCardDetailsModal: React.FC<ViewCardDetailsModalProps> = ({
             <div>
               <div className="flex items-center justify-between">
                 <div className="text-xl font-bold text-white leading-8">
-                  {formatAmountValue(payment.amountCents)}
+                  {formatAmountValue(displayPayment.amountCents)}
                 </div>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -127,7 +137,7 @@ const ViewCardDetailsModal: React.FC<ViewCardDetailsModalProps> = ({
                 </svg>
               </div>
               <div className="text-lg text-white leading-6">
-                •••• {payment.paymentMethod.last4}
+                •••• {displayPayment.paymentMethod.last4}
               </div>
             </div>
 
@@ -152,7 +162,7 @@ const ViewCardDetailsModal: React.FC<ViewCardDetailsModalProps> = ({
           <dl className="rounded-lg border border-gray-200 bg-gray-50 p-4">
             <div className={DETAILS_GRID_CLASS}>
               <DetailField label="Pending Payment">
-                {formatAmountValue(payment.amountCents)} USD
+                {formatAmountValue(displayPayment.amountCents)} USD
               </DetailField>
               <DetailField label="Cardholder Name">
                 {details.cardholderName}

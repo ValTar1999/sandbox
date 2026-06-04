@@ -25,6 +25,7 @@ const Dashboard = () => <div className="p-4">Dashboard Page</div>;
 const Customers = () => <div className="p-4">Customers Page</div>;
 const Configurator = () => <div className="p-4">Configurator Page</div>;
 const SmartExchange = lazy(() => import('./pages/SmartExchange/SmartExchange'));
+const GetPaidPage = lazy(() => import('./pages/SmartExchange/GetPaidPage'));
 const PaymentPreferences = lazy(
   () => import('./pages/SmartExchange/PaymentPreferences/PaymentPreferences')
 );
@@ -49,6 +50,7 @@ function App() {
           />
           <Route path="/customers" element={<Customers />} />
           <Route path="/smart-exchange" element={<SmartExchange />} />
+          <Route path="/smart-exchange/get-paid/:id" element={<GetPaidPage />} />
           <Route
             path="/smart-exchange/payment-preferences"
             element={<PaymentPreferences />}

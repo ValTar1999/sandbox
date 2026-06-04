@@ -1,6 +1,12 @@
 export type TIconName = string;
 
-export const IconVariant = ['solid', 'outline', 'bicolor', 'mini'] as const;
+export const IconVariant = [
+  'solid',
+  'outline',
+  'bicolor',
+  'mini',
+  'custom',
+] as const;
 export type TIconVariant = (typeof IconVariant)[number];
 
 export const IconDirectionLR = ['left', 'right'] as const;

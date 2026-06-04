@@ -42,29 +42,60 @@ export interface SmartExchangePayment {
   showGetPaid: boolean;
   /** Shown in expanded panel (Receivables-style) */
   notes?: string;
+  attachments?: string[];
+  activityLog?: Array<{
+    status: SmartExchangeRowStatus;
+    title: string;
+    description: string;
+  }>;
+  smartDisburseDetails?: {
+    payeeName: string;
+    paymentMethod: string;
+    amountCents: number;
+    statusLabel: string;
+  };
 }
 
 export const smartExchangePayments: SmartExchangePayment[] = [
   {
     id: '1',
     tab: 'pending',
-    amountCents: 189_200,
+    amountCents: 666_300,
     vendorEntry: 'Pinnacle Group',
-    invoiceNumber: 'KQ5-B',
+    invoiceNumber: 'LC7-C',
     customer: 'Horizon Inc',
     dateInitiated: '2024-06-28',
     paymentMethod: { kind: 'smart_exchange' },
     status: 'pending_your_action',
     showGetPaid: true,
-    notes: 'Payment awaiting acceptance in SMART Exchange.',
+    notes: 'The payment has been initiated by your client and is pending your action.',
+    attachments: ['Adjuster_Report.pdf', 'Adjuster_Report_02.pdf'],
+    smartDisburseDetails: {
+      payeeName: 'Big Kahuna Burger Ltd',
+      paymentMethod: '-',
+      amountCents: 666_300,
+      statusLabel: 'Needs Response',
+    },
+    activityLog: [
+      {
+        status: 'pending_your_action',
+        title: 'Pending Your Action',
+        description: 'Please click here to Get Paid',
+      },
+      {
+        status: 'pending_your_action',
+        title: 'Initiated',
+        description: 'Payment for invoice #LC7-C has been initiated',
+      },
+    ],
   },
   {
     id: '2',
     tab: 'pending',
-    amountCents: 245_000,
+    amountCents: 189_200,
     vendorEntry: 'Pinnacle Group',
-    invoiceNumber: 'KQ5-C',
-    customer: 'Horizon Inc',
+    invoiceNumber: 'TA6-D',
+    customer: 'Rad Roofing Ltd',
     dateInitiated: '2024-06-27',
     paymentMethod: {
       kind: 'card',
@@ -75,9 +106,9 @@ export const smartExchangePayments: SmartExchangePayment[] = [
         expiry: '12/2026',
         expiryDisplay: '12/26',
         cvc2: '999',
-        cardholderName: 'Horizon Inc',
-        addressLine1: '3476 Commerce Ave.',
-        addressLine2: 'Suite 1010',
+        cardholderName: 'Rad Roofing Ltd',
+        addressLine1: '3476 Orphan Road',
+        addressLine2: '',
         city: 'Hayward',
         state: 'Wisconsin',
         zip: '54843',
@@ -86,7 +117,21 @@ export const smartExchangePayments: SmartExchangePayment[] = [
     },
     status: 'pending_your_action',
     showGetPaid: false,
-    notes: 'Card on file — review before release.',
+    notes:
+      'The card payment has been initiated by your client and is awaiting your processing the card. Once processed you can mark the transaction as paid in the portal.',
+    attachments: ['Adjuster_Report.pdf', 'Adjuster_Report_02.pdf'],
+    activityLog: [
+      {
+        status: 'pending_your_action',
+        title: 'Pending Your Action',
+        description: 'Please make sure to process your card.',
+      },
+      {
+        status: 'pending_your_action',
+        title: 'Initiated',
+        description: 'Payment for invoice #TA6-D has been initiated',
+      },
+    ],
   },
   {
     id: '3',
@@ -128,6 +173,14 @@ export const smartExchangePayments: SmartExchangePayment[] = [
     },
     status: 'pending_your_action',
     showGetPaid: false,
+    attachments: ['Card_Authorization.pdf'],
+    activityLog: [
+      {
+        status: 'pending_your_action',
+        title: 'Pending Your Action',
+        description: 'Please make sure to process your card.',
+      },
+    ],
   },
   {
     id: '5',

@@ -14,7 +14,7 @@ const RemoveUserModal = ({ user, onClose, onConfirm }: RemoveUserModalProps) => 
   if (!user) return null;
 
   return (
-    <LayoutModal>
+    <LayoutModal open={Boolean(user)}>
       <Modal
         className="w-128"
         title="Remove User from Business"

@@ -4,6 +4,7 @@ import React, {
   useEffect,
   type ComponentProps,
 } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { format, parseISO } from 'date-fns';
 import clsx from 'clsx';
 import Icon from '../../components/common/base/Icon';
@@ -210,10 +211,8 @@ const MarkPaymentAsPaidModal = ({
   onClose: () => void;
   onConfirm: () => void;
 }) => {
-  if (!open) return null;
-
   return (
-    <LayoutModal>
+    <LayoutModal open={open}>
       <Modal
         className="w-128"
         title="Mark Payment as Paid"
@@ -249,10 +248,8 @@ const MarkPaymentPaidSuccessModal = ({
   open: boolean;
   onClose: () => void;
 }) => {
-  if (!open) return null;
-
   return (
-    <LayoutModal>
+    <LayoutModal open={open}>
       <Modal
         className="w-128"
         title="Status successfully changed!"
@@ -281,6 +278,7 @@ interface SmartExchangePaymentsTableProps {
 const SmartExchangePaymentsTable = ({
   payments,
 }: SmartExchangePaymentsTableProps) => {
+  const navigate = useNavigate();
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [cardDetailsPayment, setCardDetailsPayment] =
     useState<SmartExchangePayment | null>(null);
@@ -453,86 +451,94 @@ const SmartExchangePaymentsTable = ({
                       expandedRow === row.id && 'bg-gray-100'
                     )}
                   >
-                  <td className="w-[52px] max-w-[52px] min-w-[52px]">
-                    <Icon
-                      icon="chevron-right"
-                      className={clsx(
-                        'ml-4 text-gray-500 transition-transform duration-300 ease-in-out',
-                        expandedRow === row.id && 'rotate-90'
-                      )}
-                    />
-                  </td>
-                  <td className={clsx(TD_CLASS, 'whitespace-nowrap')}>
-                    <div className={clsx('flex items-center gap-1', FLEX_END)}>
-                      <div className="text-sm font-medium text-gray-900">
-                        {formatAmountValue(row.amountCents)}
-                      </div>
-                      <div className="text-sm font-normal text-gray-500">
-                        USD
-                      </div>
-                    </div>
-                  </td>
-                  <td
-                    className={clsx(
-                      TD_CLASS,
-                      'whitespace-nowrap text-sm text-gray-900'
-                    )}
-                  >
-                    {row.vendorEntry}
-                  </td>
-                  <td
-                    className={clsx(
-                      TD_CLASS,
-                      'whitespace-nowrap text-sm font-normal text-gray-500'
-                    )}
-                  >
-                    {row.invoiceNumber}
-                  </td>
-                  <td
-                    className={clsx(
-                      TD_CLASS,
-                      'whitespace-nowrap text-sm text-gray-900'
-                    )}
-                  >
-                    {row.customer}
-                  </td>
-                  <td
-                    className={clsx(
-                      TD_CLASS,
-                      'whitespace-nowrap text-sm text-gray-500'
-                    )}
-                  >
-                    {format(parseISO(row.dateInitiated), 'MMM d, yyyy')}
-                  </td>
-                  <td className={TD_CLASS}>
-                    <PaymentMethodCell method={row.paymentMethod} />
-                  </td>
-                  <td className={TD_CLASS}>
-                    <StatusCell status={effectiveRow.status} />
-                  </td>
-                  <td
-                    className={clsx(TD_CLASS, 'text-right')}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {row.showGetPaid ? (
-                      <Button variant="primary" size="sm">
-                        Get paid
-                      </Button>
-                    ) : (
-                      <RowKebabMenu
-                        paymentMethod={row.paymentMethod}
-                        onMarkAsPaid={() => setMarkAsPaidPayment(row)}
-                        onViewCardDetails={() => setCardDetailsPayment(row)}
+                    <td className="w-[52px] max-w-[52px] min-w-[52px]">
+                      <Icon
+                        icon="chevron-right"
+                        className={clsx(
+                          'ml-4 text-gray-500 transition-transform duration-300 ease-in-out',
+                          expandedRow === row.id && 'rotate-90'
+                        )}
                       />
-                    )}
-                  </td>
-                </tr>
-                <ExpandableTableRow
-                  colSpan={TABLE_COL_SPAN}
-                  isExpanded={expandedRow === row.id}
-                >
-                  {getExpandableContent(effectiveRow)}
-                </ExpandableTableRow>
+                    </td>
+                    <td className={clsx(TD_CLASS, 'whitespace-nowrap')}>
+                      <div
+                        className={clsx('flex items-center gap-1', FLEX_END)}
+                      >
+                        <div className="text-sm font-medium text-gray-900">
+                          {formatAmountValue(row.amountCents)}
+                        </div>
+                        <div className="text-sm font-normal text-gray-500">
+                          USD
+                        </div>
+                      </div>
+                    </td>
+                    <td
+                      className={clsx(
+                        TD_CLASS,
+                        'whitespace-nowrap text-sm text-gray-900'
+                      )}
+                    >
+                      {row.vendorEntry}
+                    </td>
+                    <td
+                      className={clsx(
+                        TD_CLASS,
+                        'whitespace-nowrap text-sm font-normal text-gray-500'
+                      )}
+                    >
+                      {row.invoiceNumber}
+                    </td>
+                    <td
+                      className={clsx(
+                        TD_CLASS,
+                        'whitespace-nowrap text-sm text-gray-900'
+                      )}
+                    >
+                      {row.customer}
+                    </td>
+                    <td
+                      className={clsx(
+                        TD_CLASS,
+                        'whitespace-nowrap text-sm text-gray-500'
+                      )}
+                    >
+                      {format(parseISO(row.dateInitiated), 'MMM d, yyyy')}
+                    </td>
+                    <td className={TD_CLASS}>
+                      <PaymentMethodCell method={row.paymentMethod} />
+                    </td>
+                    <td className={TD_CLASS}>
+                      <StatusCell status={effectiveRow.status} />
+                    </td>
+                    <td
+                      className={clsx(TD_CLASS, 'text-right')}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {row.showGetPaid ? (
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={() =>
+                            navigate(`/smart-exchange/get-paid/${row.id}`)
+                          }
+                        >
+                          Get paid
+                        </Button>
+                      ) : (
+                        <RowKebabMenu
+                          paymentMethod={row.paymentMethod}
+                          onMarkAsPaid={() => setMarkAsPaidPayment(row)}
+                          onViewCardDetails={() => setCardDetailsPayment(row)}
+                        />
+                      )}
+                    </td>
+                  </tr>
+                  <ExpandableTableRow
+                    colSpan={TABLE_COL_SPAN}
+                    isExpanded={expandedRow === row.id}
+                  >
+                    {getExpandableContent(effectiveRow)}
+                  </ExpandableTableRow>
                 </React.Fragment>
               );
             })}

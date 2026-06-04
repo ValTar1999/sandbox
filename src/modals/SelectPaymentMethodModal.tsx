@@ -418,8 +418,6 @@ const SelectPaymentMethodModal: React.FC<SelectPaymentMethodModalProps> = ({
     [isSmartDisburseInputFocused, isSmartDisburseDropdownOpen]
   );
 
-  if (!open) return null;
-
   // Проверяем, есть ли несколько разных банковских счетов в payables
   const uniqueBankAccounts = new Set(
     payables
@@ -458,7 +456,7 @@ const SelectPaymentMethodModal: React.FC<SelectPaymentMethodModalProps> = ({
   };
 
   return (
-    <LayoutModal>
+    <LayoutModal open={open}>
       <WrapModal
         className="w-128 flex flex-col"
         header={<div>Select Payment Method</div>}

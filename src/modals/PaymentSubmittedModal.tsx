@@ -16,9 +16,8 @@ const PaymentSubmittedModal: React.FC<PaymentSubmittedModalProps> = ({
   onClose,
   handlePaymentSubmittedClick,
 }) => {
-  if (!open) return null;
   return (
-    <LayoutModal>
+    <LayoutModal open={open}>
       <Modal
         className="w-150"
         title="Payment Submitted!"

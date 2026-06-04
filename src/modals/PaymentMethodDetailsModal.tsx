@@ -63,8 +63,6 @@ const PaymentMethodDetailsModal: React.FC<PaymentMethodDetailsModalProps> = ({
     }
   }, [open, paymentMethodValue]);
 
-  if (!open) return null;
-
   const isBank =
     selectedMethodValue === 'ach' || selectedMethodValue === 'wire';
   const variant = isBank
@@ -95,7 +93,7 @@ const PaymentMethodDetailsModal: React.FC<PaymentMethodDetailsModalProps> = ({
   };
 
   return (
-    <LayoutModal>
+    <LayoutModal open={open}>
       <WrapModal
         className="w-125"
         onClose={onClose}

@@ -21,8 +21,6 @@ const UnsupportedBulkPaymentMethodModal: React.FC<
   onDiscard,
   isUnsupportedMethod = false,
 }) => {
-  if (!open) return null;
-
   const handleChangePaymentMethod = () => {
     onChangePaymentMethod?.();
   };
@@ -43,7 +41,7 @@ const UnsupportedBulkPaymentMethodModal: React.FC<
 
   if (isUnsupportedMethod) {
     return (
-      <LayoutModal>
+      <LayoutModal open={open}>
         <Modal
           className="w-128"
           title="Unsupported Bulk Payment Method"
@@ -65,7 +63,7 @@ const UnsupportedBulkPaymentMethodModal: React.FC<
   }
 
   return (
-    <LayoutModal>
+    <LayoutModal open={open}>
       <Modal
         className="w-128"
         title="Are you sure you want to discard this information?"
