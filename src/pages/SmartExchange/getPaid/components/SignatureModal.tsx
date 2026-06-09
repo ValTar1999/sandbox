@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent,
+  type PointerEvent,
+} from 'react';
 import clsx from 'clsx';
 import Button from '../../../../components/common/base/Button';
 import Icon from '../../../../components/common/base/Icon';
@@ -31,6 +38,50 @@ const SignatureModal = ({
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawingRef = useRef(false);
+  const lastPointRef = useRef<{ x: number; y: number } | null>(null);
+
+  const ensureCanvasReady = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return null;
+
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return null;
+
+    const dpr = window.devicePixelRatio || 1;
+    const bitmapWidth = Math.round(rect.width * dpr);
+    const bitmapHeight = Math.round(rect.height * dpr);
+
+    if (canvas.width !== bitmapWidth || canvas.height !== bitmapHeight) {
+      canvas.width = bitmapWidth;
+      canvas.height = bitmapHeight;
+    }
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.strokeStyle = '#111827';
+    ctx.lineWidth = 2 * dpr;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    return { canvas, ctx, rect };
+  }, []);
+
+  const getCanvasPoint = useCallback(
+    (clientX: number, clientY: number, rect: DOMRect, canvas: HTMLCanvasElement) => ({
+      x: ((clientX - rect.left) / rect.width) * canvas.width,
+      y: ((clientY - rect.top) / rect.height) * canvas.height,
+    }),
+    []
+  );
+
+  const clearCanvasDrawing = useCallback(() => {
+    const ready = ensureCanvasReady();
+    if (!ready) return;
+    ready.ctx.clearRect(0, 0, ready.canvas.width, ready.canvas.height);
+    lastPointRef.current = null;
+  }, [ensureCanvasReady]);
 
   const resetModalState = useCallback(() => {
     setMode('draw');
@@ -40,6 +91,8 @@ const SignatureModal = ({
     setDrawError(false);
     setFullNameError(null);
     isDrawingRef.current = false;
+    lastPointRef.current = null;
+
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext('2d');
     if (canvas && ctx) {
@@ -53,68 +106,80 @@ const SignatureModal = ({
     }
   }, [open, resetModalState]);
 
-  const setupCanvas = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const parent = canvas.parentElement;
-    if (!parent) return;
-    const width = parent.clientWidth;
-    const height = parent.clientHeight;
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    ctx.strokeStyle = '#111827';
-    ctx.lineWidth = 2;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-  }, []);
-
   useEffect(() => {
     if (!open || mode !== 'draw') return;
-    setupCanvas();
-  }, [open, mode, setupCanvas]);
 
-  const getCanvasPoint = (
-    clientX: number,
-    clientY: number
-  ): { x: number; y: number } | null => {
     const canvas = canvasRef.current;
-    if (!canvas) return null;
-    const rect = canvas.getBoundingClientRect();
-    return {
-      x: clientX - rect.left,
-      y: clientY - rect.top,
-    };
-  };
+    if (!canvas) return;
 
-  const startDrawing = (clientX: number, clientY: number) => {
-    const point = getCanvasPoint(clientX, clientY);
-    const ctx = canvasRef.current?.getContext('2d');
-    if (!point || !ctx) return;
+    const initCanvas = () => ensureCanvasReady();
+    const rafId = requestAnimationFrame(() => {
+      requestAnimationFrame(initCanvas);
+    });
+
+    const observer = new ResizeObserver(initCanvas);
+    observer.observe(canvas);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      observer.disconnect();
+    };
+  }, [open, mode, ensureCanvasReady]);
+
+  const handlePointerDown = (event: PointerEvent<HTMLCanvasElement>) => {
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+
+    const ready = ensureCanvasReady();
+    if (!ready) return;
+
+    const point = getCanvasPoint(
+      event.clientX,
+      event.clientY,
+      ready.rect,
+      ready.canvas
+    );
+
     isDrawingRef.current = true;
+    lastPointRef.current = point;
     setHasDrawn(true);
     setDrawError(false);
     setShowHint(false);
-    ctx.beginPath();
-    ctx.moveTo(point.x, point.y);
   };
 
-  const drawLine = (clientX: number, clientY: number) => {
-    if (!isDrawingRef.current) return;
-    const point = getCanvasPoint(clientX, clientY);
-    const ctx = canvasRef.current?.getContext('2d');
-    if (!point || !ctx) return;
-    ctx.lineTo(point.x, point.y);
-    ctx.stroke();
+  const handlePointerMove = (event: PointerEvent<HTMLCanvasElement>) => {
+    if (!isDrawingRef.current || !lastPointRef.current) return;
+
+    const ready = ensureCanvasReady();
+    if (!ready) return;
+
+    const point = getCanvasPoint(
+      event.clientX,
+      event.clientY,
+      ready.rect,
+      ready.canvas
+    );
+
+    ready.ctx.beginPath();
+    ready.ctx.moveTo(lastPointRef.current.x, lastPointRef.current.y);
+    ready.ctx.lineTo(point.x, point.y);
+    ready.ctx.stroke();
+    lastPointRef.current = point;
   };
 
-  const stopDrawing = () => {
+  const handlePointerUp = (event: PointerEvent<HTMLCanvasElement>) => {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
     isDrawingRef.current = false;
+    lastPointRef.current = null;
   };
 
-  const handleClearCanvas = () => {
-    setupCanvas();
+  const handleClearCanvas = (event: MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    isDrawingRef.current = false;
+    clearCanvasDrawing();
     setHasDrawn(false);
     setDrawError(false);
   };
@@ -211,7 +276,7 @@ const SignatureModal = ({
           {mode === 'draw' ? (
             <div
               className={clsx(
-                'relative flex max-h-64 min-h-64 w-full flex-col items-center gap-4 overflow-hidden rounded-2xl border bg-gray-50 p-4',
+                'relative overflow-hidden rounded-2xl border bg-gray-50 p-4',
                 drawError ? 'border-red-500' : 'border-gray-200'
               )}
             >
@@ -223,29 +288,15 @@ const SignatureModal = ({
               >
                 Clear
               </Button>
-              <div className="relative min-h-0 w-full flex-1">
-                <canvas
-                  ref={canvasRef}
-                  className="block h-full w-full cursor-crosshair touch-none"
-                  onMouseDown={(e) => startDrawing(e.clientX, e.clientY)}
-                  onMouseMove={(e) => drawLine(e.clientX, e.clientY)}
-                  onMouseUp={stopDrawing}
-                  onMouseLeave={stopDrawing}
-                  onTouchStart={(e) => {
-                    const touch = e.touches[0];
-                    if (!touch) return;
-                    e.preventDefault();
-                    startDrawing(touch.clientX, touch.clientY);
-                  }}
-                  onTouchMove={(e) => {
-                    const touch = e.touches[0];
-                    if (!touch) return;
-                    e.preventDefault();
-                    drawLine(touch.clientX, touch.clientY);
-                  }}
-                  onTouchEnd={stopDrawing}
-                />
-              </div>
+              <canvas
+                ref={canvasRef}
+                className="block h-48 w-full cursor-crosshair touch-none"
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerCancel={handlePointerUp}
+                onPointerLeave={handlePointerUp}
+              />
             </div>
           ) : (
             <div className="space-y-4">
