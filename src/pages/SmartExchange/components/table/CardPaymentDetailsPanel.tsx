@@ -84,18 +84,20 @@ const CardPaymentDetailsPanel = ({
           <h4 className="text-sm font-semibold leading-5 text-gray-900">
             Card Details
           </h4>
-          <button
-            type="button"
-            className="inline-flex cursor-pointer items-center justify-end gap-1 text-sm font-medium text-blue-600 transition-colors duration-300 hover:text-blue-700"
-            onClick={() => onRevealedChange(!revealed)}
-          >
-            <Icon
-              icon={revealed ? 'eye-off' : 'eye'}
-              variant="solid"
-              className="h-4 w-4"
-            />
-            {revealed ? 'Hide Details' : 'Reveal Details'}
-          </button>
+          <div className="">
+            <button
+              type="button"
+              className="inline-flex cursor-pointer items-center justify-end gap-1 text-sm font-medium text-blue-600 transition-colors duration-300 hover:text-blue-700"
+              onClick={() => onRevealedChange(!revealed)}
+            >
+              <Icon
+                icon={revealed ? 'eye-off' : 'eye'}
+                variant="solid"
+                className="h-4 w-4"
+              />
+              {revealed ? 'Hide Details' : 'Reveal Details'}
+            </button>
+          </div>
         </div>
 
         <div className="my-2 h-px w-full bg-gray-200" />
