@@ -5,15 +5,7 @@ import Modal from '../components/common/modal/Modal';
 import Button from '../components/common/base/Button';
 import Icon from '../components/common/base/Icon';
 import VisaCardIcon from '../assets/image/visa-card.svg';
-
-const formatAmountValue = (amountCents: number) => {
-  const n = amountCents / 100;
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-  }).format(n);
-};
+import { formatAmountValue } from '../pages/SmartExchange/utils';
 
 interface GetPaidSubmittedModalProps {
   open: boolean;

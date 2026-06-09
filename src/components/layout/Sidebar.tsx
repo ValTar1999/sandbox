@@ -583,7 +583,7 @@ const Sidebar: React.FC = () => {
         <span className={labelClasses}>{item.label}</span>
         <div className="flex items-center">
           {item.badge && (
-            <Badge color="gray" rounded size="sm">
+            <Badge color="gray" rounded size="sm" className="mr-px">
               {item.badge}
             </Badge>
           )}

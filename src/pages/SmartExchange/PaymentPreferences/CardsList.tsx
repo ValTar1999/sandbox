@@ -1,33 +1,16 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Input from '../../../components/common/base/Input';
 import CheckBox from '../../../components/common/base/CheckBox';
 import Button from '../../../components/common/base/Button';
 import Icon from '../../../components/common/base/Icon';
-import Menu, { useMenuContext } from '../../../components/common/base/Menu';
+import Menu from '../../../components/common/base/Menu';
+import MenuCloseItem from '../../../components/common/base/MenuCloseItem';
 import type { PayerCard } from './data';
 import { payerCards, TOTAL_PAYER_CARDS } from './data';
 import VisaCardIcon from '../../../assets/image/visa-card.svg';
 
 const rowMenuItemClass =
   'px-4 py-3 text-sm leading-5 font-medium text-gray-900 hover:bg-gray-50 cursor-pointer transition-colors duration-300';
-
-const CloseMenuItem = ({
-  children,
-  ...props
-}: React.ComponentProps<typeof Menu.Item>) => {
-  const { setOpen } = useMenuContext();
-  return (
-    <Menu.Item
-      {...props}
-      onClick={(e) => {
-        props.onClick?.(e);
-        setOpen(false);
-      }}
-    >
-      {children}
-    </Menu.Item>
-  );
-};
 
 const CardRowMenu = () => (
   <Menu.Root placement="bottom-end">
@@ -44,12 +27,12 @@ const CardRowMenu = () => (
     <Menu.Portal>
       <Menu.Positioner>
         <Menu.Popup className="z-50 min-w-36 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">
-          <CloseMenuItem className={rowMenuItemClass}>
+          <MenuCloseItem className={rowMenuItemClass}>
             View details
-          </CloseMenuItem>
-          <CloseMenuItem className={rowMenuItemClass}>
+          </MenuCloseItem>
+          <MenuCloseItem className={rowMenuItemClass}>
             Remove card
-          </CloseMenuItem>
+          </MenuCloseItem>
         </Menu.Popup>
       </Menu.Positioner>
     </Menu.Portal>

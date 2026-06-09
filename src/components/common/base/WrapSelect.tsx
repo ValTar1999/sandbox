@@ -34,7 +34,33 @@ interface Option {
   iconImageClassName?: string;
   inactiveDescription?: string;
   labelLink?: string;
+  triggerDescription?: string;
 }
+
+type WrapSelectSize = 'md' | 'sm';
+
+const triggerSizeClasses: Record<
+  WrapSelectSize,
+  {
+    button: string;
+    text: string;
+    icon: string;
+    imageIcon: string;
+  }
+> = {
+  md: {
+    button: 'px-3 py-2',
+    text: 'text-base',
+    icon: 'w-5 h-5',
+    imageIcon: 'w-4 h-4',
+  },
+  sm: {
+    button: 'px-3 py-1.5',
+    text: 'text-sm leading-5',
+    icon: 'w-4 h-4',
+    imageIcon: 'w-4 h-4',
+  },
+};
 
 interface WrapSelectProps {
   label?: string;
@@ -55,6 +81,7 @@ interface WrapSelectProps {
   /** In trigger: "all" = show all badges, "defaultOnly" = only badgeSecondary (e.g. Default) */
   triggerBadgeMode?: 'all' | 'defaultOnly';
   onOptionLabelLinkClick?: (value: string) => void;
+  size?: WrapSelectSize;
 }
 
 function WrapSelect({
@@ -75,9 +102,11 @@ function WrapSelect({
   errorMessage = 'Method of Payment is required.',
   triggerBadgeMode = 'all',
   onOptionLabelLinkClick,
+  size = 'md',
 }: WrapSelectProps) {
   const [open, setOpen] = useState(false);
   const selectId = useId();
+  const sizeClasses = triggerSizeClasses[size];
 
   useEffect(() => {
     const handler = (event: Event) => {
@@ -97,9 +126,13 @@ function WrapSelect({
     [options, selectedValue]
   );
   const selectedDescription = useMemo(() => {
-    const description = selectedOption?.description;
+    if (!selectedOption) return undefined;
+    if (selectedOption.triggerDescription !== undefined) {
+      return selectedOption.triggerDescription || undefined;
+    }
+    const description = selectedOption.description;
     if (!description) return undefined;
-    const position = selectedOption?.descriptionPosition ?? 'inline';
+    const position = selectedOption.descriptionPosition ?? 'inline';
     return position === 'below' ? description.trim().slice(-8) : description;
   }, [selectedOption]);
 
@@ -159,7 +192,8 @@ function WrapSelect({
         onClick={handleToggleOpen}
         aria-label={hideLabel ? label : undefined}
         className={clsx(
-          'w-full px-3 py-2 border rounded-md text-left shadow-sm bg-white flex items-center justify-between cursor-pointer',
+          'w-full border rounded-md text-left shadow-sm bg-white flex items-center justify-between cursor-pointer',
+          sizeClasses.button,
           error
             ? 'border-red-300 text-red-500'
             : open
@@ -171,15 +205,27 @@ function WrapSelect({
           <div className="flex items-center gap-2 flex-1 min-w-0">
             {renderOptionIcon(
               selectedOption,
-              selectedOption.iconImageSrc
-                ? 'w-4 h-4 flex-shrink-0'
-                : 'w-5 h-5 text-gray-400 flex-shrink-0'
+              clsx(
+                selectedOption.iconImageSrc
+                  ? `${sizeClasses.imageIcon} flex-shrink-0`
+                  : `${sizeClasses.icon} text-gray-400 flex-shrink-0`
+              )
             )}
-            <div className="min-w-0 truncate font-medium text-gray-900 text-base">
+            <div
+              className={clsx(
+                'min-w-0 truncate font-medium text-gray-900',
+                sizeClasses.text
+              )}
+            >
               {selectedOption.label}
             </div>
             {showSelectedDescription && selectedDescription && (
-              <div className="min-w-0 truncate text-base font-medium text-gray-500">
+              <div
+                className={clsx(
+                  'min-w-0 truncate font-medium text-gray-500',
+                  sizeClasses.text
+                )}
+              >
                 {selectedDescription}
               </div>
             )}
@@ -256,7 +302,7 @@ function WrapSelect({
         ) : (
           <span
             className={clsx(
-              'text-base',
+              sizeClasses.text,
               error ? 'text-red-400' : 'text-gray-400'
             )}
           >
@@ -264,9 +310,15 @@ function WrapSelect({
           </span>
         )}
         {error ? (
-          <Icon icon="exclamation-circle" className="w-5 h-5 text-red-500" />
+          <Icon
+            icon="exclamation-circle"
+            className={clsx(sizeClasses.icon, 'text-red-500')}
+          />
         ) : (
-          <Icon icon="selector" className="w-5 h-5 text-gray-400" />
+          <Icon
+            icon="selector"
+            className={clsx(sizeClasses.icon, 'text-gray-400')}
+          />
         )}
       </button>
       {error && <div className="mt-1 text-sm text-red-500">{errorMessage}</div>}

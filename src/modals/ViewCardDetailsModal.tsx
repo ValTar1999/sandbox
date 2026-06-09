@@ -4,16 +4,8 @@ import clsx from 'clsx';
 import Button from '../components/common/base/Button';
 import Icon from '../components/common/base/Icon';
 import type { SmartExchangePayment } from '../pages/SmartExchange/data';
+import { formatAmountValue } from '../pages/SmartExchange/utils';
 import VisaCardIcon from '../assets/image/visa-logo.svg';
-
-const formatAmountValue = (amountCents: number) => {
-  const n = amountCents / 100;
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-  }).format(n);
-};
 
 interface ViewCardDetailsModalProps {
   open: boolean;

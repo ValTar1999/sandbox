@@ -18,10 +18,14 @@ import {
   useInteractions,
   FloatingPortal,
   useClick,
+  arrow as floatingArrow,
 } from '@floating-ui/react';
 import type { Placement } from '@floating-ui/react';
 
-type TooltipContextType = ReturnType<typeof useTooltipInternal>;
+type TooltipContextType = ReturnType<typeof useTooltipInternal> & {
+  arrowRef: React.MutableRefObject<SVGSVGElement | null>;
+  hasArrow: boolean;
+};
 
 const TooltipContext = createContext<TooltipContextType | null>(null);
 
@@ -36,15 +40,24 @@ const useTooltipContext = () => {
 const useTooltipInternal = (
   initialOpen = false,
   trigger: 'hover' | 'click' = 'hover',
-  placement: Placement = 'top'
+  placement: Placement = 'top',
+  hasArrow = false
 ) => {
   const [open, setOpen] = useState(initialOpen);
+  const arrowRef = React.useRef<SVGSVGElement | null>(null);
 
   const floating = useFloating({
     open,
     onOpenChange: setOpen,
     whileElementsMounted: autoUpdate,
-    middleware: [offset(6), flip(), shift({ padding: 8 })],
+    middleware: [
+      offset(hasArrow ? 10 : 6),
+      flip(),
+      shift({ padding: 8 }),
+      ...(hasArrow
+        ? [floatingArrow({ element: arrowRef, padding: 8 })]
+        : []),
+    ],
     placement,
   });
 
@@ -64,6 +77,8 @@ const useTooltipInternal = (
   return {
     open,
     setOpen,
+    arrowRef,
+    hasArrow,
     ...floating,
     ...interactions,
   };
@@ -73,6 +88,7 @@ interface TooltipRootProps {
   initialOpen?: boolean;
   trigger?: 'hover' | 'click';
   placement?: Placement;
+  arrow?: boolean;
 }
 
 export const Tooltip = ({
@@ -80,8 +96,9 @@ export const Tooltip = ({
   initialOpen,
   trigger,
   placement,
+  arrow = false,
 }: PropsWithChildren<TooltipRootProps>) => {
-  const value = useTooltipInternal(initialOpen, trigger, placement);
+  const value = useTooltipInternal(initialOpen, trigger, placement, arrow);
 
   return (
     <TooltipContext.Provider value={value}>{children}</TooltipContext.Provider>
@@ -126,17 +143,42 @@ export const TooltipTrigger = ({
 
 interface TooltipContentProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
+  arrowClassName?: string;
 }
+
+const ARROW_STATIC_SIDE: Record<string, string> = {
+  top: 'bottom',
+  right: 'left',
+  bottom: 'top',
+  left: 'right',
+};
 
 export const TooltipContent = ({
   children,
   className,
+  arrowClassName,
   style,
   ...props
 }: PropsWithChildren<TooltipContentProps>) => {
-  const { open, x, y, strategy, refs, getFloatingProps } = useTooltipContext();
+  const {
+    open,
+    x,
+    y,
+    strategy,
+    refs,
+    getFloatingProps,
+    hasArrow,
+    arrowRef,
+    middlewareData,
+    placement,
+  } = useTooltipContext();
 
   if (!open) return null;
+
+  const arrowX = middlewareData.arrow?.x;
+  const arrowY = middlewareData.arrow?.y;
+  const staticSide =
+    ARROW_STATIC_SIDE[placement.split('-')[0]] ?? 'bottom';
 
   return (
     <FloatingPortal>
@@ -150,13 +192,30 @@ export const TooltipContent = ({
         }}
         {...getFloatingProps({
           className: clsx(
-            'z-50 rounded-md p-3 text-xs font-normal text-gray-50 shadow-dropdown',
+            'relative z-50 rounded-md p-3 text-xs font-normal text-gray-50 shadow-dropdown',
             className
           ),
           ...props,
         })}
       >
         {children}
+        {hasArrow ? (
+          <svg
+            ref={arrowRef}
+            width="16"
+            height="8"
+            viewBox="0 0 16 8"
+            className={clsx('absolute', arrowClassName)}
+            style={{
+              left: arrowX != null ? `${arrowX}px` : '',
+              top: arrowY != null ? `${arrowY}px` : '',
+              [staticSide]: '-8px',
+            }}
+            aria-hidden
+          >
+            <path d="M0 0L8 8L16 0" />
+          </svg>
+        ) : null}
       </div>
     </FloatingPortal>
   );

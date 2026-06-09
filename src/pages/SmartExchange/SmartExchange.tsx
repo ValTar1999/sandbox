@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import Box from '../../components/layout/Box';
 import Pagination from '../../components/common/base/Pagination';
 import BoxHeader from '../../components/layout/BoxHeader';
@@ -8,14 +8,11 @@ import TableWithLoading from '../../components/common/base/TableWithLoading';
 import { LOADING_DURATION_MS } from '../../constants/animations';
 import SmartExchangePaymentsTable from './SmartExchangePaymentsTable';
 import { smartExchangePayments, type SmartExchangeTab } from './data';
-
-const tabLabels: SmartExchangeTab[] = ['pending', 'paid', 'exceptions'];
-
-const tabTitle: Record<SmartExchangeTab, string> = {
-  pending: 'Pending',
-  paid: 'Paid',
-  exceptions: 'Exceptions',
-};
+import {
+  SMART_EXCHANGE_TAB_LABELS,
+  SMART_EXCHANGE_TAB_TITLES,
+} from './constants';
+import { exportPaymentsToCsv } from './utils';
 
 const SmartExchange = () => {
   const [activeTab, setActiveTab] = useState<SmartExchangeTab>('pending');
@@ -24,6 +21,8 @@ const SmartExchange = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState('');
+  const [nextPage, setNextPage] = useState<number | null>(null);
+  const [nextItemsPerPage, setNextItemsPerPage] = useState<number | null>(null);
 
   useEffect(() => {
     if (!isLoading || !nextTab) return;
@@ -37,51 +36,6 @@ const SmartExchange = () => {
 
     return () => clearTimeout(timeout);
   }, [isLoading, nextTab]);
-
-  const tabCounts = useMemo(() => {
-    const counts: Record<SmartExchangeTab, number> = {
-      pending: 0,
-      paid: 0,
-      exceptions: 0,
-    };
-    for (const row of smartExchangePayments) {
-      counts[row.tab] += 1;
-    }
-    return counts;
-  }, []);
-
-  const handleTabClick = (tab: SmartExchangeTab) => {
-    if (tab === activeTab) return;
-    setIsLoading(true);
-    setNextTab(tab);
-  };
-
-  const filteredRows = useMemo(() => {
-    return smartExchangePayments.filter((row) => {
-      if (row.tab !== activeTab) return false;
-      if (!searchQuery.trim()) return true;
-      const q = searchQuery.toLowerCase();
-      return (
-        row.invoiceNumber.toLowerCase().includes(q) ||
-        row.vendorEntry.toLowerCase().includes(q) ||
-        row.customer.toLowerCase().includes(q)
-      );
-    });
-  }, [activeTab, searchQuery]);
-
-  const currentData = useMemo(() => {
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    return filteredRows.slice(indexOfFirstItem, indexOfLastItem);
-  }, [currentPage, itemsPerPage, filteredRows]);
-
-  const totalPages = useMemo(
-    () => Math.ceil(filteredRows.length / itemsPerPage),
-    [filteredRows.length, itemsPerPage]
-  );
-
-  const [nextPage, setNextPage] = useState<number | null>(null);
-  const [nextItemsPerPage, setNextItemsPerPage] = useState<number | null>(null);
 
   useEffect(() => {
     if (nextPage === null && nextItemsPerPage === null) return;
@@ -102,56 +56,72 @@ const SmartExchange = () => {
     return () => clearTimeout(timeout);
   }, [nextPage, nextItemsPerPage]);
 
-  const handlePageChange = (page: number) => {
-    if (page === currentPage) return;
-    setIsLoading(true);
-    setNextPage(page);
-  };
+  const tabCounts = useMemo(() => {
+    const counts: Record<SmartExchangeTab, number> = {
+      pending: 0,
+      paid: 0,
+      exceptions: 0,
+    };
+    for (const row of smartExchangePayments) {
+      counts[row.tab] += 1;
+    }
+    return counts;
+  }, []);
 
-  const handleItemsPerPageChange = (items: number) => {
-    if (items === itemsPerPage) return;
-    setIsLoading(true);
-    setNextItemsPerPage(items);
-  };
+  const handleTabClick = useCallback(
+    (tab: SmartExchangeTab) => {
+      if (tab === activeTab) return;
+      setIsLoading(true);
+      setNextTab(tab);
+    },
+    [activeTab]
+  );
 
-  const handleExport = () => {
-    const headers = [
-      'Amount',
-      'Vendor Entry',
-      'Invoice #',
-      'Customer',
-      'Date Initiated',
-      'Payment Method',
-      'Status',
-    ];
-    const rows = filteredRows.map((row) => {
-      const method =
-        row.paymentMethod.kind === 'card'
-          ? `Card •••• ${row.paymentMethod.last4}`
-          : 'SMART Exchange';
-      return [
-        (row.amountCents / 100).toFixed(2),
-        row.vendorEntry,
-        row.invoiceNumber,
-        row.customer,
-        row.dateInitiated,
-        method,
-        row.status,
-      ];
+  const filteredRows = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    return smartExchangePayments.filter((row) => {
+      if (row.tab !== activeTab) return false;
+      if (!query) return true;
+      return (
+        row.invoiceNumber.toLowerCase().includes(query) ||
+        row.vendorEntry.toLowerCase().includes(query) ||
+        row.customer.toLowerCase().includes(query)
+      );
     });
-    const csv = [headers, ...rows]
-      .map((line) =>
-        line.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')
-      )
-      .join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `smart-exchange-${activeTab}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
+  }, [activeTab, searchQuery]);
+
+  const currentData = useMemo(() => {
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    return filteredRows.slice(indexOfFirstItem, indexOfLastItem);
+  }, [currentPage, itemsPerPage, filteredRows]);
+
+  const totalPages = useMemo(
+    () => Math.ceil(filteredRows.length / itemsPerPage),
+    [filteredRows.length, itemsPerPage]
+  );
+
+  const handlePageChange = useCallback(
+    (page: number) => {
+      if (page === currentPage) return;
+      setIsLoading(true);
+      setNextPage(page);
+    },
+    [currentPage]
+  );
+
+  const handleItemsPerPageChange = useCallback(
+    (items: number) => {
+      if (items === itemsPerPage) return;
+      setIsLoading(true);
+      setNextItemsPerPage(items);
+    },
+    [itemsPerPage]
+  );
+
+  const handleExport = useCallback(() => {
+    exportPaymentsToCsv(filteredRows, activeTab);
+  }, [filteredRows, activeTab]);
 
   return (
     <Box
@@ -188,7 +158,7 @@ const SmartExchange = () => {
     >
       <div className="px-6 py-4">
         <div className="flex gap-9">
-          {tabLabels.map((tab) => (
+          {SMART_EXCHANGE_TAB_LABELS.map((tab) => (
             <ButtonTab
               key={tab}
               active={activeTab === tab}
@@ -196,7 +166,7 @@ const SmartExchange = () => {
               count={`${tabCounts[tab]}`}
               variant={tab === 'exceptions' ? 'red' : undefined}
             >
-              {tabTitle[tab]}
+              {SMART_EXCHANGE_TAB_TITLES[tab]}
             </ButtonTab>
           ))}
         </div>
