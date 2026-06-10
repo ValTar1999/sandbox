@@ -1,22 +1,5 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-  type ReactNode,
-} from 'react';
-
-interface SmartExchangeSetupAlertContextValue {
-  setupAlertVisible: boolean;
-  showSetupAlert: () => void;
-  hideSetupAlert: () => void;
-  cardProcessingEnabled: boolean;
-  enableCardProcessing: () => void;
-}
-
-const SmartExchangeSetupAlertContext =
-  createContext<SmartExchangeSetupAlertContextValue | null>(null);
+import { useCallback, useMemo, useState, type ReactNode } from 'react';
+import { SmartExchangeSetupAlertContext } from './smartExchangeSetupAlert';
 
 export const SmartExchangeSetupAlertProvider = ({
   children,
@@ -55,14 +38,4 @@ export const SmartExchangeSetupAlertProvider = ({
       {children}
     </SmartExchangeSetupAlertContext.Provider>
   );
-};
-
-export const useSmartExchangeSetupAlert = () => {
-  const ctx = useContext(SmartExchangeSetupAlertContext);
-  if (!ctx) {
-    throw new Error(
-      'useSmartExchangeSetupAlert must be used within SmartExchangeSetupAlertProvider'
-    );
-  }
-  return ctx;
 };

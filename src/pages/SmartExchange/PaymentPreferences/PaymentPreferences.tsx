@@ -6,7 +6,7 @@ import Button from '../../../components/common/base/Button';
 import BankAccountVerificationModal from '../../../modals/BankAccountVerificationModal';
 import SmartExchangeOptInModal from '../../../modals/SmartExchangeOptInModal';
 import { useDraftState } from '../../../hooks/useDraftState';
-import { useSmartExchangeSetupAlert } from '../../../context/SmartExchangeSetupAlertContext';
+import { useSmartExchangeSetupAlert } from '../../../context/smartExchangeSetupAlert';
 import PaymentMethodsTab from './PaymentMethodsTab';
 import GlobalPreferencesTab from './GlobalPreferencesTab';
 import AdvancedSettingsTab from './AdvancedSettingsTab';

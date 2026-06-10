@@ -9,7 +9,7 @@ import BankAccountVerificationModal from '../../modals/BankAccountVerificationMo
 import SmartExchangeLearnMoreModal from '../../modals/SmartExchangeLearnMoreModal';
 import SmartExchangeOptInLearnMoreModal from '../../modals/SmartExchangeOptInLearnMoreModal';
 import SmartExchangeOptInModal from '../../modals/SmartExchangeOptInModal';
-import { useSmartExchangeSetupAlert } from '../../context/SmartExchangeSetupAlertContext';
+import { useSmartExchangeSetupAlert } from '../../context/smartExchangeSetupAlert';
 
 interface HeaderProps {
   userName?: string;

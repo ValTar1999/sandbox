@@ -33,7 +33,7 @@ import {
 import RowKebabMenu from './components/table/RowKebabMenu';
 import FilterColumnHeader from './components/table/FilterColumnHeader';
 import ViewCardDetailsModal from '../../modals/ViewCardDetailsModal';
-import { useSmartExchangeSetupAlert } from '../../context/SmartExchangeSetupAlertContext';
+import { useSmartExchangeSetupAlert } from '../../context/smartExchangeSetupAlert';
 
 const TABLE_COL_SPAN = 9;
 
