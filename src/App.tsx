@@ -2,6 +2,7 @@ import { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './layout/Layout';
 import Loading from './components/common/base/Loading';
+import { SmartExchangeSetupAlertProvider } from './context/SmartExchangeSetupAlertContext';
 
 // Page
 const BillsPayables = lazy(() => import('./pages/BillsPayables/BillsPayables'));
@@ -35,8 +36,9 @@ const SettingsBusinessDetails = () => (
 
 function App() {
   return (
-    <Suspense fallback={<Loading />}>
-      <Routes>
+    <SmartExchangeSetupAlertProvider>
+      <Suspense fallback={<Loading />}>
+        <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<Dashboard />} />
           <Route path="/payables" element={<BillsPayables />} />
@@ -66,9 +68,10 @@ function App() {
           />
           <Route path="/settings/profile" element={<ProfilePage />} />
         </Route>
-        <Route path="/dashboard" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Suspense>
+          <Route path="/dashboard" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
+    </SmartExchangeSetupAlertProvider>
   );
 }
 

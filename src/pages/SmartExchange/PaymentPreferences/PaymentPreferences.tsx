@@ -6,6 +6,7 @@ import Button from '../../../components/common/base/Button';
 import BankAccountVerificationModal from '../../../modals/BankAccountVerificationModal';
 import SmartExchangeOptInModal from '../../../modals/SmartExchangeOptInModal';
 import { useDraftState } from '../../../hooks/useDraftState';
+import { useSmartExchangeSetupAlert } from '../../../context/SmartExchangeSetupAlertContext';
 import PaymentMethodsTab from './PaymentMethodsTab';
 import GlobalPreferencesTab from './GlobalPreferencesTab';
 import AdvancedSettingsTab from './AdvancedSettingsTab';
@@ -56,6 +57,8 @@ const PaymentPreferences = () => {
     useState<'pending-signature' | 'opt-in'>(
       initialAutomaticCardProcessingVariant
     );
+  const { setupAlertVisible, cardProcessingEnabled, enableCardProcessing } =
+    useSmartExchangeSetupAlert();
   const {
     draft: globalPreferences,
     setDraft: setGlobalPreferences,
@@ -185,7 +188,13 @@ const PaymentPreferences = () => {
               <PaymentMethodsTab
                 onVerifyNow={() => setVerificationModalOpen(true)}
                 onOptIn={() => setOptInModalOpen(true)}
-                variant={automaticCardProcessingVariant}
+                variant={
+                  cardProcessingEnabled
+                    ? 'enabled'
+                    : setupAlertVisible
+                      ? 'action-required'
+                      : automaticCardProcessingVariant
+                }
               />
             </div>
           </div>
@@ -236,6 +245,7 @@ const PaymentPreferences = () => {
       <BankAccountVerificationModal
         open={verificationModalOpen}
         onClose={() => setVerificationModalOpen(false)}
+        onVerified={enableCardProcessing}
       />
       <SmartExchangeOptInModal
         open={optInModalOpen}

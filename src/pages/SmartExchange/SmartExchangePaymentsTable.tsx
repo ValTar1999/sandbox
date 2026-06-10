@@ -33,6 +33,7 @@ import {
 import RowKebabMenu from './components/table/RowKebabMenu';
 import FilterColumnHeader from './components/table/FilterColumnHeader';
 import ViewCardDetailsModal from '../../modals/ViewCardDetailsModal';
+import { useSmartExchangeSetupAlert } from '../../context/SmartExchangeSetupAlertContext';
 
 const TABLE_COL_SPAN = 9;
 
@@ -58,6 +59,9 @@ const SmartExchangePaymentsTable = ({
   const [revealedCardDetailsRowIds, setRevealedCardDetailsRowIds] = useState<
     Set<string>
   >(() => new Set());
+  const [showSetupAlertOnDetailsClose, setShowSetupAlertOnDetailsClose] =
+    useState(false);
+  const { showSetupAlert } = useSmartExchangeSetupAlert();
 
   const toggleExpand = useCallback((id: string) => {
     setExpandedRow((prev) => (prev === id ? null : id));
@@ -69,13 +73,17 @@ const SmartExchangePaymentsTable = ({
   }, [payments]);
 
   const handleViewPaymentDetails = useCallback((row: SmartExchangePayment) => {
-    setExpandedRow(row.id);
-    setRevealedCardDetailsRowIds((prev) => {
-      const next = new Set(prev);
-      next.add(row.id);
-      return next;
-    });
+    setCardDetailsPayment(row);
+    setShowSetupAlertOnDetailsClose(true);
   }, []);
+
+  const handleCardDetailsModalClose = useCallback(() => {
+    setCardDetailsPayment(null);
+    if (showSetupAlertOnDetailsClose) {
+      setShowSetupAlertOnDetailsClose(false);
+      showSetupAlert();
+    }
+  }, [showSetupAlertOnDetailsClose, showSetupAlert]);
 
   const handleCardDetailsRevealedChange = useCallback(
     (rowId: string, revealed: boolean) => {
@@ -422,7 +430,7 @@ const SmartExchangePaymentsTable = ({
 
       <ViewCardDetailsModal
         open={cardDetailsPayment !== null}
-        onClose={() => setCardDetailsPayment(null)}
+        onClose={handleCardDetailsModalClose}
         payment={cardDetailsPayment}
       />
       <MarkPaymentAsPaidModal

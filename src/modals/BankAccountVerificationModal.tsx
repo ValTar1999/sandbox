@@ -13,6 +13,8 @@ const MODAL_EXIT_MS = 280;
 interface BankAccountVerificationModalProps {
   open: boolean;
   onClose: () => void;
+  /** Called when user closes the success step after entering the correct amount */
+  onVerified?: () => void;
 }
 
 /** Exact micro-deposit amount sent to the settlement account (sandbox). */
@@ -40,7 +42,7 @@ const amountsMatch = (entered: string, expectedDollars: number): boolean => {
 
 const BankAccountVerificationModal: React.FC<
   BankAccountVerificationModalProps
-> = ({ open, onClose }) => {
+> = ({ open, onClose, onVerified }) => {
   const [shouldRender, setShouldRender] = useState(open);
   const [step, setStep] = useState<ModalStep>('verify');
   const [amount, setAmount] = useState('');
@@ -66,16 +68,16 @@ const BankAccountVerificationModal: React.FC<
     }
   }, [open, shouldRender]);
 
-  const resetAndClose = useCallback(() => {
-    setStep('verify');
-    setAmount('');
-    setAmountMismatch(false);
+  // State reset is deferred to the effect above so the exit animation
+  // keeps showing the current step instead of flashing back to 'verify'.
+  const handleClose = useCallback(() => {
     onClose();
   }, [onClose]);
 
-  const handleClose = useCallback(() => {
-    resetAndClose();
-  }, [resetAndClose]);
+  const handleSuccessClose = useCallback(() => {
+    onClose();
+    onVerified?.();
+  }, [onClose, onVerified]);
 
   const parsedAmount = parseAmountDollars(amount);
   const canVerify = parsedAmount !== null && parsedAmount > 0;
@@ -120,14 +122,14 @@ const BankAccountVerificationModal: React.FC<
               className="mx-auto h-11 w-11 text-green-500"
             />
           }
-          onClose={handleClose}
+          onClose={handleSuccessClose}
           titleCenter
         >
           <p className="text-center text-sm leading-5 text-gray-500">
             Manually processing on any previous card payments that are Pending
             Your Action.
           </p>
-          <Button size="xl" className="w-full" onClick={handleClose}>
+          <Button size="xl" className="w-full" onClick={handleSuccessClose}>
             Done
           </Button>
         </Modal>

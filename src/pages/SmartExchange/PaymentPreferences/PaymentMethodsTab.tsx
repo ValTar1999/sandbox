@@ -7,7 +7,7 @@ import { AUTOMATIC_CARD_PROCESSING_DATE_INITIATED } from './data';
 interface PaymentMethodsTabProps {
   onVerifyNow: () => void;
   onOptIn?: () => void;
-  variant?: 'pending-signature' | 'opt-in';
+  variant?: 'pending-signature' | 'opt-in' | 'enabled' | 'action-required';
 }
 
 const PaymentMethodsTab = ({
@@ -15,44 +15,85 @@ const PaymentMethodsTab = ({
   onOptIn,
   variant = 'pending-signature',
 }: PaymentMethodsTabProps) => {
-  const showMicroDepositAlert = false;
   const isOptIn = variant === 'opt-in';
+  const isEnabled = variant === 'enabled';
+  const isActionRequired = variant === 'action-required';
+  const showMicroDepositAlert = isActionRequired;
 
   return (
     <div className="space-y-6">
-      <div className="p-4 flex items-start justify-between rounded-lg bg-gray-50 w-full">
-        <div className="flex items-start gap-3">
-          <Icon
-            icon="credit-card-sparkle"
-            variant="outline"
-            className="h-5 w-5 text-blue-600  mt-1"
-          />
-          <div className="flex flex-col gap-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-sm font-semibold text-gray-900 leading-5">
-                Automatic Card Processing
-              </h3>
-              {!isOptIn && (
-                <Badge size="sm" color="yellow" rounded>
-                  Pending Agreement Signature
+      {isEnabled || isActionRequired ? (
+        <div className="p-4 flex flex-col gap-4 rounded-lg bg-gray-50 w-full">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex flex-col gap-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-sm font-semibold text-gray-900 leading-5">
+                  Automatic Card Processing
+                </h3>
+                <Badge size="sm" color={isEnabled ? 'green' : 'yellow'} rounded>
+                  {isEnabled ? 'Enabled' : 'Action Required'}
                 </Badge>
-              )}
+              </div>
+              <p className="mt-1 text-sm leading-5 text-gray-500">
+                Card payments are automatically processed and settled to the
+                business bank account.
+              </p>
             </div>
-            <p className="mt-1 text-sm leading-5 text-gray-500">
-              {isOptIn
-                ? 'Automatically process card payments with no manual steps. You can opt out anytime.'
-                : 'To complete enablement of automatic card processing, signature for Visa agreement is required'}
-            </p>
+            <Button
+              variant="linkSecondary"
+              size="sm"
+              icon="dots-vertical"
+              iconVariant="outline"
+              iconClass="w-4.5 h-4.5 text-gray-500"
+              aria-label="Automatic card processing options"
+            />
           </div>
+          {isEnabled ? (
+            <button
+              type="button"
+              onClick={onVerifyNow}
+              className="self-start cursor-pointer text-sm font-semibold leading-5 text-blue-600 transition-colors hover:text-blue-700"
+            >
+              Changed payment processors, need to reverify automatic card
+              processing?
+            </button>
+          ) : null}
         </div>
-        <Button
-          variant={isOptIn ? 'primary' : 'linkSecondary'}
-          size="sm"
-          onClick={isOptIn ? onOptIn : undefined}
-        >
-          {isOptIn ? 'Opt in' : 'Review'}
-        </Button>
-      </div>
+      ) : (
+        <div className="p-4 flex items-start justify-between rounded-lg bg-gray-50 w-full">
+          <div className="flex items-start gap-3">
+            <Icon
+              icon="credit-card-sparkle"
+              variant="outline"
+              className="h-5 w-5 text-blue-600  mt-1"
+            />
+            <div className="flex flex-col gap-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-sm font-semibold text-gray-900 leading-5">
+                  Automatic Card Processing
+                </h3>
+                {!isOptIn && (
+                  <Badge size="sm" color="yellow" rounded>
+                    Pending Agreement Signature
+                  </Badge>
+                )}
+              </div>
+              <p className="mt-1 text-sm leading-5 text-gray-500">
+                {isOptIn
+                  ? 'Automatically process card payments with no manual steps. You can opt out anytime.'
+                  : 'To complete enablement of automatic card processing, signature for Visa agreement is required'}
+              </p>
+            </div>
+          </div>
+          <Button
+            variant={isOptIn ? 'primary' : 'linkSecondary'}
+            size="sm"
+            onClick={isOptIn ? onOptIn : undefined}
+          >
+            {isOptIn ? 'Opt in' : 'Review'}
+          </Button>
+        </div>
+      )}
 
       {showMicroDepositAlert ? (
         <div

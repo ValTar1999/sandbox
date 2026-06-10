@@ -9,6 +9,7 @@ import BankAccountVerificationModal from '../../modals/BankAccountVerificationMo
 import SmartExchangeLearnMoreModal from '../../modals/SmartExchangeLearnMoreModal';
 import SmartExchangeOptInLearnMoreModal from '../../modals/SmartExchangeOptInLearnMoreModal';
 import SmartExchangeOptInModal from '../../modals/SmartExchangeOptInModal';
+import { useSmartExchangeSetupAlert } from '../../context/SmartExchangeSetupAlertContext';
 
 interface HeaderProps {
   userName?: string;
@@ -16,7 +17,6 @@ interface HeaderProps {
 }
 
 const SMART_EXCHANGE_PATH_PREFIX = '/smart-exchange';
-const SHOW_SMART_EXCHANGE_SETUP_ALERT = false;
 
 const Header: FC<HeaderProps> = ({
   userName = 'Johnny Anderson',
@@ -24,10 +24,12 @@ const Header: FC<HeaderProps> = ({
 }) => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const { setupAlertVisible, cardProcessingEnabled, enableCardProcessing } =
+    useSmartExchangeSetupAlert();
   const isSmartExchangePath = pathname.startsWith(SMART_EXCHANGE_PATH_PREFIX);
-  const showSmartExchangeSetupAlert =
-    isSmartExchangePath && SHOW_SMART_EXCHANGE_SETUP_ALERT;
-  const showSmartExchangeOptInAlert = isSmartExchangePath;
+  const showSmartExchangeSetupAlert = isSmartExchangePath && setupAlertVisible;
+  const showSmartExchangeOptInAlert =
+    isSmartExchangePath && !setupAlertVisible && !cardProcessingEnabled;
   const [verificationModalOpen, setVerificationModalOpen] = useState(false);
   const [learnMoreModalOpen, setLearnMoreModalOpen] = useState(false);
   const [learnMoreModalMode, setLearnMoreModalMode] = useState<
@@ -158,6 +160,7 @@ const Header: FC<HeaderProps> = ({
       <BankAccountVerificationModal
         open={verificationModalOpen}
         onClose={() => setVerificationModalOpen(false)}
+        onVerified={enableCardProcessing}
       />
     </header>
   );
