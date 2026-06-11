@@ -1,1 +1,0 @@
-import{b as a,j as m,M as o}from"./index-C-uw-jsR.js";const M=({children:n,...e})=>{const{setOpen:s}=a();return m.jsx(o.Item,{...e,onClick:u=>{var t;(t=e.onClick)==null||t.call(e,u),s(!1)},children:n})};export{M};
