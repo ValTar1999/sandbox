@@ -6,6 +6,7 @@ export interface SmartExchangeSetupAlertContextValue {
   hideSetupAlert: () => void;
   cardProcessingEnabled: boolean;
   enableCardProcessing: () => void;
+  disableCardProcessing: () => void;
 }
 
 export const SmartExchangeSetupAlertContext =

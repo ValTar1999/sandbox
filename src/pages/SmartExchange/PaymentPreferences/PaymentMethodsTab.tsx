@@ -1,18 +1,26 @@
 import Button from '../../../components/common/base/Button';
 import Badge from '../../../components/common/base/Badge';
 import Icon from '../../../components/common/base/Icon';
+import Menu from '../../../components/common/base/Menu';
+import MenuCloseItem from '../../../components/common/base/MenuCloseItem';
 import CardsList from './CardsList';
 import { AUTOMATIC_CARD_PROCESSING_DATE_INITIATED } from './data';
 
 interface PaymentMethodsTabProps {
   onVerifyNow: () => void;
   onOptIn?: () => void;
+  onOptOut?: () => void;
+  onReverify?: () => void;
+  onDontSeeDeposit?: () => void;
   variant?: 'pending-signature' | 'opt-in' | 'enabled' | 'action-required';
 }
 
 const PaymentMethodsTab = ({
   onVerifyNow,
   onOptIn,
+  onOptOut,
+  onReverify,
+  onDontSeeDeposit,
   variant = 'pending-signature',
 }: PaymentMethodsTabProps) => {
   const isOptIn = variant === 'opt-in';
@@ -39,19 +47,35 @@ const PaymentMethodsTab = ({
                 business bank account.
               </p>
             </div>
-            <Button
-              variant="linkSecondary"
-              size="sm"
-              icon="dots-vertical"
-              iconVariant="outline"
-              iconClass="w-4.5 h-4.5 text-gray-500"
-              aria-label="Automatic card processing options"
-            />
+            <Menu.Root placement="bottom-end">
+              <Menu.Trigger asChild>
+                <Button
+                  variant="linkSecondary"
+                  size="sm"
+                  icon="dots-vertical"
+                  iconVariant="outline"
+                  iconClass="w-4.5 h-4.5 text-gray-500"
+                  aria-label="Automatic card processing options"
+                />
+              </Menu.Trigger>
+              <Menu.Portal>
+                <Menu.Positioner>
+                  <Menu.Popup className="z-50 overflow-hidden rounded-md bg-white shadow-lg">
+                    <MenuCloseItem
+                      className="px-3 py-2 text-sm leading-5 font-medium text-red-600 hover:bg-gray-50 cursor-pointer transition-colors duration-300"
+                      onClick={onOptOut}
+                    >
+                      Opt out
+                    </MenuCloseItem>
+                  </Menu.Popup>
+                </Menu.Positioner>
+              </Menu.Portal>
+            </Menu.Root>
           </div>
           {isEnabled ? (
             <button
               type="button"
-              onClick={onVerifyNow}
+              onClick={onReverify}
               className="self-start cursor-pointer text-sm font-semibold leading-5 text-blue-600 transition-colors hover:text-blue-700"
             >
               Changed payment processors, need to reverify automatic card
@@ -126,7 +150,7 @@ const PaymentMethodsTab = ({
               >
                 Verify now
               </Button>
-              <Button variant="linkSecondary" size="xs">
+              <Button variant="linkSecondary" size="xs" onClick={onDontSeeDeposit}>
                 Don&apos;t see a small deposit?
               </Button>
             </div>

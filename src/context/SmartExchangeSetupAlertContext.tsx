@@ -15,6 +15,10 @@ export const SmartExchangeSetupAlertProvider = ({
     setCardProcessingEnabled(true);
     setSetupAlertVisible(false);
   }, []);
+  const disableCardProcessing = useCallback(() => {
+    setCardProcessingEnabled(false);
+    setSetupAlertVisible(false);
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -23,6 +27,7 @@ export const SmartExchangeSetupAlertProvider = ({
       hideSetupAlert,
       cardProcessingEnabled,
       enableCardProcessing,
+      disableCardProcessing,
     }),
     [
       setupAlertVisible,
@@ -30,6 +35,7 @@ export const SmartExchangeSetupAlertProvider = ({
       hideSetupAlert,
       cardProcessingEnabled,
       enableCardProcessing,
+      disableCardProcessing,
     ]
   );
 

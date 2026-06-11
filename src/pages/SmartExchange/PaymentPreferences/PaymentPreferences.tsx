@@ -5,6 +5,9 @@ import Box from '../../../components/layout/Box';
 import Button from '../../../components/common/base/Button';
 import BankAccountVerificationModal from '../../../modals/BankAccountVerificationModal';
 import SmartExchangeOptInModal from '../../../modals/SmartExchangeOptInModal';
+import OptOutCardProcessingModal from '../../../modals/OptOutCardProcessingModal';
+import ReverifyCardProcessingModal from '../../../modals/ReverifyCardProcessingModal';
+import SmallDepositNotSeenModal from '../../../modals/SmallDepositNotSeenModal';
 import { useDraftState } from '../../../hooks/useDraftState';
 import { useSmartExchangeSetupAlert } from '../../../context/smartExchangeSetupAlert';
 import PaymentMethodsTab from './PaymentMethodsTab';
@@ -48,6 +51,9 @@ const PaymentPreferences = () => {
     useState<PaymentPreferencesTab>('payment-methods');
   const [verificationModalOpen, setVerificationModalOpen] = useState(false);
   const [optInModalOpen, setOptInModalOpen] = useState(false);
+  const [optOutModalOpen, setOptOutModalOpen] = useState(false);
+  const [reverifyModalOpen, setReverifyModalOpen] = useState(false);
+  const [depositNotSeenModalOpen, setDepositNotSeenModalOpen] = useState(false);
   const initialAutomaticCardProcessingVariant =
     (state as { automaticCardProcessing?: string } | null)
       ?.automaticCardProcessing === 'opt-in'
@@ -57,8 +63,13 @@ const PaymentPreferences = () => {
     useState<'pending-signature' | 'opt-in'>(
       initialAutomaticCardProcessingVariant
     );
-  const { setupAlertVisible, cardProcessingEnabled, enableCardProcessing } =
-    useSmartExchangeSetupAlert();
+  const {
+    setupAlertVisible,
+    showSetupAlert,
+    cardProcessingEnabled,
+    enableCardProcessing,
+    disableCardProcessing,
+  } = useSmartExchangeSetupAlert();
   const {
     draft: globalPreferences,
     setDraft: setGlobalPreferences,
@@ -188,6 +199,9 @@ const PaymentPreferences = () => {
               <PaymentMethodsTab
                 onVerifyNow={() => setVerificationModalOpen(true)}
                 onOptIn={() => setOptInModalOpen(true)}
+                onOptOut={() => setOptOutModalOpen(true)}
+                onReverify={() => setReverifyModalOpen(true)}
+                onDontSeeDeposit={() => setDepositNotSeenModalOpen(true)}
                 variant={
                   cardProcessingEnabled
                     ? 'enabled'
@@ -253,6 +267,27 @@ const PaymentPreferences = () => {
         onDelegatedPending={() =>
           setAutomaticCardProcessingVariant('pending-signature')
         }
+      />
+      <OptOutCardProcessingModal
+        open={optOutModalOpen}
+        onClose={() => setOptOutModalOpen(false)}
+        onConfirm={() => {
+          setOptOutModalOpen(false);
+          disableCardProcessing();
+          setAutomaticCardProcessingVariant('opt-in');
+        }}
+      />
+      <ReverifyCardProcessingModal
+        open={reverifyModalOpen}
+        onClose={() => setReverifyModalOpen(false)}
+        onRequestNewValidation={() => {
+          disableCardProcessing();
+          showSetupAlert();
+        }}
+      />
+      <SmallDepositNotSeenModal
+        open={depositNotSeenModalOpen}
+        onClose={() => setDepositNotSeenModalOpen(false)}
       />
     </>
   );

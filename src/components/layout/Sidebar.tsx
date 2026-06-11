@@ -551,17 +551,14 @@ const Sidebar: React.FC = () => {
 
   const handleMenuToggle = useCallback(
     (item: MenuItem, isSectionActive: boolean) => {
-      return (event: React.MouseEvent) => {
-        if (!item.children || !isOpen) return;
-        if (location.pathname !== item.to) return;
-        event.preventDefault();
+      return () => {
         setExpandedMenus((prev) => ({
           ...prev,
           [item.to]: !(prev[item.to] ?? isSectionActive),
         }));
       };
     },
-    [isOpen, location.pathname]
+    []
   );
 
   // Общий компонент для содержимого пункта меню
@@ -569,9 +566,8 @@ const Sidebar: React.FC = () => {
     item: MenuItem;
     iconClasses: string;
     labelClasses: string;
-    isExpanded: boolean;
     isOpen: boolean;
-  }>(({ item, iconClasses, labelClasses, isExpanded, isOpen: sidebarOpen }) => (
+  }>(({ item, iconClasses, labelClasses, isOpen: sidebarOpen }) => (
     <>
       <item.icon className={iconClasses} />
       <div
@@ -587,15 +583,6 @@ const Sidebar: React.FC = () => {
               {item.badge}
             </Badge>
           )}
-          {item.children && sidebarOpen && (
-            <Icon
-              icon="chevron-down"
-              className={clsx(
-                'w-5 h-5 text-gray-500 transition-transform duration-300',
-                isExpanded ? 'rotate-180' : 'rotate-0'
-              )}
-            />
-          )}
         </div>
       </div>
     </>
@@ -610,13 +597,9 @@ const Sidebar: React.FC = () => {
       const isExactActive = location.pathname === item.to;
       const isChildActive =
         item.children?.some((child) => location.pathname === child.to) ?? false;
-      const isSectionActive =
-        isChildActive ||
-        location.pathname === item.to ||
-        location.pathname.startsWith(`${item.to}/`);
       const isActive = isDashboardActive || isExactActive;
       const applyActiveStyles = !item.children && isActive;
-      const isExpanded = expandedMenus[item.to] ?? isSectionActive;
+      const isExpanded = expandedMenus[item.to] ?? isChildActive;
       const isLastItem = index === menuItems.length - 1;
       const isSettings = item.to === '/settings';
 
@@ -644,21 +627,46 @@ const Sidebar: React.FC = () => {
           item={item}
           iconClasses={iconClasses}
           labelClasses={labelClasses}
-          isExpanded={isExpanded}
           isOpen={isOpen}
         />
       );
 
       const needsTooltip = !isOpen && !isSettings && !item.children;
-      const navLinkElement = (
+      const navLinkElement = isSettings ? (
+        <div
+          className={clsx(
+            'flex items-center w-full p-2 rounded-md transition-all duration-300',
+            item.children && isOpen && 'pr-12'
+          )}
+        >
+          {menuContent}
+        </div>
+      ) : (
         <NavLink
           to={item.to}
-          className={linkClasses}
-          onClick={handleMenuToggle(item, isSectionActive)}
+          className={clsx(linkClasses, item.children && isOpen && 'pr-12')}
           tabIndex={!isOpen ? -1 : undefined}
         >
           {menuContent}
         </NavLink>
+      );
+
+      const expandButton = item.children && isOpen && (
+        <button
+          type="button"
+          aria-label={isExpanded ? 'Collapse menu' : 'Expand menu'}
+          aria-expanded={isExpanded}
+          onClick={handleMenuToggle(item, isChildActive)}
+          className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center p-[5px] rounded hover:bg-gray-100 cursor-pointer transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
+        >
+          <Icon
+            icon="chevron-down"
+            className={clsx(
+              'w-5 h-5 text-gray-500 transition-transform duration-300',
+              isExpanded ? 'rotate-180' : 'rotate-0'
+            )}
+          />
+        </button>
       );
 
       return (
@@ -691,6 +699,7 @@ const Sidebar: React.FC = () => {
             ) : (
               navLinkElement
             )}
+            {expandButton}
           </div>
           {item.children && (
             <div
@@ -725,8 +734,8 @@ const Sidebar: React.FC = () => {
           )}
         </div>
       );
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [expandedMenus, isOpen, location.pathname, handleMenuToggle]
   );
 
