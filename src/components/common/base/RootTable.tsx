@@ -333,17 +333,14 @@ const RootTable: React.FC<RootTableProps> = ({
                 className={clsx(
                   'hover:bg-gray-50 cursor-pointer transition-colors duration-300 ease-in-out',
                   expandedRow === payment.id && 'bg-gray-100',
-                  selectedSet.has(payment.id) && 'bg-blue-50'
+                  selectedSet.has(payment.id) && 'bg-gray-50'
                 )}
               >
                 <td className="w-[52px] max-w-[52px] min-w-[52px]">
                   <Icon
                     icon="chevron-right"
                     className={clsx(
-                      'ml-4 transition-transform duration-300 ease-in-out',
-                      selectedSet.has(payment.id)
-                        ? 'text-blue-500'
-                        : 'text-gray-500',
+                      'ml-4 text-gray-500 transition-transform duration-300 ease-in-out',
                       expandedRow === payment.id && 'rotate-90'
                     )}
                   />

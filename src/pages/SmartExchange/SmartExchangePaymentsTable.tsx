@@ -176,7 +176,7 @@ const SmartExchangePaymentsTable = ({
             </ExpandableRow>
           )}
           {row.activityLog && row.activityLog.length > 0 && (
-            <ExpandableRow label="Activity log" borderTop>
+            <ExpandableRow label="Activity Log" borderTop>
               <div className="relative pl-5">
                 <div className="space-y-0">
                   {row.activityLog.map((item, index) => {

@@ -36,7 +36,7 @@ const Modal: React.FC<Props> = ({
         {icon && (
           <div
             className={clsx(
-              'flex items-center w-full',
+              'flex items-center w-full justify-center',
               titleCenter && 'justify-center'
             )}
           >
@@ -46,7 +46,7 @@ const Modal: React.FC<Props> = ({
 
         <div
           className={clsx(
-            'flex w-full flex-col gap-2',
+            'flex w-full flex-col gap-2 text-center',
             titleCenter && 'items-center'
           )}
         >

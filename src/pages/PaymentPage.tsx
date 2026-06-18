@@ -1242,7 +1242,7 @@ const PaymentPage = () => {
           )}
 
           {payment.unprocessed && (
-            <Accordion title="Activity log">
+            <Accordion title="Activity Log">
               <div className="flex items-start">
                 <div className="mr-4 pt-1.5">
                   <Icon icon="flag" className="h-3.5 w-3.5 text-gray-500" />

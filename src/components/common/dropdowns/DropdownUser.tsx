@@ -86,22 +86,15 @@ export const DropdownUser: React.FC = () => {
     </>
   );
 
-  const handleClick = () => {
-    // Intentionally no-op (demo UI).
-  };
-
   return (
     <Dropdown
       menuClass="w-50 rounded bg-white shadow-dropdown divide-y divide-gray-200 right-0 border border-gray-200 mt-1"
-      trigger={
-        <div
-          onClick={handleClick}
-          className={clsx('rounded-full cursor-pointer', focusButton())}
-          aria-label="User menu"
-        >
-          <Avatar size="md" imageSrc={userInfo.avatar} />
-        </div>
-      }
+      triggerClassName={clsx(
+        'inline-flex rounded-full transition-all duration-300',
+        focusButton()
+      )}
+      triggerAriaLabel="User menu"
+      trigger={<Avatar size="md" imageSrc={userInfo.avatar} />}
       menu={menuContent}
     />
   );

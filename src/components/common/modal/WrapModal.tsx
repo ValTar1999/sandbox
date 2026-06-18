@@ -57,7 +57,14 @@ const WrapModal: React.FC<Props> = ({
         </div>
       )}
 
-      <div className={classContent}>{children}</div>
+      <div
+        className={clsx(
+          'h-full overflow-y-auto max-h-[800px] no-scrollbar',
+          classContent
+        )}
+      >
+        {children}
+      </div>
 
       {isSlotFooterNotEmpty && (
         <div className="border-t border-gray-200 px-6 py-5">{footer}</div>

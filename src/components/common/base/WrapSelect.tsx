@@ -366,7 +366,27 @@ function WrapSelect({
                           )}
                         >
                           {option.label}
+                          {option.description &&
+                            (option.descriptionPosition ?? 'inline') ===
+                              'inline' && (
+                              <span
+                                className={clsx(
+                                  'font-normal',
+                                  option.inactive
+                                    ? 'text-gray-500'
+                                    : 'text-gray-500'
+                                )}
+                              >
+                                {' '}
+                                ({option.description})
+                              </span>
+                            )}
                         </div>
+                        {showInactiveBadge && option.inactive && (
+                          <div className="text-xs font-medium text-gray-800 leading-4 bg-gray-200 px-2 border border-gray-200 rounded-full">
+                            Not available
+                          </div>
+                        )}
                         {option.labelLink && (
                           <button
                             type="button"
@@ -454,25 +474,6 @@ function WrapSelect({
                             </div>
                           )}
                       </div>
-                      {option.description &&
-                        (option.descriptionPosition ?? 'inline') ===
-                          'inline' && (
-                          <span
-                            className={clsx(
-                              'text-sm font-normal leading-5 truncate',
-                              option.inactive
-                                ? 'text-gray-500'
-                                : 'text-gray-500'
-                            )}
-                          >
-                            {option.description}
-                          </span>
-                        )}
-                      {showInactiveBadge && option.inactive && (
-                        <div className="text-xs font-medium text-gray-800 leading-4 bg-gray-200 px-2 border border-gray-200 rounded-full">
-                          Not available
-                        </div>
-                      )}
                     </div>
                     {option.description &&
                       (option.descriptionPosition ?? 'inline') === 'below' && (

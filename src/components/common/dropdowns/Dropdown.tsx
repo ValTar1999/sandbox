@@ -9,6 +9,8 @@ interface DropdownProps {
     | ((args: { closeDropdown: () => void }) => React.ReactNode); // Содержимое меню
   className?: string; // Дополнительные стили для контейнера дропдауна
   menuClass?: string; // Дополнительные стили для меню
+  triggerClassName?: string; // Дополнительные стили для триггера
+  triggerAriaLabel?: string; // Aria-label для триггера
   onStateChange?: (isOpen: boolean) => void; // Функция обратного вызова для изменения состояния меню
 }
 
@@ -17,6 +19,8 @@ export const Dropdown = ({
   menu,
   className,
   menuClass,
+  triggerClassName,
+  triggerAriaLabel,
   onStateChange,
 }: DropdownProps): React.ReactElement => {
   const [isOpen, setIsOpen] = useState(false); // Состояние открытости меню
@@ -63,10 +67,18 @@ export const Dropdown = ({
     <div ref={dropdownRef} className={clsx('relative inline-block', className)}>
       <div
         onClick={toggleDropdown}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            toggleDropdown();
+          }
+        }}
         role="button"
+        tabIndex={0}
+        aria-label={triggerAriaLabel}
         aria-haspopup="true"
         aria-expanded={isOpen}
-        className="w-full cursor-pointer"
+        className={clsx('w-full cursor-pointer', triggerClassName)}
       >
         {trigger}
       </div>

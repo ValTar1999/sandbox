@@ -344,7 +344,7 @@ const VendorsTable: React.FC<VendorsTableProps> = ({
   }, [vendors, sortField, sortDir]);
 
   return (
-    <div className="overflow-x-auto w-full px-6">
+    <div className="overflow-x-auto w-full px-6 grid">
       <table className="min-w-full">
         <thead>
           <tr className="border-b border-dashed border-gray-200">
