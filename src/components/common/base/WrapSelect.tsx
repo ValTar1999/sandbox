@@ -1,4 +1,15 @@
 import { useCallback, useEffect, useId, useMemo, useState } from 'react';
+import {
+  autoUpdate,
+  flip,
+  FloatingPortal,
+  offset,
+  shift,
+  size as floatingSize,
+  useDismiss,
+  useFloating,
+  useInteractions,
+} from '@floating-ui/react';
 import { clsx } from 'clsx';
 import Icon from './Icon';
 import Button from './Button';
@@ -107,6 +118,51 @@ function WrapSelect({
   const [open, setOpen] = useState(false);
   const selectId = useId();
   const sizeClasses = triggerSizeClasses[size];
+  const matchTriggerWidth = !dropdownClassName;
+
+  const handleOpenChange = useCallback(
+    (nextOpen: boolean) => {
+      setOpen(nextOpen);
+      if (nextOpen) {
+        window.dispatchEvent(
+          new CustomEvent('wrapselect:open', { detail: selectId })
+        );
+      }
+    },
+    [selectId]
+  );
+
+  const { refs, floatingStyles, context } = useFloating({
+    open,
+    onOpenChange: handleOpenChange,
+    whileElementsMounted: autoUpdate,
+    placement: 'bottom-start',
+    middleware: [
+      offset(2),
+      ...(matchTriggerWidth
+        ? [
+            floatingSize({
+              apply({
+                rects,
+                elements,
+              }: {
+                rects: { reference: { width: number } };
+                elements: { floating: HTMLElement };
+              }) {
+                Object.assign(elements.floating.style, {
+                  width: `${rects.reference.width}px`,
+                });
+              },
+            }),
+          ]
+        : []),
+      flip(),
+      shift({ padding: 8 }),
+    ],
+  });
+
+  const dismiss = useDismiss(context);
+  const { getReferenceProps, getFloatingProps } = useInteractions([dismiss]);
 
   useEffect(() => {
     const handler = (event: Event) => {
@@ -167,16 +223,8 @@ function WrapSelect({
   }, []);
 
   const handleToggleOpen = useCallback(() => {
-    setOpen((prev) => {
-      const next = !prev;
-      if (next) {
-        window.dispatchEvent(
-          new CustomEvent('wrapselect:open', { detail: selectId })
-        );
-      }
-      return next;
-    });
-  }, [selectId]);
+    handleOpenChange(!open);
+  }, [handleOpenChange, open]);
 
   return (
     <div className="relative">
@@ -189,7 +237,10 @@ function WrapSelect({
         </div>
       )}
       <button
-        onClick={handleToggleOpen}
+        ref={refs.setReference}
+        {...getReferenceProps({
+          onClick: handleToggleOpen,
+        })}
         aria-label={hideLabel ? label : undefined}
         className={clsx(
           'w-full border rounded-md text-left shadow-sm bg-white flex items-center justify-between cursor-pointer',
@@ -324,12 +375,16 @@ function WrapSelect({
       {error && <div className="mt-1 text-sm text-red-500">{errorMessage}</div>}
 
       {open && (
-        <ul
-          className={clsx(
-            'absolute z-10 mt-0.5 bg-white border border-gray-100 divide-y divide-gray-200 rounded-md shadow-lg overflow-hidden max-h-[350px] overflow-y-auto',
-            dropdownClassName ?? 'w-full'
-          )}
-        >
+        <FloatingPortal>
+          <ul
+            ref={refs.setFloating}
+            style={floatingStyles}
+            {...getFloatingProps()}
+            className={clsx(
+              'z-[60] bg-white border border-gray-100 divide-y divide-gray-200 rounded-md shadow-lg overflow-hidden max-h-[350px] overflow-y-auto',
+              !matchTriggerWidth && (dropdownClassName ?? 'w-full')
+            )}
+          >
           {options.map((option) => (
             <li
               key={option.value}
@@ -616,6 +671,7 @@ function WrapSelect({
             </li>
           )}
         </ul>
+        </FloatingPortal>
       )}
     </div>
   );

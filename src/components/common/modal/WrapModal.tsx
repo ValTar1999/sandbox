@@ -59,7 +59,7 @@ const WrapModal: React.FC<Props> = ({
 
       <div
         className={clsx(
-          'h-full overflow-y-auto max-h-[800px] no-scrollbar',
+          'h-full overflow-y-auto max-h-[750px] no-scrollbar',
           classContent
         )}
       >
