@@ -1,54 +1,69 @@
-# React + TypeScript + Vite
+# SMART Hub — UI prototype
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Интерактивный прототип фронтенда финтех-платформы SMART Hub: работа с кредиторской и
+дебиторской задолженностью, справочник вендоров, платёжные предпочтения SMART Exchange
+и администрирование пользователей.
 
-Currently, two official plugins are available:
+Живая сборка: https://ValTar1999.github.io/sandbox
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+> **Это прототип интерфейса, а не приложение с бэкендом.** Сетевых запросов в проекте нет:
+> все данные приходят из мок-файлов `data.ts` рядом со страницами, а загрузка имитируется
+> таймаутом. Глобального стора тоже нет — состояние живёт в компонентах.
 
-## Expanding the ESLint configuration
+## Стек
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- React 19 + TypeScript 5.7 (strict)
+- Vite 6 — сборка и dev-сервер
+- Tailwind CSS 4 через `@tailwindcss/vite`
+- React Router 7 (`BrowserRouter` с `basename="/sandbox"`)
+- Floating UI — позиционирование селектов, меню и тултипов
+- Heroicons + SVG-спрайты, DOMPurify для санитизации HTML в описаниях
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-});
+## Команды
+
+```bash
+npm install       # установка зависимостей
+npm run dev       # dev-сервер с HMR
+npm run build     # tsc -b + vite build, затем postbuild создаёт dist/404.html
+npm run preview   # локальный просмотр production-сборки
+npm run lint      # ESLint
+npm run format    # Prettier: отформатировать файлы
+npm run format:check  # Prettier: только проверить, ничего не менять
+npm run deploy    # ручной деплой в ветку gh-pages
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Проверка типов отдельной командой не нужна — `npm run build` запускает `tsc -b` перед сборкой.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x';
-import reactDom from 'eslint-plugin-react-dom';
+## Структура `src`
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-});
-```
+| Каталог                    | Содержимое                                                                                                                                                                  |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pages/`                   | Страницы-роуты по доменам: `BillsPayables`, `InvoicesReceivables`, `Payment`, `Vendors`, `SmartExchange`, `UserManagment`, `Profile`. Рядом с каждой лежит её мок-`data.ts` |
+| `modals/`                  | Модальные окна приложения, все на общей обёртке из `components/common/modal`                                                                                                |
+| `components/common/base/`  | Примитивы дизайн-системы: `Button`, `Input`, `Select`, `Menu`, `Tooltip`, `Badge`, таблицы                                                                                  |
+| `components/common/modal/` | Трёхуровневый стек модалок: `LayoutModal` → `WrapModal` / `Modal`                                                                                                           |
+| `components/layout/`       | Каркас: `Sidebar`, `Header`, `Breadcrumb`, `Box`                                                                                                                            |
+| `enums/`                   | Токены вариантов и размеров (`Button`, `Badge`, `Icon`, `Avatar`) в виде map'ов Tailwind-классов                                                                            |
+| `config/`, `constants/`    | Общие классы фокуса и ссылок, стили таблиц, тайминги анимаций                                                                                                               |
+| `hooks/`                   | `useDraftState` (черновик/сохранение), `useLoadingTransition`                                                                                                               |
+| `context/`                 | `SmartExchangeSetupAlertContext` — состояние алертов настройки SMART Exchange                                                                                               |
+| `layout/Layout.tsx`        | Общая обёртка роутов: сайдбар, хедер и `<Outlet />`                                                                                                                         |
+
+Роуты объявлены в [src/App.tsx](src/App.tsx); страницы загружаются лениво через `lazy()`.
+
+## Деплой
+
+Основной путь — GitHub Actions (`.github/workflows/deploy.yml`) при пуше в `main`.
+Подробности, ручной вариант и разбор типичных проблем — в [DEPLOY.md](DEPLOY.md).
+
+Два момента, важных для GitHub Pages:
+
+- `base: '/sandbox/'` в [vite.config.ts](vite.config.ts) должен совпадать с именем репозитория
+  и с `basename` роутера в [src/main.tsx](src/main.tsx)
+- скрипт `postbuild` копирует `index.html` в `dist/404.html` — без этого прямые ссылки
+  вида `/sandbox/payables` отдавали бы 404, потому что Pages не умеет history fallback
+
+## CI
+
+`.github/workflows/ci.yml` на каждый push и pull request в `main` выполняет `npm ci`,
+`npm run lint` и `npm run build` на Node 20.

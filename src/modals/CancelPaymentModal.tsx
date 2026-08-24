@@ -9,12 +9,14 @@ interface CancelPaymentModalProps {
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  isSubmitting?: boolean;
 }
 
 const CancelPaymentModal: React.FC<CancelPaymentModalProps> = ({
   open,
   onClose,
   onConfirm,
+  isSubmitting = false,
 }) => {
   return (
     <LayoutModal open={open}>
@@ -37,6 +39,7 @@ const CancelPaymentModal: React.FC<CancelPaymentModalProps> = ({
               size="xl"
               className="w-full"
               onClick={onClose}
+              disabled={isSubmitting}
             >
               Go Back
             </Button>
@@ -45,6 +48,7 @@ const CancelPaymentModal: React.FC<CancelPaymentModalProps> = ({
               size="xl"
               className="w-full"
               onClick={onConfirm}
+              disabled={isSubmitting}
             >
               Cancel Payment
             </Button>

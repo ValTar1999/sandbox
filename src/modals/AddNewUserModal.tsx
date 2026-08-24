@@ -30,6 +30,7 @@ import {
   selectedRoleDescription,
   timeframeOptions,
 } from './userModalSharedData';
+import { ApiError } from '../api/client';
 
 type AddNewUserModalProps = {
   open: boolean;
@@ -42,7 +43,7 @@ type AddNewUserModalProps = {
       ap?: LimitsSummary;
       ar?: LimitsSummary;
     };
-  }) => void;
+  }) => Promise<void> | void;
 };
 
 const AddNewUserModal = ({
@@ -71,6 +72,8 @@ const AddNewUserModal = ({
   const [timeframeSelectError, setTimeframeSelectError] = useState(false);
   const [perInvoiceLimitError, setPerInvoiceLimitError] = useState(false);
   const [limitsRequiredError, setLimitsRequiredError] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const [isSendingInvite, setIsSendingInvite] = useState(false);
   const [openPermissionSectionIds, setOpenPermissionSectionIds] = useState<
     string[]
   >(permissionSections.map((section) => section.id));
@@ -101,6 +104,35 @@ const AddNewUserModal = ({
       ])
     )
   );
+
+  // AP and AR share the limits form state, so it has to be reloaded from the
+  // stored values every time the view is opened for a given type.
+  const openLimitsView = (type: 'ap' | 'ar') => {
+    const stored = limitsSummaryByType[type];
+    const emptyMethodMap = Object.fromEntries(
+      advancedLimitMethods.map((method) => [method, ''])
+    );
+
+    setLimitsType(type);
+    setLimitsMode(stored?.mode ?? 'global');
+    setSelectedTimeframeId(stored?.global?.timeframeId ?? 'weekly');
+    setTimeframeLimit(stored?.global?.timeframeLimit ?? '100,000.00');
+    setPerInvoiceLimit(stored?.global?.perInvoiceLimit ?? '20,000.00');
+    setAdvancedMethodPeriods(
+      stored?.advanced?.periodsByMethod ?? emptyMethodMap
+    );
+    setAdvancedMethodTimeframeLimits(
+      stored?.advanced?.timeframeLimitsByMethod ?? emptyMethodMap
+    );
+    setAdvancedMethodPerBillLimits(
+      stored?.advanced?.perBillLimitsByMethod ?? emptyMethodMap
+    );
+    setTimeframeLimitError(false);
+    setTimeframeSelectError(false);
+    setPerInvoiceLimitError(false);
+    setLimitsRequiredError(false);
+    setView('limits');
+  };
 
   const selectedRole = useMemo(
     () => roleOptions.find((role) => role.id === selectedRoleId) ?? null,
@@ -229,6 +261,11 @@ const AddNewUserModal = ({
           }: $${advancedMethodTimeframeLimits[advancedLimitMethods[0]]}. Bill/Invoice: $${
             advancedMethodPerBillLimits[advancedLimitMethods[0]]
           }. ...`,
+          advanced: {
+            periodsByMethod: advancedMethodPeriods,
+            timeframeLimitsByMethod: advancedMethodTimeframeLimits,
+            perBillLimitsByMethod: advancedMethodPerBillLimits,
+          },
         },
       }));
       setLimitsRequiredError(false);
@@ -256,6 +293,11 @@ const AddNewUserModal = ({
       [limitsType]: {
         mode: 'global',
         summary: `${timeframeLabel}: $${timeframeLimit}. Bill/Invoice: $${perInvoiceLimit}.`,
+        global: {
+          timeframeId: selectedTimeframeId,
+          timeframeLimit,
+          perInvoiceLimit,
+        },
       },
     }));
     setLimitsRequiredError(false);
@@ -273,8 +315,8 @@ const AddNewUserModal = ({
           ? ['ap', 'ar']
           : ['ap'];
 
-  const handleSendInvite = () => {
-    if (!selectedRole) return;
+  const handleSendInvite = async () => {
+    if (!selectedRole || isSendingInvite) return;
     const hasRequiredLimits = requiredLimitsTypes.every((type) =>
       Boolean(limitsSummaryByType[type])
     );
@@ -284,12 +326,27 @@ const AddNewUserModal = ({
     }
 
     const fullName = `${inviteFirstName} ${inviteLastName}`.trim();
-    onInviteUser?.({
-      name: fullName || '-',
-      email: inviteEmail.trim(),
-      role: selectedRole.name,
-      limitsSummaryByType,
-    });
+    setInviteError(null);
+    setIsSendingInvite(true);
+
+    try {
+      await onInviteUser?.({
+        name: fullName || '-',
+        email: inviteEmail.trim(),
+        role: selectedRole.name,
+        limitsSummaryByType,
+      });
+    } catch (error) {
+      setInviteError(
+        error instanceof ApiError
+          ? (error.fieldErrors?.email ?? error.message)
+          : 'Could not send the invitation. Please try again.'
+      );
+      return;
+    } finally {
+      setIsSendingInvite(false);
+    }
+
     setView('success');
   };
 
@@ -343,7 +400,8 @@ const AddNewUserModal = ({
                   !selectedRole ||
                   !inviteEmail.trim() ||
                   !inviteFirstName.trim() ||
-                  !inviteLastName.trim()
+                  !inviteLastName.trim() ||
+                  isSendingInvite
                 }
               >
                 Send Invite
@@ -789,8 +847,16 @@ const AddNewUserModal = ({
                   <Input
                     placeholder="e.g. john.smith@abcompany.com"
                     value={inviteEmail}
-                    onChange={(event) => setInviteEmail(event.target.value)}
+                    onChange={(event) => {
+                      setInviteEmail(event.target.value);
+                      setInviteError(null);
+                    }}
                   />
+                  {inviteError && (
+                    <div className="mt-1 text-xs leading-4 text-red-500">
+                      {inviteError}
+                    </div>
+                  )}
                 </div>
                 <div className="border-t border-gray-200" />
                 <div className="grid grid-cols-2 gap-6">
@@ -949,13 +1015,7 @@ const AddNewUserModal = ({
                           <Button
                             variant="linkPrimary"
                             size="sm"
-                            onClick={() => {
-                              setLimitsType('ap');
-                              setLimitsMode(
-                                limitsSummaryByType.ap?.mode ?? 'global'
-                              );
-                              setView('limits');
-                            }}
+                            onClick={() => openLimitsView('ap')}
                           >
                             Update
                           </Button>
@@ -965,12 +1025,7 @@ const AddNewUserModal = ({
                             size="sm"
                             icon="plus"
                             iconDirection="left"
-                            onClick={() => {
-                              setLimitsType('ap');
-                              setLimitsMode('global');
-                              setLimitsRequiredError(false);
-                              setView('limits');
-                            }}
+                            onClick={() => openLimitsView('ap')}
                           >
                             Set Limits
                           </Button>
@@ -1008,13 +1063,7 @@ const AddNewUserModal = ({
                           <Button
                             variant="linkPrimary"
                             size="sm"
-                            onClick={() => {
-                              setLimitsType('ar');
-                              setLimitsMode(
-                                limitsSummaryByType.ar?.mode ?? 'global'
-                              );
-                              setView('limits');
-                            }}
+                            onClick={() => openLimitsView('ar')}
                           >
                             Update
                           </Button>
@@ -1024,12 +1073,7 @@ const AddNewUserModal = ({
                             size="sm"
                             icon="plus"
                             iconDirection="left"
-                            onClick={() => {
-                              setLimitsType('ar');
-                              setLimitsMode('global');
-                              setLimitsRequiredError(false);
-                              setView('limits');
-                            }}
+                            onClick={() => openLimitsView('ar')}
                           >
                             Set Limits
                           </Button>

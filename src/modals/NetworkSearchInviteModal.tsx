@@ -66,6 +66,8 @@ interface NetworkSearchInviteModalProps {
   onClose: () => void;
   onConfirm?: (result: SearchResult) => void;
   onInviteSent?: (email: string, phone: string, description: string) => void;
+  onLinkRequestSent?: () => void;
+  onReject?: () => void;
   onUnlink?: () => void;
   initialStage?: ModalStage;
   modalType?:
@@ -137,6 +139,8 @@ const NetworkSearchInviteModal: React.FC<NetworkSearchInviteModalProps> = ({
   onClose,
   onConfirm,
   onInviteSent,
+  onLinkRequestSent,
+  onReject,
   onUnlink,
   initialStage,
   modalType,
@@ -247,8 +251,9 @@ const NetworkSearchInviteModal: React.FC<NetworkSearchInviteModalProps> = ({
   }, [inviteForm, onInviteSent]);
 
   const handleSendLinkRequest = useCallback(() => {
+    onLinkRequestSent?.();
     setStage('success');
-  }, []);
+  }, [onLinkRequestSent]);
 
   const handleGoBack = useCallback(() => {
     handleClose();
@@ -423,7 +428,10 @@ const NetworkSearchInviteModal: React.FC<NetworkSearchInviteModalProps> = ({
                 variant="primaryDistructive"
                 size="xl"
                 className="w-full"
-                onClick={() => setStage('success')}
+                onClick={() => {
+                  onReject?.();
+                  setStage('success');
+                }}
               >
                 Reject
               </Button>

@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/common/base/Button';
 import Badge from '../../components/common/base/Badge';
 import Box from '../../components/layout/Box';
 import { RefreshButton } from '../../components/common/base/RefreshButton';
 import VendorsToPay from '../../components/common/dropdowns/VendorsToPay';
+import PaymentSubmittedModal from '../../modals/PaymentSubmittedModal';
 import { Payment } from '../BillsPayables/data';
+import { usePayPayable } from '../../hooks/queries/usePayables';
 
 interface MultiPartyPaymentPageProps {
   payment: Payment;
@@ -15,8 +17,23 @@ const MultiPartyPaymentPage: React.FC<MultiPartyPaymentPageProps> = ({
   payment,
 }) => {
   const navigate = useNavigate();
+  const payPayable = usePayPayable();
+  const [isSubmittedOpen, setIsSubmittedOpen] = useState(false);
 
   const handleBack = () => navigate(-1);
+
+  const handlePay = async () => {
+    if (payment.status !== 'unprocessed' || payPayable.isPending) return;
+
+    try {
+      await payPayable.mutateAsync({ id: payment.id });
+    } catch (error) {
+      console.error('[payables] multi-party payment failed', error);
+      return;
+    }
+
+    setIsSubmittedOpen(true);
+  };
 
   return (
     <Box
@@ -34,7 +51,13 @@ const MultiPartyPaymentPage: React.FC<MultiPartyPaymentPageProps> = ({
       }
       footer={
         <div className="flex items-center gap-2 w-full justify-end">
-          <Button size="md">Pay: {payment.totalAmount}</Button>
+          <Button
+            size="md"
+            onClick={handlePay}
+            disabled={payment.status !== 'unprocessed' || payPayable.isPending}
+          >
+            Pay: {payment.totalAmount}
+          </Button>
         </div>
       }
     >
@@ -99,6 +122,15 @@ const MultiPartyPaymentPage: React.FC<MultiPartyPaymentPageProps> = ({
           <VendorsToPay payment={payment} />
         </div>
       </div>
+
+      <PaymentSubmittedModal
+        open={isSubmittedOpen}
+        onClose={() => setIsSubmittedOpen(false)}
+        handlePaymentSubmittedClick={() => {
+          setIsSubmittedOpen(false);
+          navigate('/payables');
+        }}
+      />
     </Box>
   );
 };

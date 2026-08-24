@@ -29,8 +29,14 @@ import SelectPaymentWorkflowModal, {
 import SmartCollectDetailsModal from '../../modals/SmartCollectDetailsModal';
 import PaymentRequestSubmittedModal from '../../modals/PaymentRequestSubmittedModal';
 import MastercardIcon from '../../assets/image/mastercard-flag.svg';
-import { receivables, Receivable } from './data';
+import { Receivable } from './data';
 import { STATUS_BADGES } from '../../constants/tableStatusBadges';
+import Loading from '../../components/common/base/Loading';
+import QueryError from '../../components/common/base/QueryError';
+import {
+  useCollectReceivable,
+  useReceivable,
+} from '../../hooks/queries/useReceivables';
 
 const SmartCollectTooltipContent = () => (
   <div className="w-[344px] p-4 bg-gray-900 rounded-lg shadow-lg flex flex-col gap-1">
@@ -478,6 +484,14 @@ const contactSuggestions: ContactItem[] = [
 const InitiatePaymentRequestPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const {
+    data: receivable,
+    isPending: isReceivablePending,
+    isError: isReceivableError,
+    error: receivableError,
+    refetch: refetchReceivable,
+  } = useReceivable(id);
+  const collectReceivable = useCollectReceivable();
   const [paymentCollection, setPaymentCollection] = useState('invoice');
   const [contactQuery, setContactQuery] = useState('');
   const [selectedContacts, setSelectedContacts] = useState<ContactItem[]>([]);
@@ -500,11 +514,6 @@ const InitiatePaymentRequestPage = () => {
   const [isPaymentRequestSubmittedOpen, setIsPaymentRequestSubmittedOpen] =
     useState(false);
   const [showErrors, setShowErrors] = useState(false);
-
-  const receivable = useMemo(
-    () => receivables.find((r) => r.id === id || r.invoiceNumber === id),
-    [id]
-  );
 
   const isFormValid = useMemo(() => {
     if (paymentCollection === 'charge') {
@@ -535,10 +544,22 @@ const InitiatePaymentRequestPage = () => {
     }
   }, [isFormValid]);
 
-  const handleSmartCollectInvoice = useCallback(() => {
+  const handleSmartCollectInvoice = useCallback(async () => {
+    if (!receivable) return;
+
+    try {
+      await collectReceivable.mutateAsync(receivable.id);
+    } catch (error) {
+      console.error(
+        '[receivables] could not submit the payment request',
+        error
+      );
+      return;
+    }
+
     setIsSmartCollectModalOpen(false);
     setIsPaymentRequestSubmittedOpen(true);
-  }, []);
+  }, [collectReceivable, receivable]);
 
   const handlePaymentRequestDone = useCallback(() => {
     setIsPaymentRequestSubmittedOpen(false);
@@ -640,6 +661,23 @@ const InitiatePaymentRequestPage = () => {
       </Badge>
     );
   };
+
+  if (isReceivablePending) {
+    return <Loading />;
+  }
+
+  if (isReceivableError) {
+    return (
+      <QueryError
+        message={
+          receivableError instanceof Error
+            ? receivableError.message
+            : 'Could not load this receivable.'
+        }
+        onRetry={() => refetchReceivable()}
+      />
+    );
+  }
 
   if (!receivable) {
     return <div className="p-6 text-red-500">Receivable not found</div>;
@@ -1036,7 +1074,9 @@ const InitiatePaymentRequestPage = () => {
                         }
                         errorMessage="Receiving account is required."
                         footerActionLabel="Add New Bank Account"
-                        onFooterActionClick={() => {}}
+                        onFooterActionClick={() =>
+                          setIsAddBankAccountModalOpen(true)
+                        }
                         showInactiveNotice
                       />
                     ) : (

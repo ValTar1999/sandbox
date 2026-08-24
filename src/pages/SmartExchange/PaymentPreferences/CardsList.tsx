@@ -6,13 +6,22 @@ import Icon from '../../../components/common/base/Icon';
 import Menu from '../../../components/common/base/Menu';
 import MenuCloseItem from '../../../components/common/base/MenuCloseItem';
 import type { PayerCard } from './data';
-import { payerCards, TOTAL_PAYER_CARDS } from './data';
 import VisaCardIcon from '../../../assets/image/visa-card.svg';
+import {
+  useDeletePayerCard,
+  usePayerCards,
+} from '../../../hooks/queries/useVendors';
 
 const rowMenuItemClass =
   'px-4 py-3 text-sm leading-5 font-medium text-gray-900 hover:bg-gray-50 cursor-pointer transition-colors duration-300';
 
-const CardRowMenu = () => (
+const CardRowMenu = ({
+  onRemove,
+  isRemoving,
+}: {
+  onRemove: () => void;
+  isRemoving: boolean;
+}) => (
   <Menu.Root placement="bottom-end">
     <Menu.Trigger asChild>
       <Button
@@ -22,6 +31,7 @@ const CardRowMenu = () => (
         iconVariant="outline"
         iconClass="w-4.5 h-4.5 text-gray-500"
         aria-label="Card actions"
+        disabled={isRemoving}
       />
     </Menu.Trigger>
     <Menu.Portal>
@@ -30,7 +40,7 @@ const CardRowMenu = () => (
           <MenuCloseItem className={rowMenuItemClass}>
             View details
           </MenuCloseItem>
-          <MenuCloseItem className={rowMenuItemClass}>
+          <MenuCloseItem className={rowMenuItemClass} onClick={onRemove}>
             Remove card
           </MenuCloseItem>
         </Menu.Popup>
@@ -39,7 +49,15 @@ const CardRowMenu = () => (
   </Menu.Root>
 );
 
-const CardRow = ({ card }: { card: PayerCard }) => (
+const CardRow = ({
+  card,
+  onRemove,
+  isRemoving,
+}: {
+  card: PayerCard;
+  onRemove: (id: string) => void;
+  isRemoving: boolean;
+}) => (
   <li className="flex items-center justify-between rounded-lg bg-gray-50 p-3">
     <div className="flex items-start gap-3">
       <img
@@ -58,7 +76,7 @@ const CardRow = ({ card }: { card: PayerCard }) => (
         </div>
       </div>
     </div>
-    <CardRowMenu />
+    <CardRowMenu isRemoving={isRemoving} onRemove={() => onRemove(card.id)} />
   </li>
 );
 
@@ -66,9 +84,11 @@ const CardsList = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeOnly, setActiveOnly] = useState(false);
   const [showAll, setShowAll] = useState(false);
+  const { data } = usePayerCards();
+  const deleteCard = useDeletePayerCard();
 
   const filteredCards = useMemo(() => {
-    let list = payerCards;
+    let list = data?.rows ?? [];
     if (activeOnly) {
       list = list.filter((card) => card.active);
     }
@@ -77,7 +97,7 @@ const CardsList = () => {
       list = list.filter((card) => card.customerName.toLowerCase().includes(q));
     }
     return list;
-  }, [searchQuery, activeOnly]);
+  }, [searchQuery, activeOnly, data?.rows]);
 
   const visibleCards = showAll ? filteredCards : filteredCards.slice(0, 6);
 
@@ -117,7 +137,12 @@ const CardsList = () => {
       {visibleCards.length > 0 ? (
         <ul className="mt-4 flex flex-col gap-2">
           {visibleCards.map((card) => (
-            <CardRow key={card.id} card={card} />
+            <CardRow
+              key={card.id}
+              card={card}
+              isRemoving={deleteCard.isPending}
+              onRemove={(id) => deleteCard.mutate(id)}
+            />
           ))}
         </ul>
       ) : (
@@ -132,7 +157,7 @@ const CardsList = () => {
           onClick={() => setShowAll(true)}
           className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
         >
-          Show all ({TOTAL_PAYER_CARDS})
+          Show all ({filteredCards.length})
           <Icon icon="chevron-down" className="h-4 w-4" />
         </button>
       )}

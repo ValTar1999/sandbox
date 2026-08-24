@@ -28,6 +28,8 @@ export interface Payment {
   status: string;
   notes: string;
   attachments: string;
+  /** Set when several bills were paid together, so a bulk cancel can unwind the group. */
+  bulkGroupId?: string;
   payableSummary?: {
     item: string;
     quantity: number;

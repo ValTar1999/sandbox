@@ -18,6 +18,7 @@ interface ConfirmPaymentModalProps {
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  isSubmitting?: boolean;
   totalAmountFormatted: string;
   amountValute: string;
   originationAccountLabel: string;
@@ -30,6 +31,7 @@ const ConfirmPaymentModal: React.FC<ConfirmPaymentModalProps> = ({
   open,
   onClose,
   onConfirm,
+  isSubmitting = false,
   totalAmountFormatted,
   amountValute,
   originationAccountLabel,
@@ -74,10 +76,15 @@ const ConfirmPaymentModal: React.FC<ConfirmPaymentModalProps> = ({
         onClose={onClose}
         footer={
           <div className="flex items-center justify-end gap-3">
-            <Button variant="secondary" size="lg" onClick={onClose}>
+            <Button
+              variant="secondary"
+              size="lg"
+              onClick={onClose}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
-            <Button size="lg" onClick={onConfirm}>
+            <Button size="lg" onClick={onConfirm} disabled={isSubmitting}>
               Pay Now
             </Button>
           </div>

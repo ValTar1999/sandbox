@@ -13,7 +13,13 @@ import ConfirmPaymentModal, {
   type ConfirmPaymentVendor,
 } from '../../modals/ConfirmPaymentModal';
 import PaymentSubmittedModal from '../../modals/PaymentSubmittedModal';
-import { payments, Payment } from '../BillsPayables/data';
+import Loading from '../../components/common/base/Loading';
+import QueryError from '../../components/common/base/QueryError';
+import { Payment } from '../BillsPayables/data';
+import {
+  usePayables,
+  usePayPayablesBulk,
+} from '../../hooks/queries/usePayables';
 
 const bankAccounts = [
   {
@@ -86,9 +92,18 @@ const MultiplePaymentPage: React.FC = () => {
     [location.state]
   );
 
+  const {
+    data: payablesList,
+    isPending: isPayablesPending,
+    isError: isPayablesError,
+    error: payablesError,
+    refetch: refetchPayables,
+  } = usePayables({});
+  const payBulkMutation = usePayPayablesBulk();
+
   const selectedPayments = useMemo(
-    () => payments.filter((p) => selectedIds.includes(p.id)),
-    [selectedIds]
+    () => (payablesList?.rows ?? []).filter((p) => selectedIds.includes(p.id)),
+    [payablesList, selectedIds]
   );
 
   const totalAmount = useMemo(() => {
@@ -255,6 +270,18 @@ const MultiplePaymentPage: React.FC = () => {
     setIsConfirmPaymentModalOpen(true);
   }, [selectedAccount, allVendorsHavePaymentMethod]);
 
+  const handleConfirmBulkPayment = useCallback(async () => {
+    try {
+      await payBulkMutation.mutateAsync({ ids: selectedIds });
+    } catch (error) {
+      console.error('[payables] bulk payment failed', error);
+      return;
+    }
+
+    setIsConfirmPaymentModalOpen(false);
+    setIsPaymentSubmittedModalOpen(true);
+  }, [payBulkMutation, selectedIds]);
+
   const confirmModalVendors = useMemo((): ConfirmPaymentVendor[] => {
     const vendors = paymentForVendors.vendors ?? [];
     return vendors.map((v) => {
@@ -282,6 +309,29 @@ const MultiplePaymentPage: React.FC = () => {
     });
   }, [paymentForVendors, vendorPaymentMethods]);
 
+  if (isPayablesPending) {
+    return (
+      <Box className="max-w-7xl mx-auto">
+        <Loading />
+      </Box>
+    );
+  }
+
+  if (isPayablesError) {
+    return (
+      <Box className="max-w-7xl mx-auto">
+        <QueryError
+          message={
+            payablesError instanceof Error
+              ? payablesError.message
+              : 'Could not load the selected bills.'
+          }
+          onRetry={() => refetchPayables()}
+        />
+      </Box>
+    );
+  }
+
   return (
     <Box
       className="max-w-7xl mx-auto"
@@ -299,7 +349,11 @@ const MultiplePaymentPage: React.FC = () => {
       footer={
         <div className="flex flex-col gap-2 w-full">
           <div className="flex items-center gap-2 w-full justify-end">
-            <Button size="md" onClick={handlePay}>
+            <Button
+              size="md"
+              onClick={handlePay}
+              disabled={!allVendorsHavePaymentMethod}
+            >
               Pay: ${totalFormatted}
             </Button>
             <DropdownCalendar
@@ -331,7 +385,11 @@ const MultiplePaymentPage: React.FC = () => {
               </Badge>
             </div>
             <div className="flex items-center gap-2">
-              <Button size="md" onClick={handlePay}>
+              <Button
+                size="md"
+                onClick={handlePay}
+                disabled={!allVendorsHavePaymentMethod}
+              >
                 Pay: ${totalFormatted}
               </Button>
               <DropdownCalendar
@@ -483,10 +541,8 @@ const MultiplePaymentPage: React.FC = () => {
       <ConfirmPaymentModal
         open={isConfirmPaymentModalOpen}
         onClose={() => setIsConfirmPaymentModalOpen(false)}
-        onConfirm={() => {
-          setIsConfirmPaymentModalOpen(false);
-          setIsPaymentSubmittedModalOpen(true);
-        }}
+        onConfirm={handleConfirmBulkPayment}
+        isSubmitting={payBulkMutation.isPending}
         totalAmountFormatted={`$${totalFormatted}`}
         amountValute="USD"
         originationAccountLabel={selectedBankAccount?.label ?? ''}

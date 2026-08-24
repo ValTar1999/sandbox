@@ -39,10 +39,12 @@ const TABLE_COL_SPAN = 9;
 
 interface SmartExchangePaymentsTableProps {
   payments: SmartExchangePayment[];
+  onMarkPaid: (paymentId: string) => Promise<unknown>;
 }
 
 const SmartExchangePaymentsTable = ({
   payments,
+  onMarkPaid,
 }: SmartExchangePaymentsTableProps) => {
   const navigate = useNavigate();
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
@@ -51,11 +53,9 @@ const SmartExchangePaymentsTable = ({
   const [markAsPaidPayment, setMarkAsPaidPayment] =
     useState<SmartExchangePayment | null>(null);
   const [markPaidSuccessOpen, setMarkPaidSuccessOpen] = useState(false);
+  const [isMarkingPaid, setIsMarkingPaid] = useState(false);
   const [cardDetailsAfterSuccess, setCardDetailsAfterSuccess] =
     useState<SmartExchangePayment | null>(null);
-  const [paidPaymentIds, setPaidPaymentIds] = useState<Set<string>>(
-    () => new Set()
-  );
   const [revealedCardDetailsRowIds, setRevealedCardDetailsRowIds] = useState<
     Set<string>
   >(() => new Set());
@@ -100,16 +100,23 @@ const SmartExchangePaymentsTable = ({
     []
   );
 
-  const handleConfirmMarkAsPaid = () => {
-    if (!markAsPaidPayment) return;
+  const handleConfirmMarkAsPaid = async () => {
+    if (!markAsPaidPayment || isMarkingPaid) return;
 
-    setPaidPaymentIds((prev) => {
-      const next = new Set(prev);
-      next.add(markAsPaidPayment.id);
-      return next;
-    });
+    const payment = markAsPaidPayment;
+    setIsMarkingPaid(true);
+
+    try {
+      await onMarkPaid(payment.id);
+    } catch (error) {
+      console.error('[smart exchange] could not mark payment as paid', error);
+      return;
+    } finally {
+      setIsMarkingPaid(false);
+    }
+
     setCardDetailsAfterSuccess(
-      markAsPaidPayment.paymentMethod.kind === 'card' ? markAsPaidPayment : null
+      payment.paymentMethod.kind === 'card' ? payment : null
     );
     setMarkAsPaidPayment(null);
     setMarkPaidSuccessOpen(true);
@@ -317,10 +324,6 @@ const SmartExchangePaymentsTable = ({
           </thead>
           <tbody>
             {payments.map((row) => {
-              const effectiveRow = paidPaymentIds.has(row.id)
-                ? ({ ...row, status: 'paid' } as SmartExchangePayment)
-                : row;
-
               return (
                 <React.Fragment key={row.id}>
                   <tr
@@ -388,7 +391,7 @@ const SmartExchangePaymentsTable = ({
                       <PaymentMethodCell method={row.paymentMethod} />
                     </td>
                     <td className={TD_CLASS}>
-                      <StatusCell status={effectiveRow.status} />
+                      <StatusCell status={row.status} />
                     </td>
                     <td
                       className={clsx(TD_CLASS, 'text-right')}
@@ -419,7 +422,7 @@ const SmartExchangePaymentsTable = ({
                     colSpan={TABLE_COL_SPAN}
                     isExpanded={expandedRow === row.id}
                   >
-                    {getExpandableContent(effectiveRow)}
+                    {getExpandableContent(row)}
                   </ExpandableTableRow>
                 </React.Fragment>
               );
@@ -437,6 +440,7 @@ const SmartExchangePaymentsTable = ({
         open={markAsPaidPayment !== null}
         onClose={() => setMarkAsPaidPayment(null)}
         onConfirm={handleConfirmMarkAsPaid}
+        isSubmitting={isMarkingPaid}
       />
       <MarkPaymentPaidSuccessModal
         open={markPaidSuccessOpen}

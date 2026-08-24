@@ -1,35 +1,47 @@
 import { useState, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Box from '../../components/layout/Box';
 import Pagination from '../../components/common/base/Pagination';
 import BoxHeader from '../../components/layout/BoxHeader';
 import VendorsTable from './VendorsTable';
 import type { NetworkAction } from './VendorsTable';
-import { vendors as vendorsData, Vendor, PaymentNetworkStatus } from './data';
+import { Vendor, PaymentNetworkStatus } from './data';
 import NetworkSearchInviteModal from '../../modals/NetworkSearchInviteModal';
 import type { ModalStage } from '../../modals/NetworkSearchInviteModal';
+import TableWithLoading from '../../components/common/base/TableWithLoading';
+import QueryError from '../../components/common/base/QueryError';
+import { useDebouncedValue } from '../../hooks/useDebouncedValue';
+import { useUpdateVendor, useVendors } from '../../hooks/queries/useVendors';
 
 const Vendors = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebouncedValue(searchQuery);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [vendors, setVendors] = useState<Vendor[]>(vendorsData);
+  const { data, isFetching, isError, error, refetch } = useVendors();
+  const updateVendor = useUpdateVendor();
 
   const filteredVendors = useMemo(() => {
-    if (!searchQuery.trim()) return vendors;
-    const query = searchQuery.toLowerCase();
+    const vendors = data?.rows ?? [];
+    if (!debouncedSearch.trim()) return vendors;
+    const query = debouncedSearch.toLowerCase();
     return vendors.filter(
       (v) =>
         v.companyName.toLowerCase().includes(query) ||
         v.companyId.toLowerCase().includes(query)
     );
-  }, [vendors, searchQuery]);
+  }, [data?.rows, debouncedSearch]);
 
   const currentData = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
     return filteredVendors.slice(start, start + itemsPerPage);
   }, [currentPage, itemsPerPage, filteredVendors]);
 
-  const totalPages = Math.ceil(filteredVendors.length / itemsPerPage);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredVendors.length / itemsPerPage)
+  );
 
   const handlePageChange = (page: number) => setCurrentPage(page);
   const handleItemsPerPageChange = (items: number) => {
@@ -52,19 +64,27 @@ const Vendors = () => {
     | undefined
   >(undefined);
 
+  const persistStatus = useCallback(
+    (vendor: Vendor, status: PaymentNetworkStatus) => {
+      updateVendor.mutate({ id: vendor.id, paymentNetworkStatus: status });
+    },
+    [updateVendor]
+  );
+
   const handlePaymentNetworkChange = (
     vendor: Vendor,
     status: PaymentNetworkStatus
   ) => {
-    setVendors((prev) =>
-      prev.map((v) =>
-        v.id === vendor.id ? { ...v, paymentNetworkStatus: status } : v
-      )
-    );
+    persistStatus(vendor, status);
   };
 
   const handleNetworkAction = useCallback(
     (action: NetworkAction, vendor: Vendor) => {
+      if (action.modalType === 'viewPaymentPreferences') {
+        navigate('/smart-exchange/payment-preferences');
+        return;
+      }
+
       if (
         action.modalType === 'inviteToNetwork' ||
         action.modalType === 'resendInvitation' ||
@@ -90,7 +110,7 @@ const Vendors = () => {
         setInviteModalOpen(true);
       }
     },
-    []
+    [navigate]
   );
 
   const handleInviteModalClose = useCallback(() => {
@@ -101,34 +121,34 @@ const Vendors = () => {
   }, []);
 
   const handleInviteSent = useCallback(() => {
-    if (activeVendor) {
-      setVendors((prev) =>
-        prev.map((v) =>
-          v.id === activeVendor.id
-            ? {
-                ...v,
-                paymentNetworkStatus: 'invitationSent' as PaymentNetworkStatus,
-              }
-            : v
-        )
-      );
-    }
-  }, [activeVendor]);
+    if (!activeVendor) return;
+    persistStatus(activeVendor, 'invitationSent');
+  }, [activeVendor, persistStatus]);
+
+  const handleLinkRequestSent = useCallback(() => {
+    if (!activeVendor) return;
+    persistStatus(
+      activeVendor,
+      activeVendor.paymentNetworkStatus === 'requestReceived'
+        ? 'inNetwork'
+        : 'linkRequestPending'
+    );
+  }, [activeVendor, persistStatus]);
+
+  const handleReject = useCallback(() => {
+    if (!activeVendor) return;
+    persistStatus(activeVendor, 'rejected');
+  }, [activeVendor, persistStatus]);
+
+  const handleConfirmVendor = useCallback(() => {
+    if (!activeVendor) return;
+    persistStatus(activeVendor, 'inNetwork');
+  }, [activeVendor, persistStatus]);
 
   const handleUnlink = useCallback(() => {
-    if (activeVendor) {
-      setVendors((prev) =>
-        prev.map((v) =>
-          v.id === activeVendor.id
-            ? {
-                ...v,
-                paymentNetworkStatus: 'notInNetwork' as PaymentNetworkStatus,
-              }
-            : v
-        )
-      );
-    }
-  }, [activeVendor]);
+    if (!activeVendor) return;
+    persistStatus(activeVendor, 'notInNetwork');
+  }, [activeVendor, persistStatus]);
 
   return (
     <Box
@@ -154,16 +174,30 @@ const Vendors = () => {
         </div>
       }
     >
-      <VendorsTable
-        vendors={currentData}
-        onPaymentNetworkChange={handlePaymentNetworkChange}
-        onNetworkAction={handleNetworkAction}
-      />
+      {isError ? (
+        <QueryError
+          message={
+            error instanceof Error ? error.message : 'Could not load vendors.'
+          }
+          onRetry={() => refetch()}
+        />
+      ) : (
+        <TableWithLoading isLoading={isFetching}>
+          <VendorsTable
+            vendors={currentData}
+            onPaymentNetworkChange={handlePaymentNetworkChange}
+            onNetworkAction={handleNetworkAction}
+          />
+        </TableWithLoading>
+      )}
 
       <NetworkSearchInviteModal
         open={inviteModalOpen}
         onClose={handleInviteModalClose}
+        onConfirm={handleConfirmVendor}
         onInviteSent={handleInviteSent}
+        onLinkRequestSent={handleLinkRequestSent}
+        onReject={handleReject}
         onUnlink={handleUnlink}
         initialStage={inviteModalInitialStage}
         modalType={inviteModalType}

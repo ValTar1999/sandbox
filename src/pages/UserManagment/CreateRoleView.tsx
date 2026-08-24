@@ -54,7 +54,7 @@ export type CreateRolePayload = {
 
 type CreateRoleViewProps = {
   onCancel: () => void;
-  onCreateRole: (payload: CreateRolePayload) => void;
+  onCreateRole: (payload: CreateRolePayload) => void | Promise<void>;
   existingRoleNames: string[];
   mode?: 'create' | 'view';
   initialData?: CreateRolePayload;
@@ -296,6 +296,7 @@ const CreateRoleView = ({
   const [limitsApError, setLimitsApError] = useState(false);
   const [limitsArError, setLimitsArError] = useState(false);
   const [isRoleCreatedModalOpen, setIsRoleCreatedModalOpen] = useState(false);
+  const [isCreatingRole, setIsCreatingRole] = useState(false);
 
   useEffect(() => {
     if (mode !== 'create' || !initialData) return;
@@ -348,6 +349,11 @@ const CreateRoleView = ({
             timeframeLimitsByMethod: advancedMethodTimeframeLimits,
             perBillLimitsByMethod: advancedMethodPerBillLimits,
           }),
+          advanced: {
+            periodsByMethod: advancedMethodPeriods,
+            timeframeLimitsByMethod: advancedMethodTimeframeLimits,
+            perBillLimitsByMethod: advancedMethodPerBillLimits,
+          },
         },
       }));
       if (limitsType === 'ap') setLimitsApError(false);
@@ -379,6 +385,11 @@ const CreateRoleView = ({
       [limitsType]: {
         mode: 'global',
         summary: `${timeframeLabel}: $${timeframeLimit}. Bill/Invoice: $${perInvoiceLimit}.`,
+        global: {
+          timeframeId: selectedTimeframeId,
+          timeframeLimit,
+          perInvoiceLimit,
+        },
       },
     }));
     if (limitsType === 'ap') setLimitsApError(false);
@@ -386,7 +397,7 @@ const CreateRoleView = ({
     setIsLimitsModalOpen(false);
   };
 
-  const handleCreateRole = () => {
+  const handleCreateRole = async () => {
     const normalizedRoleName = roleName.trim();
     const normalizedDescription = roleDescription.trim();
     const hasSelectedPreset = selectedPresetId.trim().length > 0;
@@ -418,14 +429,23 @@ const CreateRoleView = ({
       return;
     }
 
-    onCreateRole({
-      presetId: selectedPresetId,
-      roleName: normalizedRoleName,
-      description: normalizedDescription,
-      application: selectedPreset?.application ?? 'SMART Hub & DevPortal',
-      permissionsBySection: selectedPermissionsBySection,
-      limitsSummaryByType,
-    });
+    setIsCreatingRole(true);
+    try {
+      await onCreateRole({
+        presetId: selectedPresetId,
+        roleName: normalizedRoleName,
+        description: normalizedDescription,
+        application: selectedPreset?.application ?? 'SMART Hub & DevPortal',
+        permissionsBySection: selectedPermissionsBySection,
+        limitsSummaryByType,
+      });
+    } catch (error) {
+      console.error('[roles] could not create the role', error);
+      return;
+    } finally {
+      setIsCreatingRole(false);
+    }
+
     setIsRoleCreatedModalOpen(true);
   };
 
@@ -997,7 +1017,12 @@ const CreateRoleView = ({
         <Button variant="secondary" size="lg" onClick={onCancel}>
           Cancel
         </Button>
-        <Button variant="primary" size="lg" onClick={handleCreateRole}>
+        <Button
+          variant="primary"
+          size="lg"
+          onClick={handleCreateRole}
+          disabled={isCreatingRole}
+        >
           Create
         </Button>
       </div>

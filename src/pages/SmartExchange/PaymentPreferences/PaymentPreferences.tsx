@@ -10,6 +10,10 @@ import ReverifyCardProcessingModal from '../../../modals/ReverifyCardProcessingM
 import SmallDepositNotSeenModal from '../../../modals/SmallDepositNotSeenModal';
 import { useDraftState } from '../../../hooks/useDraftState';
 import { useSmartExchangeSetupAlert } from '../../../context/smartExchangeSetupAlert';
+import {
+  usePaymentPreferences,
+  useSavePaymentPreferences,
+} from '../../../hooks/queries/usePaymentPreferences';
 import PaymentMethodsTab from './PaymentMethodsTab';
 import GlobalPreferencesTab from './GlobalPreferencesTab';
 import AdvancedSettingsTab from './AdvancedSettingsTab';
@@ -23,10 +27,12 @@ import {
 
 const PreferencesFooterActions = ({
   hasChanges,
+  isSaving,
   onCancel,
   onSave,
 }: {
   hasChanges: boolean;
+  isSaving?: boolean;
   onCancel: () => void;
   onSave: () => void;
 }) => (
@@ -35,11 +41,11 @@ const PreferencesFooterActions = ({
       variant="secondary"
       size="md"
       onClick={onCancel}
-      disabled={!hasChanges}
+      disabled={!hasChanges || isSaving}
     >
       Cancel
     </Button>
-    <Button size="md" onClick={onSave} disabled={!hasChanges}>
+    <Button size="md" onClick={onSave} disabled={!hasChanges || isSaving}>
       Save
     </Button>
   </div>
@@ -70,12 +76,15 @@ const PaymentPreferences = () => {
     enableCardProcessing,
     disableCardProcessing,
   } = useSmartExchangeSetupAlert();
+  const { data: storedPreferences } = usePaymentPreferences();
+  const savePreferences = useSavePaymentPreferences();
   const {
     draft: globalPreferences,
     setDraft: setGlobalPreferences,
     hasChanges: hasGlobalPreferencesChanges,
     cancel: handleCancelGlobalPreferences,
     save: handleSaveGlobalPreferences,
+    resetBoth: resetGlobalPreferences,
   } = useDraftState(defaultGlobalPaymentPreferences);
   const [isAdvancedCustomizing, setIsAdvancedCustomizing] = useState(false);
   const {
@@ -85,11 +94,19 @@ const PaymentPreferences = () => {
     hasChanges: hasAdvancedSettingsChanges,
     cancel: handleCancelAdvancedSettings,
     save: handleSaveAdvancedSettings,
+    resetBoth: resetPayerPreferenceRows,
   } = useDraftState<PayerSpecificPreferenceRow[]>([]);
 
   useEffect(() => {
     setAutomaticCardProcessingVariant(initialAutomaticCardProcessingVariant);
   }, [initialAutomaticCardProcessingVariant]);
+
+  // The drafts start from whatever the backend has stored.
+  useEffect(() => {
+    if (!storedPreferences) return;
+    resetGlobalPreferences(storedPreferences.global);
+    resetPayerPreferenceRows(storedPreferences.payerRows);
+  }, [storedPreferences, resetGlobalPreferences, resetPayerPreferenceRows]);
 
   useEffect(() => {
     if (activeTab !== 'advanced-settings') return;
@@ -132,9 +149,27 @@ const PaymentPreferences = () => {
     }
   };
 
-  const handleSaveAdvancedSettingsWithState = () => {
+  const handleSaveAdvancedSettingsWithState = async () => {
+    try {
+      await savePreferences.mutateAsync({ payerRows: payerPreferenceRows });
+    } catch (error) {
+      console.error('[payment preferences] could not save', error);
+      return;
+    }
+
     handleSaveAdvancedSettings();
     setIsAdvancedCustomizing(true);
+  };
+
+  const handleSaveGlobalPreferencesWithContext = async () => {
+    try {
+      await savePreferences.mutateAsync({ global: globalPreferences });
+    } catch (error) {
+      console.error('[payment preferences] could not save', error);
+      return;
+    }
+
+    handleSaveGlobalPreferences();
   };
 
   const footer =
@@ -142,13 +177,15 @@ const PaymentPreferences = () => {
       <PreferencesFooterActions
         hasChanges={hasGlobalPreferencesChanges}
         onCancel={handleCancelGlobalPreferences}
-        onSave={handleSaveGlobalPreferences}
+        onSave={handleSaveGlobalPreferencesWithContext}
+        isSaving={savePreferences.isPending}
       />
     ) : showAdvancedSettingsFooter ? (
       <PreferencesFooterActions
         hasChanges={hasAdvancedSettingsChanges}
         onCancel={handleCancelAdvancedSettingsWithReset}
         onSave={handleSaveAdvancedSettingsWithState}
+        isSaving={savePreferences.isPending}
       />
     ) : undefined;
 

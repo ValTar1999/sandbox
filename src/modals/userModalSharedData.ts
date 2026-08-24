@@ -14,9 +14,28 @@ export type PermissionSection = {
 
 export type LimitsMode = 'global' | 'advanced';
 
+export type GlobalLimitsValues = {
+  timeframeId: string;
+  timeframeLimit: string;
+  perInvoiceLimit: string;
+};
+
+export type AdvancedLimitsValues = {
+  periodsByMethod: Record<string, string>;
+  timeframeLimitsByMethod: Record<string, string>;
+  perBillLimitsByMethod: Record<string, string>;
+};
+
+/**
+ * `summary` is the human readable line shown in the UI. It is lossy for the
+ * advanced mode (only the first method survives), so the raw values are kept
+ * alongside it to make the edit round-trip non-destructive.
+ */
 export type LimitsSummary = {
   mode: LimitsMode;
   summary: string;
+  global?: GlobalLimitsValues;
+  advanced?: AdvancedLimitsValues;
 };
 
 export type AdvancedMethodFieldErrors = {
@@ -118,6 +137,39 @@ export const permissionSections: PermissionSection[] = [
     ],
   },
 ];
+
+const permissionsFromSections = (sectionIds: string[]) =>
+  Object.fromEntries(
+    permissionSections.map((section) => [
+      section.id,
+      sectionIds.includes(section.id) ? section.permissions : [],
+    ])
+  );
+
+/**
+ * Which permissions each seeded role preset grants. Roles that have never been
+ * opened in the create/edit form have no stored payload, so this is the only
+ * source of truth for what they are allowed to do.
+ */
+export const permissionsByPreset: Record<string, Record<string, string[]>> = {
+  'full-access': permissionsFromSections(
+    permissionSections.map((section) => section.id)
+  ),
+  'view-only': Object.fromEntries(
+    permissionSections.map((section) => [
+      section.id,
+      section.permissions.filter((permission) => permission.startsWith('View')),
+    ])
+  ),
+  'ap-only': permissionsFromSections(['accounts-payable']),
+  'ar-only': permissionsFromSections(['accounts-receivable']),
+  technical: permissionsFromSections(['user-management']),
+};
+
+export const getPermissionsForPreset = (
+  presetId?: string
+): Record<string, string[]> =>
+  (presetId && permissionsByPreset[presetId]) || {};
 
 export const timeframeOptions: TimeframeOption[] = [
   { id: 'daily', label: 'Daily' },

@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import clsx from 'clsx';
+import { useQueryClient } from '@tanstack/react-query';
 import Icon from '../base/Icon';
 import Spinner from '../base/Spinner';
 
 export function RefreshButton() {
+  const queryClient = useQueryClient();
   const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle');
 
   const handleClick = async () => {
     if (status === 'loading') return;
     setStatus('loading');
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await queryClient.invalidateQueries();
     setStatus('success');
 
     setTimeout(() => setStatus('idle'), 2000);

@@ -5,7 +5,10 @@ export interface SmartExchangeSetupAlertContextValue {
   showSetupAlert: () => void;
   hideSetupAlert: () => void;
   cardProcessingEnabled: boolean;
-  enableCardProcessing: () => void;
+  enableCardProcessing: (details?: {
+    signedBy?: string;
+    confirmedAt?: string;
+  }) => void;
   disableCardProcessing: () => void;
 }
 

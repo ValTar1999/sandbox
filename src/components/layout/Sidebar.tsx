@@ -402,7 +402,7 @@ AccountInfoContent.displayName = 'AccountInfoContent';
 const SettingsTooltipContent = memo(() => {
   const settingsLinks = [
     { to: '/settings/business-details', label: 'My Company Profile' },
-    { to: '/settings/payment-preferences', label: 'Payment Preferences' },
+    { to: '/smart-exchange/payment-preferences', label: 'Payment Preferences' },
     { to: '/settings/user-management', label: 'User Management' },
   ];
 

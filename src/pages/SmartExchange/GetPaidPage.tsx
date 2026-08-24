@@ -1,4 +1,4 @@
-﻿import { useMemo, useState, type ReactNode } from 'react';
+﻿import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { format, parseISO } from 'date-fns';
 import Box from '../../components/layout/Box';
@@ -42,6 +42,17 @@ import {
 } from './getPaid/components/DisputeModals';
 import SignatureModal from './getPaid/components/SignatureModal';
 import DocumentReviewModal from './getPaid/components/DocumentReviewModal';
+import Loading from '../../components/common/base/Loading';
+import QueryError from '../../components/common/base/QueryError';
+import { ApiError } from '../../api/client';
+import { usePaymentPreferences } from '../../hooks/queries/usePaymentPreferences';
+import { useSmartExchangeSetupAlert } from '../../context/smartExchangeSetupAlert';
+import {
+  useSmartExchangePayment,
+  useSubmitDispute,
+  useSubmitGetPaid,
+} from '../../hooks/queries/useSmartExchange';
+import { resolvePaymentMethod } from './PaymentPreferences/utils';
 
 type GetPaidActivityLogItem = NonNullable<
   (typeof smartExchangePayments)[number]['getPaidActivityLog']
@@ -97,10 +108,49 @@ const GetPaidPage = () => {
   const [signatureModalOpen, setSignatureModalOpen] = useState(false);
   const [signatureSigned, setSignatureSigned] = useState(false);
 
-  const payment = useMemo(
-    () => smartExchangePayments.find((row) => row.id === id),
-    [id]
+  const {
+    data: payment,
+    isPending: isPaymentPending,
+    isError: isPaymentError,
+    error: paymentError,
+    refetch: refetchPayment,
+  } = useSmartExchangePayment(id);
+  const { data: storedPreferences } = usePaymentPreferences();
+  const { enableCardProcessing } = useSmartExchangeSetupAlert();
+  const submitGetPaidMutation = useSubmitGetPaid();
+  const submitDisputeMutation = useSubmitDispute();
+
+  const preferredMethod = useMemo(
+    () =>
+      payment && storedPreferences
+        ? resolvePaymentMethod({
+            payerName: payment.customer,
+            globalPreferences: storedPreferences.global,
+            payerPreferenceRows: storedPreferences.payerRows,
+          })
+        : null,
+    [payment, storedPreferences]
   );
+
+  useEffect(() => {
+    const cardProcessing = storedPreferences?.cardProcessing;
+    if (!cardProcessing?.enabled) return;
+    setAutomaticCardProcessingOptedIn(true);
+    setAutomaticCardProcessingSignedBy(cardProcessing.signedBy);
+    setAutomaticCardProcessingConfirmedAt(cardProcessing.confirmedAt);
+    setShowAutomaticCardBanner(false);
+  }, [storedPreferences]);
+
+  // Preferences only seed the initial choice; a refetch must not overwrite what
+  // the user picked by hand.
+  const didPrefillMethod = useRef(false);
+  useEffect(() => {
+    if (didPrefillMethod.current || !preferredMethod) return;
+
+    didPrefillMethod.current = true;
+    setSelectedMethod(preferredMethod.method);
+    setSelectedBankAccount(preferredMethod.bankAccount ?? '');
+  }, [preferredMethod]);
 
   const cardPaymentForDetails = useMemo(() => {
     if (!payment) {
@@ -109,11 +159,36 @@ const GetPaidPage = () => {
     if (payment.paymentMethod.kind === 'card') {
       return payment;
     }
+    // Demo filler: the card details modal needs some card to show when this
+    // payment is not a card payment. Card details are static reference data.
     return (
       smartExchangePayments.find((row) => row.paymentMethod.kind === 'card') ??
       null
     );
   }, [payment]);
+
+  if (isPaymentPending) {
+    return (
+      <Box className="max-w-7xl mx-auto">
+        <Loading />
+      </Box>
+    );
+  }
+
+  if (isPaymentError) {
+    return (
+      <Box className="max-w-7xl mx-auto">
+        <QueryError
+          message={
+            paymentError instanceof Error
+              ? paymentError.message
+              : 'Could not load this payment.'
+          }
+          onRetry={() => refetchPayment()}
+        />
+      </Box>
+    );
+  }
 
   if (!payment) {
     return (
@@ -161,7 +236,20 @@ const GetPaidPage = () => {
 
   const transactionId = `233DFER${payment.id.replace(/-/g, '').toUpperCase()}EV45GT`;
 
-  const handleSubmitGetPaid = () => {
+  const handleSubmitGetPaid = async () => {
+    try {
+      await submitGetPaidMutation.mutateAsync({
+        id: payment.id,
+        method: selectedMethod,
+        bankAccount: selectedBankAccount,
+        signedBy: signatureSigned ? cardholderDetails.name : null,
+        acceptedAttachments: Object.keys(acceptedAttachments),
+      });
+    } catch (error) {
+      console.error('[get paid] submission failed', error);
+      return;
+    }
+
     setSubmitSuccessModalOpen(true);
   };
 
@@ -246,10 +334,24 @@ const GetPaidPage = () => {
     return errors;
   };
 
-  const handleDisputeFormSubmit = () => {
+  const handleDisputeFormSubmit = async () => {
     const errors = validateDisputeForm();
     setDisputeFormErrors(errors);
     if (Object.keys(errors).length > 0) {
+      return;
+    }
+
+    try {
+      await submitDisputeMutation.mutateAsync({
+        id: payment.id,
+        ...disputeForm,
+      });
+    } catch (error) {
+      if (error instanceof ApiError && error.fieldErrors) {
+        setDisputeFormErrors(error.fieldErrors as DisputeFormErrors);
+        return;
+      }
+      console.error('[get paid] dispute failed', error);
       return;
     }
 
@@ -278,7 +380,7 @@ const GetPaidPage = () => {
           <div className="flex w-full justify-end">
             <Button
               size="md"
-              disabled={!isSubmitReady}
+              disabled={!isSubmitReady || submitGetPaidMutation.isPending}
               onClick={handleSubmitGetPaid}
             >
               Submit and Get Paid
@@ -332,7 +434,7 @@ const GetPaidPage = () => {
             {!paymentDisputed && (
               <Button
                 size="md"
-                disabled={!isSubmitReady}
+                disabled={!isSubmitReady || submitGetPaidMutation.isPending}
                 onClick={handleSubmitGetPaid}
               >
                 Submit and Get Paid
@@ -748,6 +850,7 @@ const GetPaidPage = () => {
           setAutomaticCardProcessingOptedIn(true);
           setAutomaticCardProcessingSignedBy(signedBy);
           setAutomaticCardProcessingConfirmedAt(confirmedAt);
+          enableCardProcessing({ signedBy, confirmedAt });
         }}
         onDelegatedPending={({ delegatedTo, email, sentAt }) => {
           setOptInModalOpen(false);

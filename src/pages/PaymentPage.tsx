@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { useParams, useNavigate } from 'react-router-dom';
-import { payments, Payment } from './BillsPayables/data';
+import { Payment } from './BillsPayables/data';
+import { usePayable, usePayPayable } from '../hooks/queries/usePayables';
+import Loading from '../components/common/base/Loading';
+import QueryError from '../components/common/base/QueryError';
 import Button from '../components/common/base/Button';
 import ScheduleForBox from '../components/common/base/ScheduleForBox';
 import Badge from '../components/common/base/Badge';
@@ -260,7 +263,14 @@ const PaymentPage = () => {
   const [isSmartDisburseInputFocused, setIsSmartDisburseInputFocused] =
     useState(false);
 
-  const payment = useMemo(() => payments.find((p) => p.id === id), [id]);
+  const {
+    data: payment,
+    isPending: isPaymentPending,
+    isError: isPaymentError,
+    error: paymentError,
+    refetch: refetchPayment,
+  } = usePayable(id);
+  const payPayableMutation = usePayPayable();
 
   // Мемоизированные булевы флаги
   const isCardMethod = useMemo(
@@ -533,7 +543,7 @@ const PaymentPage = () => {
 
   // Pay Modal
   const handlePayClick = useCallback(
-    (payment: (typeof payments)[0]) => {
+    (payment: Payment) => {
       void payment;
       const hasErrors =
         !selectedAccount ||
@@ -570,10 +580,23 @@ const PaymentPage = () => {
     ]
   );
 
-  const handlePayConfirm = useCallback(() => {
+  const handlePayConfirm = useCallback(async () => {
+    if (!payment) return;
+
+    try {
+      await payPayableMutation.mutateAsync({
+        id: payment.id,
+        method: selectedMethod,
+        scheduledFor: selectedDate,
+      });
+    } catch (error) {
+      console.error('[payables] payment failed', error);
+      return;
+    }
+
     setIsPayModalOpen(false);
     setIsPaymentSubmittedModalOpen(true);
-  }, []);
+  }, [payment, payPayableMutation, selectedMethod, selectedDate]);
 
   const handlePayClose = useCallback(() => {
     setIsPayModalOpen(false);
@@ -582,19 +605,21 @@ const PaymentPage = () => {
   // Payment Submitted Modal
   const handlePaymentSubmittedConfirm = useCallback(() => {
     setIsPaymentSubmittedModalOpen(false);
-  }, []);
+    navigate('/payables');
+  }, [navigate]);
 
   const handlePaymentSubmittedClose = useCallback(() => {
     setIsPaymentSubmittedModalOpen(false);
   }, []);
 
   // Choose Data Modal
-  const handleChooseDataClick = useCallback((payment: (typeof payments)[0]) => {
+  const handleChooseDataClick = useCallback((payment: Payment) => {
     void payment;
     setIsChooseDataModalOpen(true);
   }, []);
 
-  const handleChooseDataModalConfirm = useCallback(() => {
+  const handleChooseDataModalConfirm = useCallback((date: string) => {
+    setSelectedDate(date);
     setIsChooseDataModalOpen(false);
   }, []);
 
@@ -602,6 +627,23 @@ const PaymentPage = () => {
     setIsChooseDataModalOpen(false);
   }, []);
   // --------------------------------------------------
+
+  if (isPaymentPending) {
+    return <Loading />;
+  }
+
+  if (isPaymentError) {
+    return (
+      <QueryError
+        message={
+          paymentError instanceof Error
+            ? paymentError.message
+            : 'Could not load this payment.'
+        }
+        onRetry={() => refetchPayment()}
+      />
+    );
+  }
 
   if (!payment) {
     return <div className="p-6 text-red-500">Payment not found</div>;
@@ -1278,6 +1320,7 @@ const PaymentPage = () => {
             open={isPayModalOpen}
             onClose={handlePayClose}
             onConfirm={handlePayConfirm}
+            isSubmitting={payPayableMutation.isPending}
             paymentMethod={selectedMethod}
             sendingMethod={selectedSendingMethod}
             contactEmail={contactEmail}

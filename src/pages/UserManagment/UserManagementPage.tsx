@@ -24,19 +24,24 @@ import {
   advancedLimitMethods,
   advancedPeriodOptions,
   type AdvancedMethodFieldErrors,
-  type LimitsSummary,
   formatAmountValue,
-  permissionSections as createRolePermissionSections,
+  getPermissionsForPreset,
   roleOptions,
   timeframeOptions,
 } from '../../modals/userModalSharedData';
+import { statusConfig, type UserRow, type RoleRow } from './data';
+import QueryError from '../../components/common/base/QueryError';
+import TableWithLoading from '../../components/common/base/TableWithLoading';
 import {
-  usersData,
-  rolesData,
-  statusConfig,
-  type UserRow,
-  type RoleRow,
-} from './data';
+  useCreateRole,
+  useCreateUser,
+  useDeleteUser,
+  useRoles,
+  useUpdateRole,
+  useUpdateUser,
+  useUsers,
+} from '../../hooks/queries/useUsers';
+import type { UserLimits } from '../../api/users';
 import CreateRoleView, { type CreateRolePayload } from './CreateRoleView';
 import {
   createAdvancedLimitsSummary,
@@ -51,13 +56,11 @@ import {
 type TabType = 'users' | 'roles';
 type RolesViewMode = 'list' | 'create' | 'view';
 type LimitsTargetType = 'ap' | 'ar';
-const ROLE_DESCRIPTION_MAX_LENGTH = 120;
 
-const truncateRoleDescription = (value: string) => {
-  const normalized = value.trim().replace(/\s+/g, ' ');
-  if (normalized.length <= ROLE_DESCRIPTION_MAX_LENGTH) return normalized;
-  return `${normalized.slice(0, ROLE_DESCRIPTION_MAX_LENGTH).trimEnd()}...`;
-};
+const EMPTY_USERS: UserRow[] = [];
+const EMPTY_ROLES: RoleRow[] = [];
+const EMPTY_USER_LIMITS: Record<string, UserLimits> = {};
+const EMPTY_ROLE_PAYLOADS: Record<string, CreateRolePayload> = {};
 
 const UserManagementPage = () => {
   const navigate = useNavigate();
@@ -67,14 +70,18 @@ const UserManagementPage = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
-  const [users, setUsers] = useState<UserRow[]>(usersData);
-  const [roles, setRoles] = useState<RoleRow[]>(rolesData);
-  const [userLimitsById, setUserLimitsById] = useState<
-    Record<string, { ap?: LimitsSummary; ar?: LimitsSummary }>
-  >({});
-  const [rolePayloadById, setRolePayloadById] = useState<
-    Record<string, CreateRolePayload>
-  >({});
+  const usersQuery = useUsers();
+  const rolesQuery = useRoles();
+  const createUserMutation = useCreateUser();
+  const updateUserMutation = useUpdateUser();
+  const deleteUserMutation = useDeleteUser();
+  const createRoleMutation = useCreateRole();
+  const updateRoleMutation = useUpdateRole();
+
+  const users = usersQuery.data?.rows ?? EMPTY_USERS;
+  const roles = rolesQuery.data?.rows ?? EMPTY_ROLES;
+  const userLimitsById = usersQuery.data?.limitsById ?? EMPTY_USER_LIMITS;
+  const rolePayloadById = rolesQuery.data?.payloadById ?? EMPTY_ROLE_PAYLOADS;
   const [roleToView, setRoleToView] = useState<RoleRow | null>(null);
   const [createRoleInitialData, setCreateRoleInitialData] =
     useState<CreateRolePayload>();
@@ -140,6 +147,7 @@ const UserManagementPage = () => {
     () => (activeTab === 'users' ? filteredUsers : filteredRoles),
     [activeTab, filteredUsers, filteredRoles]
   );
+  const activeQuery = activeTab === 'users' ? usersQuery : rolesQuery;
   const totalRows = currentRows.length;
   const totalPages = Math.max(1, Math.ceil(totalRows / rowsPerPage));
   const safeCurrentPage = Math.min(currentPage, totalPages);
@@ -217,12 +225,6 @@ const UserManagementPage = () => {
       const matchingRoleOption = roleOptions.find(
         (option) => option.name === role.roleName
       );
-      const fullPermissionsBySection = Object.fromEntries(
-        createRolePermissionSections.map((section) => [
-          section.id,
-          section.permissions,
-        ])
-      ) as Record<string, string[]>;
 
       return {
         presetId: matchingRoleOption?.id,
@@ -231,7 +233,7 @@ const UserManagementPage = () => {
           matchingRoleOption?.description ??
           role.description.replace(/\.\.\.$/, '.'),
         application: role.application,
-        permissionsBySection: fullPermissionsBySection,
+        permissionsBySection: getPermissionsForPreset(matchingRoleOption?.id),
         limitsSummaryByType: {},
       };
     },
@@ -253,22 +255,42 @@ const UserManagementPage = () => {
   const openRoleLimitsModal = useCallback(
     (role: RoleRow, type: LimitsTargetType) => {
       const payload = getRolePayload(role);
-      const existingSummary = payload.limitsSummaryByType[type]?.summary ?? '';
-      const { timeframeLabel, timeframeLimit, perInvoiceLimit } =
-        parseGlobalLimitsSummary(existingSummary);
-      const timeframeId =
-        timeframeOptions.find((option) => option.label === timeframeLabel)
-          ?.id ?? 'weekly';
+      const existingLimits = payload.limitsSummaryByType[type];
+
+      // Prefer the structured values; fall back to parsing the summary line for
+      // seeded roles seeded before the structured fields existed.
+      const globalValues =
+        existingLimits?.global ??
+        (() => {
+          const { timeframeLabel, timeframeLimit, perInvoiceLimit } =
+            parseGlobalLimitsSummary(existingLimits?.summary ?? '');
+          return {
+            timeframeId:
+              timeframeOptions.find((option) => option.label === timeframeLabel)
+                ?.id ?? 'weekly',
+            timeframeLimit,
+            perInvoiceLimit,
+          };
+        })();
 
       setLimitsRoleTarget(role);
       setLimitsTargetType(type);
-      setRoleLimitsMode(payload.limitsSummaryByType[type]?.mode ?? 'global');
-      setRoleLimitsTimeframeId(timeframeId);
-      setRoleLimitsTimeframeLimit(timeframeLimit);
-      setRoleLimitsPerInvoiceLimit(perInvoiceLimit);
-      setRoleAdvancedMethodPeriods(createEmptyAdvancedMethodMap());
-      setRoleAdvancedMethodTimeframeLimits(createEmptyAdvancedMethodMap());
-      setRoleAdvancedMethodPerBillLimits(createEmptyAdvancedMethodMap());
+      setRoleLimitsMode(existingLimits?.mode ?? 'global');
+      setRoleLimitsTimeframeId(globalValues.timeframeId);
+      setRoleLimitsTimeframeLimit(globalValues.timeframeLimit);
+      setRoleLimitsPerInvoiceLimit(globalValues.perInvoiceLimit);
+      setRoleAdvancedMethodPeriods(
+        existingLimits?.advanced?.periodsByMethod ??
+          createEmptyAdvancedMethodMap()
+      );
+      setRoleAdvancedMethodTimeframeLimits(
+        existingLimits?.advanced?.timeframeLimitsByMethod ??
+          createEmptyAdvancedMethodMap()
+      );
+      setRoleAdvancedMethodPerBillLimits(
+        existingLimits?.advanced?.perBillLimitsByMethod ??
+          createEmptyAdvancedMethodMap()
+      );
       setRoleAdvancedMethodErrors(createEmptyAdvancedMethodErrors());
       setRoleLimitsTimeframeError(false);
       setRoleLimitsSelectError(false);
@@ -278,7 +300,7 @@ const UserManagementPage = () => {
     [getRolePayload]
   );
 
-  const handleApplyRoleLimits = useCallback(() => {
+  const handleApplyRoleLimits = useCallback(async () => {
     if (!limitsRoleTarget) return;
 
     if (roleLimitsMode === 'advanced') {
@@ -306,14 +328,25 @@ const UserManagementPage = () => {
           [limitsTargetType]: {
             mode: 'advanced',
             summary,
+            advanced: {
+              periodsByMethod: roleAdvancedMethodPeriods,
+              timeframeLimitsByMethod: roleAdvancedMethodTimeframeLimits,
+              perBillLimitsByMethod: roleAdvancedMethodPerBillLimits,
+            },
           },
         },
       };
 
-      setRolePayloadById((prev) => ({
-        ...prev,
-        [limitsRoleTarget.id]: nextPayload,
-      }));
+      try {
+        await updateRoleMutation.mutateAsync({
+          id: limitsRoleTarget.id,
+          payload: nextPayload,
+        });
+      } catch (error) {
+        console.error('[roles] could not save limits', error);
+        return;
+      }
+
       setIsRoleLimitsModalOpen(false);
       return;
     }
@@ -346,18 +379,30 @@ const UserManagementPage = () => {
         [limitsTargetType]: {
           mode: 'global',
           summary: `${timeframeLabel}: $${roleLimitsTimeframeLimit}. Bill/Invoice: $${roleLimitsPerInvoiceLimit}.`,
+          global: {
+            timeframeId: roleLimitsTimeframeId,
+            timeframeLimit: roleLimitsTimeframeLimit,
+            perInvoiceLimit: roleLimitsPerInvoiceLimit,
+          },
         },
       },
     };
 
-    setRolePayloadById((prev) => ({
-      ...prev,
-      [limitsRoleTarget.id]: nextPayload,
-    }));
+    try {
+      await updateRoleMutation.mutateAsync({
+        id: limitsRoleTarget.id,
+        payload: nextPayload,
+      });
+    } catch (error) {
+      console.error('[roles] could not save limits', error);
+      return;
+    }
+
     setIsRoleLimitsModalOpen(false);
   }, [
     getRolePayload,
     limitsRoleTarget,
+    updateRoleMutation,
     limitsTargetType,
     roleAdvancedMethodPerBillLimits,
     roleAdvancedMethodPeriods,
@@ -426,22 +471,8 @@ const UserManagementPage = () => {
           initialData={
             isRoleDetailsView ? selectedRolePayload : createRoleInitialData
           }
-          onCreateRole={(payload) => {
-            const { roleName, description, application } = payload;
-            const newRoleId = `r-${Date.now()}`;
-            setRoles((prev) => [
-              {
-                id: newRoleId,
-                roleName,
-                description: truncateRoleDescription(description),
-                application,
-              },
-              ...prev,
-            ]);
-            setRolePayloadById((prev) => ({
-              ...prev,
-              [newRoleId]: payload,
-            }));
+          onCreateRole={async (payload) => {
+            await createRoleMutation.mutateAsync(payload);
             setCreateRoleInitialData(undefined);
             setSearchValue('');
             setCurrentPage(1);
@@ -548,48 +579,54 @@ const UserManagementPage = () => {
             </div>
           }
         >
-          {activeTab === 'users' ? (
-            <UsersTable
-              users={paginatedRows as UserRow[]}
-              onDeleteClick={handleDeleteClick}
-              onEditClick={handleEditClick}
-              onInviteClick={handleAddUser}
+          {activeQuery.isError ? (
+            <QueryError
+              message={
+                activeQuery.error instanceof Error
+                  ? activeQuery.error.message
+                  : 'Could not load the list.'
+              }
+              onRetry={() => activeQuery.refetch()}
             />
           ) : (
-            <RolesTable
-              roles={paginatedRows as RoleRow[]}
-              onViewClick={(role) => {
-                setRoleToView(role);
-                setRolesViewMode('view');
-              }}
-              onDuplicateClick={(role) => {
-                setCreateRoleInitialData(getRolePayload(role));
-                setRolesViewMode('create');
-              }}
-              onSetLimitsClick={(role, type) => openRoleLimitsModal(role, type)}
-            />
+            <TableWithLoading isLoading={activeQuery.isFetching}>
+              {activeTab === 'users' ? (
+                <UsersTable
+                  users={paginatedRows as UserRow[]}
+                  onDeleteClick={handleDeleteClick}
+                  onEditClick={handleEditClick}
+                  onInviteClick={handleAddUser}
+                />
+              ) : (
+                <RolesTable
+                  roles={paginatedRows as RoleRow[]}
+                  onViewClick={(role) => {
+                    setRoleToView(role);
+                    setRolesViewMode('view');
+                  }}
+                  onDuplicateClick={(role) => {
+                    setCreateRoleInitialData(getRolePayload(role));
+                    setRolesViewMode('create');
+                  }}
+                  onSetLimitsClick={(role, type) =>
+                    openRoleLimitsModal(role, type)
+                  }
+                />
+              )}
+            </TableWithLoading>
           )}
         </Box>
       )}
       <AddNewUserModal
         open={isAddUserModalOpen}
         onClose={() => setIsAddUserModalOpen(false)}
-        onInviteUser={({ name, email, role, limitsSummaryByType }) => {
-          const newUserId = `u-${Date.now()}`;
-          setUsers((prev) => [
-            {
-              id: newUserId,
-              name,
-              email,
-              role,
-              status: 'invitationSent',
-            },
-            ...prev,
-          ]);
-          setUserLimitsById((prev) => ({
-            ...prev,
-            [newUserId]: limitsSummaryByType,
-          }));
+        onInviteUser={async ({ name, email, role, limitsSummaryByType }) => {
+          await createUserMutation.mutateAsync({
+            name,
+            email,
+            role,
+            limitsSummaryByType,
+          });
           setSearchValue('');
           setCurrentPage(1);
         }}
@@ -599,57 +636,40 @@ const UserManagementPage = () => {
         user={userToEdit}
         initialLimits={userToEdit ? userLimitsById[userToEdit.id] : undefined}
         onClose={() => setUserToEdit(null)}
-        onSaveUser={(userId, payload) => {
-          setUsers((prev) =>
-            prev.map((row) =>
-              row.id === userId
-                ? {
-                    ...row,
-                    name: payload.name,
-                    email: payload.email,
-                    role: payload.role,
-                    avatarUrl: payload.avatarUrl,
-                  }
-                : row
-            )
-          );
-          setUserToEdit((prev) =>
-            prev && prev.id === userId
-              ? {
-                  ...prev,
-                  name: payload.name,
-                  email: payload.email,
-                  role: payload.role,
-                  avatarUrl: payload.avatarUrl,
-                }
-              : prev
-          );
-        }}
-        onSaveLimits={(userId, limits) => {
-          setUserLimitsById((prev) => ({ ...prev, [userId]: limits }));
-        }}
-        onRemoveUser={(user) => {
-          setUsers((prev) => prev.filter((row) => row.id !== user.id));
-          setUserLimitsById((prev) => {
-            const next = { ...prev };
-            delete next[user.id];
-            return next;
+        onSaveUser={async (userId, payload) => {
+          const saved = await updateUserMutation.mutateAsync({
+            id: userId,
+            name: payload.name,
+            email: payload.email,
+            role: payload.role,
+            avatarUrl: payload.avatarUrl,
           });
+          setUserToEdit((prev) => (prev && prev.id === userId ? saved : prev));
+        }}
+        onSaveLimits={async (userId, limits) => {
+          await updateUserMutation.mutateAsync({
+            id: userId,
+            limitsSummaryByType: limits,
+          });
+        }}
+        onRemoveUser={async (user) => {
+          await deleteUserMutation.mutateAsync(user.id);
           setUserToEdit(null);
         }}
       />
       <RemoveUserModal
         user={userToDelete}
         onClose={() => setUserToDelete(null)}
-        onConfirm={() => {
+        onConfirm={async () => {
           if (!userToDelete) return;
-          const deletedUserId = userToDelete.id;
-          setUsers((prev) => prev.filter((user) => user.id !== deletedUserId));
-          setUserLimitsById((prev) => {
-            const next = { ...prev };
-            delete next[deletedUserId];
-            return next;
-          });
+
+          try {
+            await deleteUserMutation.mutateAsync(userToDelete.id);
+          } catch (error) {
+            console.error('[users] could not remove the user', error);
+            return;
+          }
+
           setUserToDelete(null);
         }}
       />

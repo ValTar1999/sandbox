@@ -1,31 +1,36 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Box from '../../components/layout/Box';
 import Pagination from '../../components/common/base/Pagination';
 import BoxHeader from '../../components/layout/BoxHeader';
 import { ButtonTab } from '../../components/common/base/ButtonTab';
 import RootTable from '../../components/common/base/RootTable';
-import { payments } from './data';
+import type { Payment } from './data';
 import CancelPaymentModal from '../../modals/CancelPaymentModal';
 import CancelBulkPaymentModal from '../../modals/CancelBulkPaymentModal';
 import ReRunPaymentModal from '../../modals/ReRunPaymentModal';
 import TableWithLoading from '../../components/common/base/TableWithLoading';
-import { LOADING_DURATION_MS } from '../../constants/animations';
+import QueryError from '../../components/common/base/QueryError';
+import {
+  useCancelPayable,
+  useCancelPayablesBulk,
+  usePayables,
+  useRerunPayable,
+} from '../../hooks/queries/usePayables';
 
-const statusMap = {
-  'Ready to Pay': 'unprocessed',
-  'In Progress': ['processed', 'pastDue'],
+/** Tab labels map to the slugs the backend filters by. */
+const tabSlugs = {
+  'Ready to Pay': 'ready-to-pay',
+  'In Progress': 'in-progress',
   Paid: 'paid',
-  Exceptions: 'failed',
+  Exceptions: 'exceptions',
 } as const;
 
-type StatusLabel = keyof typeof statusMap;
+type StatusLabel = keyof typeof tabSlugs;
 
 const BillsPayables = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<StatusLabel>('Ready to Pay');
-  const [nextTab, setNextTab] = useState<StatusLabel | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
@@ -33,62 +38,35 @@ const BillsPayables = () => {
     useState(false);
   const [isReRunModalOpen, setIsReRunModalOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [paymentToCancel, setPaymentToCancel] = useState<Payment | null>(null);
+  const [bulkPaymentToCancel, setBulkPaymentToCancel] =
+    useState<Payment | null>(null);
 
-  useEffect(() => {
-    if (!isLoading || !nextTab) return;
+  const listParams = useMemo(
+    () => ({
+      tab: tabSlugs[activeTab],
+      page: currentPage,
+      perPage: itemsPerPage,
+    }),
+    [activeTab, currentPage, itemsPerPage]
+  );
 
-    const timeout = setTimeout(() => {
-      setActiveTab(nextTab);
-      setCurrentPage(1);
-      setNextTab(null);
-      setIsLoading(false);
-    }, LOADING_DURATION_MS);
+  const { data, isFetching, isError, error, refetch } = usePayables(listParams);
+  const cancelPayable = useCancelPayable();
+  const cancelPayablesBulk = useCancelPayablesBulk();
+  const rerunPayable = useRerunPayable();
 
-    return () => clearTimeout(timeout);
-  }, [isLoading, nextTab]);
-
-  const tabCounts = useMemo(() => {
-    const labels = Object.keys(statusMap) as StatusLabel[];
-    const counts = {} as Record<StatusLabel, number>;
-
-    labels.forEach((label) => {
-      const status = statusMap[label];
-      counts[label] = payments.reduce((acc, payment) => {
-        const matches = Array.isArray(status)
-          ? status.includes(payment.status)
-          : payment.status === status;
-        return acc + (matches ? 1 : 0);
-      }, 0);
-    });
-
-    return counts;
-  }, []);
+  const currentData = data?.rows ?? [];
+  const total = data?.total ?? 0;
+  const counts = data?.counts ?? {};
+  const totalPages = Math.max(1, Math.ceil(total / itemsPerPage));
 
   const handleTabClick = (tab: StatusLabel) => {
     if (tab === activeTab) return;
-    setIsLoading(true);
-    setNextTab(tab);
+    setActiveTab(tab);
+    setCurrentPage(1);
+    setSelectedIds([]);
   };
-
-  const filteredPayments = useMemo(() => {
-    const status = statusMap[activeTab];
-    return payments.filter((payment) =>
-      Array.isArray(status)
-        ? status.includes(payment.status)
-        : payment.status === status
-    );
-  }, [activeTab]);
-
-  const currentData = useMemo(() => {
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    return filteredPayments.slice(indexOfFirstItem, indexOfLastItem);
-  }, [currentPage, itemsPerPage, filteredPayments]);
-
-  const totalPages = useMemo(
-    () => Math.ceil(filteredPayments.length / itemsPerPage),
-    [filteredPayments.length, itemsPerPage]
-  );
 
   const handlePageChange = (page: number) => setCurrentPage(page);
 
@@ -97,18 +75,34 @@ const BillsPayables = () => {
     setCurrentPage(1);
   };
 
-  const handleCancelClick = (payment: (typeof payments)[0]) => {
-    void payment;
+  const handleCancelClick = (payment: Payment) => {
+    setPaymentToCancel(payment);
     setIsCancelModalOpen(true);
   };
 
-  const handleReRunClick = (payment: (typeof payments)[0]) => {
-    void payment;
+  const handleReRunClick = async (payment: Payment) => {
+    try {
+      await rerunPayable.mutateAsync(payment.id);
+    } catch (error) {
+      console.error('[payables] could not re-run the payment', error);
+      return;
+    }
+
     setIsReRunModalOpen(true);
   };
 
-  const handleCancelConfirm = () => {
+  const handleCancelConfirm = async () => {
+    if (!paymentToCancel) return;
+
+    try {
+      await cancelPayable.mutateAsync(paymentToCancel.id);
+    } catch (error) {
+      console.error('[payables] could not cancel the payment', error);
+      return;
+    }
+
     setIsCancelModalOpen(false);
+    setPaymentToCancel(null);
   };
 
   const handleReRunConfirm = () => {
@@ -116,20 +110,34 @@ const BillsPayables = () => {
   };
 
   const handleCancelClose = () => {
+    if (cancelPayable.isPending) return;
     setIsCancelModalOpen(false);
+    setPaymentToCancel(null);
   };
 
-  const handleCancelBulkPaymentClick = (payment: (typeof payments)[0]) => {
-    void payment;
+  const handleCancelBulkPaymentClick = (payment: Payment) => {
+    setBulkPaymentToCancel(payment);
     setIsCancelBulkPaymentModalOpen(true);
   };
 
-  const handleCancelBulkPaymentConfirm = () => {
+  const handleCancelBulkPaymentConfirm = async () => {
+    if (!bulkPaymentToCancel) return;
+
+    try {
+      await cancelPayablesBulk.mutateAsync(bulkPaymentToCancel.id);
+    } catch (error) {
+      console.error('[payables] could not cancel the bulk payment', error);
+      return;
+    }
+
     setIsCancelBulkPaymentModalOpen(false);
+    setBulkPaymentToCancel(null);
   };
 
   const handleCancelBulkPaymentClose = () => {
+    if (cancelPayablesBulk.isPending) return;
     setIsCancelBulkPaymentModalOpen(false);
+    setBulkPaymentToCancel(null);
   };
 
   const handleReRunClose = () => {
@@ -141,7 +149,7 @@ const BillsPayables = () => {
       className="max-w-9xl mx-auto"
       header={
         <BoxHeader
-          description={`${filteredPayments.length} Payments`}
+          description={`${total} Payments`}
           selectedCount={selectedIds.length}
           onDeselect={() => setSelectedIds([])}
           onPay={() => {
@@ -157,7 +165,7 @@ const BillsPayables = () => {
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={handlePageChange}
-            totalItems={filteredPayments.length}
+            totalItems={total}
             onItemsPerPageChange={handleItemsPerPageChange}
             itemsPerPage={itemsPerPage}
           />
@@ -166,12 +174,12 @@ const BillsPayables = () => {
     >
       <div className="px-6 py-4">
         <div className="flex gap-9">
-          {(Object.keys(statusMap) as StatusLabel[]).map((label) => (
+          {(Object.keys(tabSlugs) as StatusLabel[]).map((label) => (
             <ButtonTab
               key={label}
               active={activeTab === label}
               onClick={() => handleTabClick(label)}
-              count={`${tabCounts[label] || 0}`}
+              count={`${counts[tabSlugs[label]] ?? 0}`}
               variant={label === 'Exceptions' ? 'red' : undefined}
             >
               {label}
@@ -180,26 +188,37 @@ const BillsPayables = () => {
         </div>
       </div>
 
-      <TableWithLoading isLoading={isLoading}>
-        <RootTable
-          payments={currentData}
-          selectedIds={selectedIds}
-          onSelectionChange={setSelectedIds}
-          onCancelClick={handleCancelClick}
-          onReRunClick={handleReRunClick}
-          onCancelBulkPaymentClick={handleCancelBulkPaymentClick}
+      {isError ? (
+        <QueryError
+          message={
+            error instanceof Error ? error.message : 'Could not load payments.'
+          }
+          onRetry={() => refetch()}
         />
-      </TableWithLoading>
+      ) : (
+        <TableWithLoading isLoading={isFetching}>
+          <RootTable
+            payments={currentData}
+            selectedIds={selectedIds}
+            onSelectionChange={setSelectedIds}
+            onCancelClick={handleCancelClick}
+            onReRunClick={handleReRunClick}
+            onCancelBulkPaymentClick={handleCancelBulkPaymentClick}
+          />
+        </TableWithLoading>
+      )}
 
       <CancelPaymentModal
         open={isCancelModalOpen}
         onClose={handleCancelClose}
         onConfirm={handleCancelConfirm}
+        isSubmitting={cancelPayable.isPending}
       />
       <CancelBulkPaymentModal
         open={isCancelBulkPaymentModalOpen}
         onClose={handleCancelBulkPaymentClose}
         onConfirm={handleCancelBulkPaymentConfirm}
+        isSubmitting={cancelPayablesBulk.isPending}
       />
       <ReRunPaymentModal
         open={isReRunModalOpen}

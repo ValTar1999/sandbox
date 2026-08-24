@@ -34,7 +34,7 @@ type EditUserModalProps = {
   open: boolean;
   user: UserRow | null;
   onClose: () => void;
-  onRemoveUser: (user: UserRow) => void;
+  onRemoveUser: (user: UserRow) => void | Promise<void>;
   onSaveUser: (
     userId: string,
     payload: {
@@ -43,7 +43,7 @@ type EditUserModalProps = {
       role: string;
       avatarUrl?: string;
     }
-  ) => void;
+  ) => void | Promise<void>;
   initialLimits?: {
     ap?: LimitsSummary;
     ar?: LimitsSummary;
@@ -54,7 +54,7 @@ type EditUserModalProps = {
       ap?: LimitsSummary;
       ar?: LimitsSummary;
     }
-  ) => void;
+  ) => void | Promise<void>;
 };
 
 const EditUserModal = ({
@@ -85,6 +85,7 @@ const EditUserModal = ({
   const [isRemovePhotoModalOpen, setIsRemovePhotoModalOpen] = useState(false);
   const [isRemoveUserModalOpen, setIsRemoveUserModalOpen] = useState(false);
   const [isChangeRoleModalOpen, setIsChangeRoleModalOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [pendingRoleId, setPendingRoleId] = useState<string | null>(null);
   const [limitsType, setLimitsType] = useState<'ap' | 'ar'>('ap');
   const [limitsMode, setLimitsMode] = useState<LimitsMode>('global');
@@ -133,6 +134,34 @@ const EditUserModal = ({
     () => Object.fromEntries(roleOptions.map((role) => [role.name, role.id])),
     []
   );
+
+  // AP and AR share the limits form state, so it has to be reloaded from the
+  // stored values every time the view is opened for a given type.
+  const openLimitsView = (type: 'ap' | 'ar') => {
+    const stored = limitsSummaryByType[type];
+    const emptyMethodMap = Object.fromEntries(
+      advancedLimitMethods.map((method) => [method, ''])
+    );
+
+    setLimitsType(type);
+    setLimitsMode(stored?.mode ?? 'global');
+    setSelectedTimeframeId(stored?.global?.timeframeId ?? 'weekly');
+    setTimeframeLimit(stored?.global?.timeframeLimit ?? '100,000.00');
+    setPerInvoiceLimit(stored?.global?.perInvoiceLimit ?? '20,000.00');
+    setAdvancedMethodPeriods(
+      stored?.advanced?.periodsByMethod ?? emptyMethodMap
+    );
+    setAdvancedMethodTimeframeLimits(
+      stored?.advanced?.timeframeLimitsByMethod ?? emptyMethodMap
+    );
+    setAdvancedMethodPerBillLimits(
+      stored?.advanced?.perBillLimitsByMethod ?? emptyMethodMap
+    );
+    setTimeframeLimitError(false);
+    setTimeframeSelectError(false);
+    setPerInvoiceLimitError(false);
+    setView('limits');
+  };
 
   const selectedRole = useMemo(
     () =>
@@ -258,6 +287,11 @@ const EditUserModal = ({
           }: $${advancedMethodTimeframeLimits[advancedLimitMethods[0]]}. Bill/Invoice: $${
             advancedMethodPerBillLimits[advancedLimitMethods[0]]
           }. ...`,
+          advanced: {
+            periodsByMethod: advancedMethodPeriods,
+            timeframeLimitsByMethod: advancedMethodTimeframeLimits,
+            perBillLimitsByMethod: advancedMethodPerBillLimits,
+          },
         },
       }));
       setView('edit');
@@ -280,6 +314,11 @@ const EditUserModal = ({
       [limitsType]: {
         mode: 'global',
         summary: `${timeframeLabel}: $${timeframeLimit}. Bill/Invoice: $${perInvoiceLimit}.`,
+        global: {
+          timeframeId: selectedTimeframeId,
+          timeframeLimit,
+          perInvoiceLimit,
+        },
       },
     }));
     setView('edit');
@@ -317,21 +356,35 @@ const EditUserModal = ({
                   Remove User
                 </Button>
                 <div className="flex items-center gap-3">
-                  <Button variant="secondary" size="md" onClick={onClose}>
+                  <Button
+                    variant="secondary"
+                    size="md"
+                    onClick={onClose}
+                    disabled={isSaving}
+                  >
                     Cancel
                   </Button>
                   <Button
                     size="md"
-                    onClick={() => {
-                      if (!user) return;
+                    disabled={isSaving}
+                    onClick={async () => {
+                      if (!user || isSaving) return;
                       const fullName = `${firstName} ${lastName}`.trim();
-                      onSaveUser(user.id, {
-                        name: fullName || '-',
-                        email: email.trim(),
-                        role: selectedRole.name,
-                        avatarUrl: profilePhotoUrl || undefined,
-                      });
-                      onSaveLimits(user.id, limitsSummaryByType);
+                      setIsSaving(true);
+                      try {
+                        await onSaveUser(user.id, {
+                          name: fullName || '-',
+                          email: email.trim(),
+                          role: selectedRole.name,
+                          avatarUrl: profilePhotoUrl || undefined,
+                        });
+                        await onSaveLimits(user.id, limitsSummaryByType);
+                      } catch (error) {
+                        console.error('[users] could not save the user', error);
+                        return;
+                      } finally {
+                        setIsSaving(false);
+                      }
                       onClose();
                     }}
                   >
@@ -818,7 +871,9 @@ const EditUserModal = ({
                     <div className="mt-4 flex items-center gap-3">
                       <Avatar
                         size="xl"
-                        fullName={`${firstName} ${lastName}`.trim() || undefined}
+                        fullName={
+                          `${firstName} ${lastName}`.trim() || undefined
+                        }
                         imageSrc={profilePhotoUrl || undefined}
                       />
                       <div className="flex flex-col justify-start gap-2">
@@ -943,13 +998,7 @@ const EditUserModal = ({
                           <Button
                             variant="linkPrimary"
                             size="sm"
-                            onClick={() => {
-                              setLimitsType('ap');
-                              setLimitsMode(
-                                limitsSummaryByType.ap?.mode ?? 'global'
-                              );
-                              setView('limits');
-                            }}
+                            onClick={() => openLimitsView('ap')}
                           >
                             Update
                           </Button>
@@ -959,11 +1008,7 @@ const EditUserModal = ({
                             size="sm"
                             icon="plus"
                             iconDirection="left"
-                            onClick={() => {
-                              setLimitsType('ap');
-                              setLimitsMode('global');
-                              setView('limits');
-                            }}
+                            onClick={() => openLimitsView('ap')}
                           >
                             Set Limits
                           </Button>
@@ -994,13 +1039,7 @@ const EditUserModal = ({
                           <Button
                             variant="linkPrimary"
                             size="sm"
-                            onClick={() => {
-                              setLimitsType('ar');
-                              setLimitsMode(
-                                limitsSummaryByType.ar?.mode ?? 'global'
-                              );
-                              setView('limits');
-                            }}
+                            onClick={() => openLimitsView('ar')}
                           >
                             Update
                           </Button>
@@ -1010,11 +1049,7 @@ const EditUserModal = ({
                             size="sm"
                             icon="plus"
                             iconDirection="left"
-                            onClick={() => {
-                              setLimitsType('ar');
-                              setLimitsMode('global');
-                              setView('limits');
-                            }}
+                            onClick={() => openLimitsView('ar')}
                           >
                             Set Limits
                           </Button>

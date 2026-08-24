@@ -49,14 +49,15 @@ const ChooseDataModal: React.FC<ChooseDataModalProps> = ({
             </Button>
             <Button
               size="lg"
-              onClick={() =>
+              onClick={() => {
+                if (selectedIndex === null) return;
                 onConfirm(
                   format(
-                    scheduleOptions[selectedIndex!].date,
+                    scheduleOptions[selectedIndex].date,
                     'yyyy-MM-dd hh:mm a'
                   )
-                )
-              }
+                );
+              }}
             >
               Select
             </Button>

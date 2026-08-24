@@ -7,10 +7,12 @@ export const MarkPaymentAsPaidModal = ({
   open,
   onClose,
   onConfirm,
+  isSubmitting = false,
 }: {
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  isSubmitting?: boolean;
 }) => (
   <LayoutModal open={open}>
     <Modal
@@ -28,10 +30,15 @@ export const MarkPaymentAsPaidModal = ({
       onClose={onClose}
       footer={
         <div className="grid grid-cols-2 gap-4">
-          <Button variant="secondary" size="lg" onClick={onClose}>
+          <Button
+            variant="secondary"
+            size="lg"
+            onClick={onClose}
+            disabled={isSubmitting}
+          >
             Cancel
           </Button>
-          <Button size="lg" onClick={onConfirm}>
+          <Button size="lg" onClick={onConfirm} disabled={isSubmitting}>
             Confirm
           </Button>
         </div>

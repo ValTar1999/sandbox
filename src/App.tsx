@@ -39,35 +39,38 @@ function App() {
     <SmartExchangeSetupAlertProvider>
       <Suspense fallback={<Loading />}>
         <Routes>
-        <Route element={<Layout />}>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/payables" element={<BillsPayables />} />
-          <Route path="/payables/multiple" element={<MultiplePaymentPage />} />
-          <Route path="/payables/:id" element={<PaymentPage />} />
-          <Route path="/vendors" element={<Vendors />} />
-          <Route path="/receivables" element={<InvoicesReceivables />} />
-          <Route
-            path="/receivables/:id"
-            element={<InitiatePaymentRequestPage />}
-          />
-          <Route path="/customers" element={<Customers />} />
-          <Route path="/smart-exchange" element={<SmartExchange />} />
-          <Route path="/smart-exchange/get-paid/:id" element={<GetPaidPage />} />
-          <Route
-            path="/smart-exchange/payment-preferences"
-            element={<PaymentPreferences />}
-          />
-          <Route path="/configurator" element={<Configurator />} />
-          <Route
-            path="/settings/business-details"
-            element={<SettingsBusinessDetails />}
-          />
-          <Route
-            path="/settings/user-management"
-            element={<UserManagementPage />}
-          />
-          <Route path="/settings/profile" element={<ProfilePage />} />
-        </Route>
+          <Route element={<Layout />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/payables" element={<BillsPayables />} />
+            <Route path="/payables/multiple" element={<MultiplePaymentPage />} />
+            <Route path="/payables/:id" element={<PaymentPage />} />
+            <Route path="/vendors" element={<Vendors />} />
+            <Route path="/receivables" element={<InvoicesReceivables />} />
+            <Route
+              path="/receivables/:id"
+              element={<InitiatePaymentRequestPage />}
+            />
+            <Route path="/customers" element={<Customers />} />
+            <Route path="/smart-exchange" element={<SmartExchange />} />
+            <Route
+              path="/smart-exchange/get-paid/:id"
+              element={<GetPaidPage />}
+            />
+            <Route
+              path="/smart-exchange/payment-preferences"
+              element={<PaymentPreferences />}
+            />
+            <Route path="/configurator" element={<Configurator />} />
+            <Route
+              path="/settings/business-details"
+              element={<SettingsBusinessDetails />}
+            />
+            <Route
+              path="/settings/user-management"
+              element={<UserManagementPage />}
+            />
+            <Route path="/settings/profile" element={<ProfilePage />} />
+          </Route>
           <Route path="/dashboard" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>

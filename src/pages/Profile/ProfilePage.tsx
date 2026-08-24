@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Box from '../../components/layout/Box';
 import Input from '../../components/common/base/Input';
 import Button from '../../components/common/base/Button';
@@ -6,27 +7,57 @@ import Badge from '../../components/common/base/Badge';
 import Icon from '../../components/common/base/Icon';
 import RowsPerPageSelect from '../../components/common/base/RowsPerPageSelect';
 import { Avatar } from '../../components/common/base/Avatar';
+import Loading from '../../components/common/base/Loading';
+import QueryError from '../../components/common/base/QueryError';
+import { useProfile, useSaveProfile } from '../../hooks/queries/useUsers';
+import type { ProfileRecord } from '../../api/users';
+
+const emptyProfile: ProfileRecord = {
+  email: '',
+  firstName: '',
+  lastName: '',
+  phoneNumber: '',
+};
 
 const ProfilePage: React.FC = () => {
   const [searchValue, setSearchValue] = useState('');
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [email, setEmail] = useState('jane.cooper@bigkahunaburger.com');
-  const [firstName, setFirstName] = useState('Jane');
-  const [lastName, setLastName] = useState('Cooper');
-  const [phoneNumber, setPhoneNumber] = useState('+1 56 978 483');
-  const [avatarImageSrc, setAvatarImageSrc] = useState<string | undefined>();
+  // Editing lives in the URL so browser back leaves the edit view.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const isEditingProfile = searchParams.get('edit') === '1';
+  const {
+    data: storedProfile,
+    isPending,
+    isError,
+    error,
+    refetch,
+  } = useProfile();
+  const saveProfileMutation = useSaveProfile();
+  const profile = storedProfile ?? emptyProfile;
+  const email = profile.email;
+  const firstName = profile.firstName;
+  const lastName = profile.lastName;
+  const phoneNumber = profile.phoneNumber;
+  const avatarImageSrc = profile.avatarImageSrc;
   const [activeField, setActiveField] = useState<
     'email' | 'firstName' | 'lastName' | 'phoneNumber' | null
   >(null);
-  const [emailDraft, setEmailDraft] = useState(
-    'jane.cooper@bigkahunaburger.com'
+  const [emailDraft, setEmailDraft] = useState(emptyProfile.email);
+  const [firstNameDraft, setFirstNameDraft] = useState(emptyProfile.firstName);
+  const [lastNameDraft, setLastNameDraft] = useState(emptyProfile.lastName);
+  const [phoneNumberDraft, setPhoneNumberDraft] = useState(
+    emptyProfile.phoneNumber
   );
-  const [firstNameDraft, setFirstNameDraft] = useState('Jane');
-  const [lastNameDraft, setLastNameDraft] = useState('Cooper');
-  const [phoneNumberDraft, setPhoneNumberDraft] = useState('+1 56 978 483');
   const [avatarObjectUrl, setAvatarObjectUrl] = useState<string | null>(null);
   const avatarFileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!storedProfile) return;
+    setEmailDraft(storedProfile.email);
+    setFirstNameDraft(storedProfile.firstName);
+    setLastNameDraft(storedProfile.lastName);
+    setPhoneNumberDraft(storedProfile.phoneNumber);
+  }, [storedProfile]);
 
   useEffect(() => {
     return () => {
@@ -36,12 +67,17 @@ const ProfilePage: React.FC = () => {
     };
   }, [avatarObjectUrl]);
 
+  const persistProfile = (next: ProfileRecord) => {
+    saveProfileMutation.mutate(next);
+  };
+
   const handleEditProfile = () => {
     setEmailDraft(email);
     setFirstNameDraft(firstName);
     setLastNameDraft(lastName);
     setPhoneNumberDraft(phoneNumber);
-    setIsEditingProfile(true);
+    setActiveField(null);
+    setSearchParams({ edit: '1' });
   };
 
   const handleCancelEdit = () => {
@@ -53,18 +89,22 @@ const ProfilePage: React.FC = () => {
   };
 
   const handleSaveEdit = () => {
-    if (activeField === 'email') {
-      setEmail(emailDraft.trim() || email);
-    }
-    if (activeField === 'firstName') {
-      setFirstName(firstNameDraft.trim() || firstName);
-    }
-    if (activeField === 'lastName') {
-      setLastName(lastNameDraft.trim() || lastName);
-    }
-    if (activeField === 'phoneNumber') {
-      setPhoneNumber(phoneNumberDraft.trim() || phoneNumber);
-    }
+    persistProfile({
+      email: activeField === 'email' ? emailDraft.trim() || email : email,
+      firstName:
+        activeField === 'firstName'
+          ? firstNameDraft.trim() || firstName
+          : firstName,
+      lastName:
+        activeField === 'lastName'
+          ? lastNameDraft.trim() || lastName
+          : lastName,
+      phoneNumber:
+        activeField === 'phoneNumber'
+          ? phoneNumberDraft.trim() || phoneNumber
+          : phoneNumber,
+      avatarImageSrc,
+    });
     setActiveField(null);
   };
 
@@ -78,7 +118,9 @@ const ProfilePage: React.FC = () => {
     avatarFileInputRef.current?.click();
   };
 
-  const handleAvatarFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarFileChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const selectedFile = event.target.files?.[0];
     if (!selectedFile) return;
 
@@ -87,13 +129,24 @@ const ProfilePage: React.FC = () => {
       return;
     }
 
-    const nextObjectUrl = URL.createObjectURL(selectedFile);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl =
+        typeof reader.result === 'string' ? reader.result : undefined;
+      persistProfile({
+        email,
+        firstName,
+        lastName,
+        phoneNumber,
+        avatarImageSrc: dataUrl,
+      });
+    };
+    reader.readAsDataURL(selectedFile);
+
     if (avatarObjectUrl) {
       URL.revokeObjectURL(avatarObjectUrl);
     }
-
-    setAvatarObjectUrl(nextObjectUrl);
-    setAvatarImageSrc(nextObjectUrl);
+    setAvatarObjectUrl(null);
     event.target.value = '';
   };
 
@@ -102,8 +155,29 @@ const ProfilePage: React.FC = () => {
       URL.revokeObjectURL(avatarObjectUrl);
     }
     setAvatarObjectUrl(null);
-    setAvatarImageSrc(undefined);
+    persistProfile({
+      email,
+      firstName,
+      lastName,
+      phoneNumber,
+      avatarImageSrc: '',
+    });
   };
+
+  if (isPending) {
+    return <Loading />;
+  }
+
+  if (isError) {
+    return (
+      <QueryError
+        message={
+          error instanceof Error ? error.message : 'Could not load the profile.'
+        }
+        onRetry={() => refetch()}
+      />
+    );
+  }
 
   if (isEditingProfile) {
     return (
@@ -132,10 +206,7 @@ const ProfilePage: React.FC = () => {
                       aria-label="Edit avatar"
                       onClick={handleAvatarSelectClick}
                     >
-                      <Icon
-                        icon="pencil"
-                        className="h-4 w-4 text-gray-500"
-                      />
+                      <Icon icon="pencil" className="h-4 w-4 text-gray-500" />
                     </button>
                     <button
                       type="button"

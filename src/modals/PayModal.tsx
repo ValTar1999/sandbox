@@ -12,6 +12,7 @@ interface PayModalProps {
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  isSubmitting?: boolean;
   paymentMethod?: string;
   sendingMethod?: string;
   contactEmail?: string;
@@ -28,6 +29,7 @@ const PayModal: React.FC<PayModalProps> = ({
   open,
   onClose,
   onConfirm,
+  isSubmitting = false,
   paymentMethod,
   sendingMethod,
   contactEmail,
@@ -41,10 +43,19 @@ const PayModal: React.FC<PayModalProps> = ({
         className="w-125"
         footer={
           <div className="flex items-center justify-end gap-6">
-            <Button variant="secondary" size="lg" onClick={onClose}>
+            <Button
+              variant="secondary"
+              size="lg"
+              onClick={onClose}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
-            <Button size="lg" onClick={isCardMethod ? onClose : onConfirm}>
+            <Button
+              size="lg"
+              onClick={isCardMethod ? onClose : onConfirm}
+              disabled={isSubmitting}
+            >
               Pay Now
             </Button>
           </div>

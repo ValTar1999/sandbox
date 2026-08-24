@@ -1,146 +1,104 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Box from '../../components/layout/Box';
 import Pagination from '../../components/common/base/Pagination';
 import BoxHeader from '../../components/layout/BoxHeader';
 import { ButtonTab } from '../../components/common/base/ButtonTab';
 import ReceivablesTable from './ReceivablesTable';
-import {
-  receivables,
-  statusMap,
-  Receivable,
-  ReceivableStatus,
-  PaymentMethodItem,
-} from './data';
+import { statusMap, Receivable, ReceivableStatus } from './data';
 import TableWithLoading from '../../components/common/base/TableWithLoading';
-import { LOADING_DURATION_MS } from '../../constants/animations';
+import QueryError from '../../components/common/base/QueryError';
+import CancelPaymentModal from '../../modals/CancelPaymentModal';
+import ReRunPaymentModal from '../../modals/ReRunPaymentModal';
+import { useDebouncedValue } from '../../hooks/useDebouncedValue';
+import {
+  useCancelReceivable,
+  useReceivables,
+  useRerunReceivable,
+} from '../../hooks/queries/useReceivables';
+
+const tabSlugs: Record<ReceivableStatus, string> = {
+  'Ready to Invoice': 'ready-to-invoice',
+  'In Progress': 'in-progress',
+  Paid: 'paid',
+  Exceptions: 'exceptions',
+};
 
 const InvoicesReceivables = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] =
     useState<ReceivableStatus>('Ready to Invoice');
-  const [nextTab, setNextTab] = useState<ReceivableStatus | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebouncedValue(searchQuery);
+  const [receivableToCancel, setReceivableToCancel] =
+    useState<Receivable | null>(null);
+  const [isReRunModalOpen, setIsReRunModalOpen] = useState(false);
 
-  useEffect(() => {
-    if (!isLoading || !nextTab) return;
+  const listParams = useMemo(
+    () => ({
+      tab: tabSlugs[activeTab],
+      search: debouncedSearch,
+      page: currentPage,
+      perPage: itemsPerPage,
+    }),
+    [activeTab, debouncedSearch, currentPage, itemsPerPage]
+  );
 
-    const timeout = setTimeout(() => {
-      setActiveTab(nextTab);
-      setCurrentPage(1);
-      setNextTab(null);
-      setIsLoading(false);
-    }, LOADING_DURATION_MS);
+  const { data, isFetching, isError, error, refetch } =
+    useReceivables(listParams);
+  const cancelReceivable = useCancelReceivable();
+  const rerunReceivable = useRerunReceivable();
 
-    return () => clearTimeout(timeout);
-  }, [isLoading, nextTab]);
-
-  const tabCounts = useMemo(() => {
-    const labels = Object.keys(statusMap) as ReceivableStatus[];
-    const counts = {} as Record<ReceivableStatus, number>;
-
-    labels.forEach((label) => {
-      const status = statusMap[label];
-      counts[label] = receivables.reduce((acc, rec) => {
-        const matches = Array.isArray(status)
-          ? status.includes(rec.status)
-          : rec.status === status;
-        return acc + (matches ? 1 : 0);
-      }, 0);
-    });
-
-    return counts;
-  }, []);
+  const currentData = data?.rows ?? [];
+  const total = data?.total ?? 0;
+  const counts = data?.counts ?? {};
+  const totalPages = Math.max(1, Math.ceil(total / itemsPerPage));
 
   const handleTabClick = (tab: ReceivableStatus) => {
     if (tab === activeTab) return;
-    setIsLoading(true);
-    setNextTab(tab);
+    setActiveTab(tab);
+    setCurrentPage(1);
   };
 
-  const filteredReceivables = useMemo(() => {
-    const status = statusMap[activeTab];
-    let result = receivables.filter((rec) =>
-      Array.isArray(status)
-        ? status.includes(rec.status)
-        : rec.status === status
-    );
-
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(
-        (rec) =>
-          rec.invoiceNumber.toLowerCase().includes(query) ||
-          rec.customer.toLowerCase().includes(query) ||
-          rec.amount.toLowerCase().includes(query)
-      );
-    }
-
-    return result;
-  }, [activeTab, searchQuery]);
-
-  const currentData = useMemo(() => {
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    return filteredReceivables.slice(indexOfFirstItem, indexOfLastItem);
-  }, [currentPage, itemsPerPage, filteredReceivables]);
-
-  const totalPages = useMemo(
-    () => Math.ceil(filteredReceivables.length / itemsPerPage),
-    [filteredReceivables.length, itemsPerPage]
-  );
-
-  const [nextPage, setNextPage] = useState<number | null>(null);
-  const [nextItemsPerPage, setNextItemsPerPage] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (nextPage === null && nextItemsPerPage === null) return;
-
-    const timeout = setTimeout(() => {
-      if (nextPage !== null) {
-        setCurrentPage(nextPage);
-        setNextPage(null);
-      }
-      if (nextItemsPerPage !== null) {
-        setItemsPerPage(nextItemsPerPage);
-        setCurrentPage(1);
-        setNextItemsPerPage(null);
-      }
-      setIsLoading(false);
-    }, LOADING_DURATION_MS);
-
-    return () => clearTimeout(timeout);
-  }, [nextPage, nextItemsPerPage]);
-
-  const handlePageChange = (page: number) => {
-    if (page === currentPage) return;
-    setIsLoading(true);
-    setNextPage(page);
-  };
+  const handlePageChange = (page: number) => setCurrentPage(page);
 
   const handleItemsPerPageChange = (items: number) => {
-    if (items === itemsPerPage) return;
-    setIsLoading(true);
-    setNextItemsPerPage(items);
+    setItemsPerPage(items);
+    setCurrentPage(1);
   };
 
   const handleInvoiceClick = (receivable: Receivable) => {
     navigate(`/receivables/${receivable.invoiceNumber}`);
   };
 
-  const handleReRunClick = (receivable: Receivable) => {
-    void receivable;
+  const handleReRunClick = async (receivable: Receivable) => {
+    try {
+      await rerunReceivable.mutateAsync(receivable.id);
+    } catch (error) {
+      console.error('[receivables] could not re-run the invoice', error);
+      return;
+    }
+
+    setIsReRunModalOpen(true);
   };
 
-  const handleCancelClick = (
-    receivable: Receivable,
-    paymentMethod?: PaymentMethodItem
-  ) => {
-    void receivable;
-    void paymentMethod;
+  const handleCancelClick = (receivable: Receivable) => {
+    setReceivableToCancel(receivable);
+  };
+
+  const handleCancelConfirm = async () => {
+    if (!receivableToCancel) return;
+
+    try {
+      await cancelReceivable.mutateAsync(receivableToCancel.id);
+    } catch (error) {
+      console.error('[receivables] could not cancel the invoice', error);
+      return;
+    }
+
+    setReceivableToCancel(null);
   };
 
   return (
@@ -149,7 +107,7 @@ const InvoicesReceivables = () => {
       header={
         <BoxHeader
           title="Receivables Overview"
-          description={`${filteredReceivables.length} Receivables`}
+          description={`${total} Receivables`}
           onSearch={setSearchQuery}
         />
       }
@@ -159,7 +117,7 @@ const InvoicesReceivables = () => {
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={handlePageChange}
-            totalItems={filteredReceivables.length}
+            totalItems={total}
             onItemsPerPageChange={handleItemsPerPageChange}
             itemsPerPage={itemsPerPage}
           />
@@ -173,7 +131,7 @@ const InvoicesReceivables = () => {
               key={label}
               active={activeTab === label}
               onClick={() => handleTabClick(label)}
-              count={`${tabCounts[label] || 0}`}
+              count={`${counts[tabSlugs[label]] ?? 0}`}
               variant={label === 'Exceptions' ? 'red' : undefined}
             >
               {label}
@@ -182,15 +140,41 @@ const InvoicesReceivables = () => {
         </div>
       </div>
 
-      <TableWithLoading isLoading={isLoading}>
-        <ReceivablesTable
-          receivables={currentData}
-          activeTab={activeTab}
-          onInvoiceClick={handleInvoiceClick}
-          onReRunClick={handleReRunClick}
-          onCancelClick={handleCancelClick}
+      {isError ? (
+        <QueryError
+          message={
+            error instanceof Error
+              ? error.message
+              : 'Could not load receivables.'
+          }
+          onRetry={() => refetch()}
         />
-      </TableWithLoading>
+      ) : (
+        <TableWithLoading isLoading={isFetching}>
+          <ReceivablesTable
+            receivables={currentData}
+            activeTab={activeTab}
+            onInvoiceClick={handleInvoiceClick}
+            onReRunClick={handleReRunClick}
+            onCancelClick={handleCancelClick}
+          />
+        </TableWithLoading>
+      )}
+
+      <CancelPaymentModal
+        open={Boolean(receivableToCancel)}
+        onClose={() => {
+          if (cancelReceivable.isPending) return;
+          setReceivableToCancel(null);
+        }}
+        onConfirm={handleCancelConfirm}
+        isSubmitting={cancelReceivable.isPending}
+      />
+      <ReRunPaymentModal
+        open={isReRunModalOpen}
+        onClose={() => setIsReRunModalOpen(false)}
+        onConfirm={() => setIsReRunModalOpen(false)}
+      />
     </Box>
   );
 };
