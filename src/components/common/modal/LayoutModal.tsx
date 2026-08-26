@@ -69,7 +69,7 @@ const LayoutModal: React.FC<LayoutModalProps> = ({ open = true, children }) => {
         aria-hidden
       />
 
-      <div className="relative flex min-h-full items-center justify-center py-8">
+      <div className="relative flex min-h-full items-start justify-center py-8 sm:items-center">
         <div
           className={`w-full max-w-full transition-opacity duration-300 ${
             isExiting ? 'opacity-0' : 'opacity-100'

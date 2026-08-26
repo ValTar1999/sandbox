@@ -31,6 +31,7 @@ interface RootTableProps {
   payments: Payment[];
   selectedIds?: string[];
   onSelectionChange?: (ids: string[]) => void;
+  selectable?: boolean;
   onCancelClick: (payment: Payment) => void;
   onReRunClick: (payment: Payment) => void;
   onCancelBulkPaymentClick?: (payment: Payment) => void;
@@ -50,6 +51,7 @@ const RootTable: React.FC<RootTableProps> = ({
   payments,
   selectedIds = [],
   onSelectionChange,
+  selectable = false,
   onCancelClick,
   onReRunClick,
   onCancelBulkPaymentClick,
@@ -234,17 +236,19 @@ const RootTable: React.FC<RootTableProps> = ({
         <thead>
           <tr className="border-b border-dashed border-gray-200">
             <th className="w-[52px] max-w-[52px] min-w-[52px]"></th>
-            <th className={clsx('w-8 max-w-8 min-w-8', TD_CLASS)}>
-              <div className={FLEX_CENTER}>
-                <CheckBox
-                  ref={masterCheckboxRef}
-                  checked={
-                    filteredPayments.length > 0 ? allCurrentSelected : false
-                  }
-                  onChange={() => handleMasterCheckboxChange()}
-                />
-              </div>
-            </th>
+            {selectable && (
+              <th className={clsx('w-8 max-w-8 min-w-8', TD_CLASS)}>
+                <div className={FLEX_CENTER}>
+                  <CheckBox
+                    ref={masterCheckboxRef}
+                    checked={
+                      filteredPayments.length > 0 ? allCurrentSelected : false
+                    }
+                    onChange={() => handleMasterCheckboxChange()}
+                  />
+                </div>
+              </th>
+            )}
 
             <th className={TH_CLASS}>
               <div className={FLEX_END}>
@@ -322,6 +326,7 @@ const RootTable: React.FC<RootTableProps> = ({
                 <div className={TH_TEXT_CLASS}>status</div>
               </div>
             </th>
+            <th className="w-[100px]" aria-label="Actions" />
           </tr>
         </thead>
 
@@ -333,7 +338,7 @@ const RootTable: React.FC<RootTableProps> = ({
                 className={clsx(
                   'hover:bg-gray-50 cursor-pointer transition-colors duration-300 ease-in-out',
                   expandedRow === payment.id && 'bg-gray-100',
-                  selectedSet.has(payment.id) && 'bg-gray-50'
+                  selectable && selectedSet.has(payment.id) && 'bg-gray-50'
                 )}
               >
                 <td className="w-[52px] max-w-[52px] min-w-[52px]">
@@ -346,17 +351,19 @@ const RootTable: React.FC<RootTableProps> = ({
                   />
                 </td>
 
-                <td className={clsx('w-8 max-w-8 min-w-8', TD_CLASS)}>
-                  <div className={FLEX_CENTER}>
-                    <CheckBox
-                      checked={selectedSet.has(payment.id)}
-                      onClick={(e) => e.stopPropagation()}
-                      onChange={(e) =>
-                        handleRowCheckboxChange(payment.id, e.target.checked)
-                      }
-                    />
-                  </div>
-                </td>
+                {selectable && (
+                  <td className={clsx('w-8 max-w-8 min-w-8', TD_CLASS)}>
+                    <div className={FLEX_CENTER}>
+                      <CheckBox
+                        checked={selectedSet.has(payment.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={(e) =>
+                          handleRowCheckboxChange(payment.id, e.target.checked)
+                        }
+                      />
+                    </div>
+                  </td>
+                )}
 
                 <td
                   className={clsx(
@@ -410,33 +417,35 @@ const RootTable: React.FC<RootTableProps> = ({
                   </div>
                 </td>
 
-                {payment.paymentType && (
+                {hasPaymentType && (
                   <td className={TD_CLASS}>
-                    <div
-                      className={clsx(
-                        'flex items-center gap-2',
-                        'justify-start'
-                      )}
-                    >
-                      {payment.paymentType === 'sd' ? (
-                        <>
-                          <img
-                            className="w-4.5 h-4.5"
-                            src={SD}
-                            alt="icon-sd"
-                            loading="lazy"
-                            decoding="async"
-                          />
+                    {payment.paymentType ? (
+                      <div
+                        className={clsx(
+                          'flex items-center gap-2',
+                          'justify-start'
+                        )}
+                      >
+                        {payment.paymentType === 'sd' ? (
+                          <>
+                            <img
+                              className="w-4.5 h-4.5"
+                              src={SD}
+                              alt="icon-sd"
+                              loading="lazy"
+                              decoding="async"
+                            />
+                            <div className="text-sm text-gray-900">
+                              SMART Disburse
+                            </div>
+                          </>
+                        ) : (
                           <div className="text-sm text-gray-900">
-                            SMART Disburse
+                            {payment.paymentType}
                           </div>
-                        </>
-                      ) : (
-                        <div className="text-sm text-gray-900">
-                          {payment.paymentType}
-                        </div>
-                      )}
-                    </div>
+                        )}
+                      </div>
+                    ) : null}
                   </td>
                 )}
 
@@ -477,8 +486,8 @@ const RootTable: React.FC<RootTableProps> = ({
                   </div>
                 </td>
 
-                {payment.status === 'unprocessed' && (
-                  <td className="pl-4">
+                <td className="pl-4">
+                  {payment.status === 'unprocessed' && (
                     <div className={FLEX_END}>
                       <Button
                         size="md"
@@ -490,11 +499,9 @@ const RootTable: React.FC<RootTableProps> = ({
                         Pay
                       </Button>
                     </div>
-                  </td>
-                )}
+                  )}
 
-                {payment.status === 'processed' && (
-                  <td className="pl-4">
+                  {payment.status === 'processed' && (
                     <div className={FLEX_END}>
                       <Button
                         variant="gray"
@@ -504,11 +511,9 @@ const RootTable: React.FC<RootTableProps> = ({
                         Cancel
                       </Button>
                     </div>
-                  </td>
-                )}
+                  )}
 
-                {payment.status === 'failed' && (
-                  <td className="pl-4">
+                  {payment.status === 'failed' && (
                     <div className={FLEX_END}>
                       <Button
                         icon="x"
@@ -523,14 +528,12 @@ const RootTable: React.FC<RootTableProps> = ({
                         Re-Run
                       </Button>
                     </div>
-                  </td>
-                )}
-
-                {payment.status === 'pastDue' && <td className={TD_CLASS}></td>}
+                  )}
+                </td>
               </tr>
 
               <ExpandableTableRow
-                colSpan={8}
+                colSpan={(hasPaymentType ? 10 : 9) - (selectable ? 0 : 1)}
                 isExpanded={expandedRow === payment.id}
               >
                 <div className="flex flex-col">

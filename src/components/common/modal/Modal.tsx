@@ -31,7 +31,11 @@ const Modal: React.FC<Props> = ({
       : description;
 
   return (
-    <WrapModal className={clsx('modal-container', className)} onClose={onClose}>
+    <WrapModal
+      className={clsx('modal-container', className)}
+      onClose={onClose}
+      footer={footer}
+    >
       <div className="flex flex-col items-center gap-8 px-6 pb-6">
         {icon && (
           <div
@@ -73,9 +77,6 @@ const Modal: React.FC<Props> = ({
         </div>
         {children}
       </div>
-      {footer && (
-        <div className="border-t border-gray-200 px-6 py-5">{footer}</div>
-      )}
     </WrapModal>
   );
 };

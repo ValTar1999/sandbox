@@ -144,13 +144,15 @@ const BillsPayables = () => {
     setIsReRunModalOpen(false);
   };
 
+  const isReadyToPay = activeTab === 'Ready to Pay';
+
   return (
     <Box
       className="max-w-9xl mx-auto"
       header={
         <BoxHeader
           description={`${total} Payments`}
-          selectedCount={selectedIds.length}
+          selectedCount={isReadyToPay ? selectedIds.length : 0}
           onDeselect={() => setSelectedIds([])}
           onPay={() => {
             if (selectedIds.length > 0) {
@@ -201,6 +203,7 @@ const BillsPayables = () => {
             payments={currentData}
             selectedIds={selectedIds}
             onSelectionChange={setSelectedIds}
+            selectable={isReadyToPay}
             onCancelClick={handleCancelClick}
             onReRunClick={handleReRunClick}
             onCancelBulkPaymentClick={handleCancelBulkPaymentClick}

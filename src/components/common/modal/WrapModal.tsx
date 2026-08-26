@@ -26,13 +26,13 @@ const WrapModal: React.FC<Props> = ({
   return (
     <div
       className={clsx(
-        'rounded-md bg-white m-auto',
+        'rounded-md bg-white m-auto flex flex-col max-h-[calc(100vh-4rem)] overflow-hidden',
         noCross && 'pt-10',
         className
       )}
     >
       {!noHeader && (
-        <div className="flex w-full items-center justify-end">
+        <div className="flex w-full shrink-0 items-center justify-end">
           {!noCross && (
             <div
               className={clsx(
@@ -59,7 +59,7 @@ const WrapModal: React.FC<Props> = ({
 
       <div
         className={clsx(
-          'h-full overflow-y-auto max-h-[750px] no-scrollbar',
+          'min-h-0 flex-1 overflow-y-auto overscroll-contain no-scrollbar',
           classContent
         )}
       >
@@ -67,7 +67,9 @@ const WrapModal: React.FC<Props> = ({
       </div>
 
       {isSlotFooterNotEmpty && (
-        <div className="border-t border-gray-200 px-6 py-5">{footer}</div>
+        <div className="shrink-0 border-t border-gray-200 px-6 py-5">
+          {footer}
+        </div>
       )}
     </div>
   );
