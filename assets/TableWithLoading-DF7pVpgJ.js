@@ -1,0 +1,1 @@
+import{j as s,c as a,G as i,g as n}from"./index-YvuYvqI3.js";const o=({isLoading:e,children:t})=>s.jsxs("div",{className:"relative min-h-fit",children:[s.jsx("div",{className:a(i,e?"opacity-0 pointer-events-none":"opacity-100"),children:t}),e&&s.jsx("div",{className:"flex justify-center items-center py-8 absolute inset-0",children:s.jsx(n,{})})]});export{o as T};
