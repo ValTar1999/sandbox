@@ -12,6 +12,8 @@ interface BoxHeaderProps {
   onDeselect?: () => void;
   onPay?: () => void;
   showFilter?: boolean;
+  searchInputSize?: 'sm' | 'md';
+  searchValue?: string;
   children?: React.ReactNode;
   className?: string;
 }
@@ -24,11 +26,17 @@ const BoxHeader: React.FC<BoxHeaderProps> = ({
   onDeselect,
   onPay,
   showFilter = true,
+  searchInputSize = 'sm',
+  searchValue = '',
   children,
   className,
 }) => {
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     onSearch?.(e.target.value);
+  };
+
+  const handleClearSearch = () => {
+    onSearch?.('');
   };
 
   const hasSelection = selectedCount > 0;
@@ -67,12 +75,16 @@ const BoxHeader: React.FC<BoxHeaderProps> = ({
         <Input
           placeholder="Search"
           type="text"
+          size={searchInputSize}
           className="w-80"
           icon="search"
+          value={searchValue}
+          clearable
+          onClear={handleClearSearch}
           onChange={handleSearch}
         />
         {showFilter && (
-          <Button size="lg" variant="secondary" icon="chevron-down">
+          <Button size="md" variant="secondary" icon="chevron-down">
             Filter
           </Button>
         )}

@@ -73,20 +73,31 @@ const cancelProcessedPayment = (row: Payment) => {
   return null;
 };
 
+const matchesSearch = (row: Payment, search: string) =>
+  row.payee.toLowerCase().includes(search) ||
+  row.billReference.toLowerCase().includes(search) ||
+  row.totalAmount.toLowerCase().includes(search) ||
+  row.source.toLowerCase().includes(search) ||
+  row.id.toLowerCase().includes(search) ||
+  (row.paymentType?.toLowerCase().includes(search) ?? false);
+
 export const payablesHandlers = [
   http.get(apiUrl('/payables'), async ({ request }) => {
     await delay(LOADING_DURATION_MS);
 
     const url = new URL(request.url);
     const tab = url.searchParams.get('tab');
+    const search = (url.searchParams.get('search') ?? '').trim().toLowerCase();
     const page = Number(url.searchParams.get('page')) || 0;
     const perPage = Number(url.searchParams.get('perPage')) || 0;
 
     const all = getDb().payables;
     const statuses = tab ? TAB_STATUSES[tab] : undefined;
-    const filtered = statuses
-      ? all.filter((row) => statuses.includes(row.status))
-      : all;
+    const filtered = all.filter(
+      (row) =>
+        (!statuses || statuses.includes(row.status)) &&
+        (!search || matchesSearch(row, search))
+    );
 
     const rows =
       page > 0 && perPage > 0

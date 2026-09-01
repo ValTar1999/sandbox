@@ -157,7 +157,11 @@ const Vendors = () => {
         <BoxHeader
           title="Vendors"
           description={`${filteredVendors.length} companies`}
-          onSearch={setSearchQuery}
+          searchValue={searchQuery}
+          onSearch={(value) => {
+            setSearchQuery(value);
+            setCurrentPage(1);
+          }}
           showFilter={false}
         />
       }

@@ -108,7 +108,11 @@ const InvoicesReceivables = () => {
         <BoxHeader
           title="Receivables Overview"
           description={`${total} Receivables`}
-          onSearch={setSearchQuery}
+          searchValue={searchQuery}
+          onSearch={(value) => {
+            setSearchQuery(value);
+            setCurrentPage(1);
+          }}
         />
       }
       footer={

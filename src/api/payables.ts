@@ -10,6 +10,7 @@ export const fetchPayables = (params: ListParams) =>
   api.get<PayablesList>(
     `/payables${buildQuery({
       tab: params.tab,
+      search: params.search,
       page: params.page,
       perPage: params.perPage,
     })}`

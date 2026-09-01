@@ -11,6 +11,7 @@ import CancelBulkPaymentModal from '../../modals/CancelBulkPaymentModal';
 import ReRunPaymentModal from '../../modals/ReRunPaymentModal';
 import TableWithLoading from '../../components/common/base/TableWithLoading';
 import QueryError from '../../components/common/base/QueryError';
+import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import {
   useCancelPayable,
   useCancelPayablesBulk,
@@ -38,6 +39,8 @@ const BillsPayables = () => {
     useState(false);
   const [isReRunModalOpen, setIsReRunModalOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebouncedValue(searchQuery);
   const [paymentToCancel, setPaymentToCancel] = useState<Payment | null>(null);
   const [bulkPaymentToCancel, setBulkPaymentToCancel] =
     useState<Payment | null>(null);
@@ -45,10 +48,11 @@ const BillsPayables = () => {
   const listParams = useMemo(
     () => ({
       tab: tabSlugs[activeTab],
+      search: debouncedSearch,
       page: currentPage,
       perPage: itemsPerPage,
     }),
-    [activeTab, currentPage, itemsPerPage]
+    [activeTab, debouncedSearch, currentPage, itemsPerPage]
   );
 
   const { data, isFetching, isError, error, refetch } = usePayables(listParams);
@@ -66,6 +70,12 @@ const BillsPayables = () => {
     setActiveTab(tab);
     setCurrentPage(1);
     setSelectedIds([]);
+    setSearchQuery('');
+  };
+
+  const handleSearch = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
   };
 
   const handlePageChange = (page: number) => setCurrentPage(page);
@@ -153,6 +163,8 @@ const BillsPayables = () => {
         <BoxHeader
           description={`${total} Payments`}
           selectedCount={isReadyToPay ? selectedIds.length : 0}
+          searchValue={searchQuery}
+          onSearch={handleSearch}
           onDeselect={() => setSelectedIds([])}
           onPay={() => {
             if (selectedIds.length > 0) {

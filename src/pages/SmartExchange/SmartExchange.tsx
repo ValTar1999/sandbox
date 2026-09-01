@@ -92,7 +92,11 @@ const SmartExchange = () => {
         <BoxHeader
           title="SMART Exchange Overview"
           description={`${total} Payments`}
-          onSearch={setSearchQuery}
+          searchValue={searchQuery}
+          onSearch={(value) => {
+            setSearchQuery(value);
+            setCurrentPage(1);
+          }}
         >
           <Button
             size="lg"

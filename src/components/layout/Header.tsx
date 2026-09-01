@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import Breadcrumb from '../layout/Breadcrumb';
 import { DropdownUser } from '../common/dropdowns/DropdownUser';
+import { DropdownCompany } from '../common/dropdowns/DropdownCompany';
 import Button from '../common/base/Button';
 import Alert from '../common/base/Alert';
 import BankAccountVerificationModal from '../../modals/BankAccountVerificationModal';
@@ -50,9 +51,7 @@ const Header: FC<HeaderProps> = ({
       <div className="flex justify-between items-center">
         <h1 className={titleClasses}>Hello, {userName}</h1>
         <div className="flex items-center gap-4">
-          <Button variant="secondary" size="lg">
-            {companyName}
-          </Button>
+          <DropdownCompany initialCompanyName={companyName} />
           <DropdownUser />
         </div>
       </div>
