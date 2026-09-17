@@ -27,12 +27,13 @@ import type {
   FilterCategoryId,
 } from '../../components/common/dropdowns/dropdownFilterUtils';
 import { countSelected } from '../../components/common/dropdowns/dropdownFilterUtils';
-import ManageColumnsModal, {
+import ManageColumnsModal from '../../modals/ManageColumnsModal';
+import {
   DEFAULT_COLUMNS_BY_TAB,
   getDefaultColumnsForTab,
   type ManageColumnConfig,
   type PayablesStatusTab,
-} from '../../modals/ManageColumnsModal';
+} from './manageColumns';
 import { exportPayables, type ExportFormat } from './exportUtils';
 
 const EXPORT_OPTIONS: { format: ExportFormat; label: string }[] = [

@@ -29,7 +29,7 @@ import SD from '../../../assets/image/SMART-Disburse.svg';
 import type {
   ManageColumnConfig,
   ManageColumnId,
-} from '../../../modals/ManageColumnsModal';
+} from '../../../pages/BillsPayables/manageColumns';
 
 interface RootTableProps {
   payments: Payment[];

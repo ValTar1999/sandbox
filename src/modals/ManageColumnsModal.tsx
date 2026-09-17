@@ -5,128 +5,12 @@ import WrapModal from '../components/common/modal/WrapModal';
 import Button from '../components/common/base/Button';
 import CheckBox from '../components/common/base/CheckBox';
 import Badge from '../components/common/base/Badge';
-
-/** Columns that can appear in RootTable (expand / checkbox / actions are fixed). */
-export type ManageColumnId =
-  | 'amount'
-  | 'billReference'
-  | 'payee'
-  | 'source'
-  | 'dueDate'
-  | 'status'
-  | 'paymentType'
-  | 'paymentDate'
-  | 'failureReason';
-
-export type ManageColumnConfig = {
-  id: ManageColumnId;
-  visible: boolean;
-};
-
-export type PayablesStatusTab =
-  'Ready to Pay' | 'In Progress' | 'Paid' | 'Exceptions';
-
-type ColumnDefinition = {
-  id: ManageColumnId;
-  label: string;
-  badge?: string;
-};
-
-const COLUMN_DEFINITIONS: Record<ManageColumnId, ColumnDefinition> = {
-  amount: { id: 'amount', label: 'Amount' },
-  billReference: { id: 'billReference', label: 'Bill Reference' },
-  payee: { id: 'payee', label: 'Payee' },
-  source: { id: 'source', label: 'Source' },
-  dueDate: { id: 'dueDate', label: 'Due Date' },
-  status: { id: 'status', label: 'Status' },
-  paymentType: { id: 'paymentType', label: 'Payment Type' },
-  paymentDate: { id: 'paymentDate', label: 'Payment Date' },
-  failureReason: {
-    id: 'failureReason',
-    label: 'Failure Reason',
-    badge: 'Exceptions',
-  },
-};
-
-/** Full manage-columns list order (Figma). */
-export const ALL_COLUMN_IDS: ManageColumnId[] = [
-  'amount',
-  'billReference',
-  'payee',
-  'source',
-  'dueDate',
-  'status',
-  'paymentType',
-  'paymentDate',
-  'failureReason',
-];
-
-/**
- * Columns that are on by default for each status tab — matches RootTable.
- * Remaining columns still appear in the modal, but unchecked.
- */
-export const ACTIVE_COLUMNS_BY_TAB: Record<
-  PayablesStatusTab,
-  ManageColumnId[]
-> = {
-  'Ready to Pay': [
-    'amount',
-    'billReference',
-    'payee',
-    'source',
-    'dueDate',
-    'status',
-  ],
-  'In Progress': [
-    'amount',
-    'billReference',
-    'payee',
-    'paymentType',
-    'source',
-    'dueDate',
-    'status',
-  ],
-  Paid: ['amount', 'billReference', 'payee', 'source', 'dueDate', 'status'],
-  Exceptions: [
-    'amount',
-    'billReference',
-    'payee',
-    'source',
-    'dueDate',
-    'status',
-  ],
-};
-
-/** @deprecated alias — prefer ACTIVE_COLUMNS_BY_TAB */
-export const COLUMNS_BY_TAB = ACTIVE_COLUMNS_BY_TAB;
-
-export const getDefaultColumnsForTab = (
-  tab: PayablesStatusTab
-): ManageColumnConfig[] => {
-  const active = ACTIVE_COLUMNS_BY_TAB[tab];
-  const activeSet = new Set(active);
-
-  const activeConfigs = active.map((id) => ({ id, visible: true }));
-  const inactiveConfigs = ALL_COLUMN_IDS.filter((id) => !activeSet.has(id)).map(
-    (id) => ({ id, visible: false })
-  );
-
-  return [...activeConfigs, ...inactiveConfigs];
-};
-
-export const DEFAULT_COLUMNS_BY_TAB: Record<
-  PayablesStatusTab,
-  ManageColumnConfig[]
-> = {
-  'Ready to Pay': getDefaultColumnsForTab('Ready to Pay'),
-  'In Progress': getDefaultColumnsForTab('In Progress'),
-  Paid: getDefaultColumnsForTab('Paid'),
-  Exceptions: getDefaultColumnsForTab('Exceptions'),
-};
-
-export const DEFAULT_MANAGE_COLUMNS = getDefaultColumnsForTab('Ready to Pay');
-
-const getDefinition = (id: ManageColumnId) => COLUMN_DEFINITIONS[id];
+import {
+  DEFAULT_MANAGE_COLUMNS,
+  getManageColumnDefinition,
+  type ManageColumnConfig,
+  type ManageColumnId,
+} from '../pages/BillsPayables/manageColumns';
 
 const DragHandleIcon = () => (
   <svg
@@ -286,7 +170,7 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
 
         <ul className="relative grid gap-2 px-5 py-4" onDragEnd={handleDrop}>
           {draft.map((column, index) => {
-            const definition = getDefinition(column.id);
+            const definition = getManageColumnDefinition(column.id);
             const isDragging = draggedId === column.id;
             const showDropLine = dropIndex === index && draggedId !== column.id;
 
