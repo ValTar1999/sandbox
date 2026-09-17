@@ -1,8 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { clsx } from 'clsx';
 import Input from '../common/base/Input';
 import Button from '../common/base/Button';
 import { RefreshButton } from '../common/base/RefreshButton';
+import DropdownFilter, {
+  AppliedFilterChips,
+} from '../common/dropdowns/DropdownFilter';
+import {
+  removeFilterCategory,
+  type FilterCategoryId,
+  type FilterSelections,
+} from '../common/dropdowns/dropdownFilterUtils';
 
 interface BoxHeaderProps {
   title?: string;
@@ -11,6 +19,8 @@ interface BoxHeaderProps {
   onSearch?: (value: string) => void;
   onDeselect?: () => void;
   onPay?: () => void;
+  filters?: FilterSelections;
+  onFilterApply?: (filters: FilterSelections) => void;
   showFilter?: boolean;
   searchInputSize?: 'sm' | 'md';
   searchValue?: string;
@@ -25,12 +35,17 @@ const BoxHeader: React.FC<BoxHeaderProps> = ({
   onSearch,
   onDeselect,
   onPay,
+  filters: filtersProp,
+  onFilterApply,
   showFilter = true,
   searchInputSize = 'sm',
   searchValue = '',
   children,
   className,
 }) => {
+  const [internalFilters, setInternalFilters] = useState<FilterSelections>({});
+  const filters = filtersProp ?? internalFilters;
+
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     onSearch?.(e.target.value);
   };
@@ -39,10 +54,21 @@ const BoxHeader: React.FC<BoxHeaderProps> = ({
     onSearch?.('');
   };
 
+  const handleFilterApply = (next: FilterSelections) => {
+    if (filtersProp === undefined) {
+      setInternalFilters(next);
+    }
+    onFilterApply?.(next);
+  };
+
+  const handleRemoveFilter = (categoryId: FilterCategoryId) => {
+    handleFilterApply(removeFilterCategory(filters, categoryId));
+  };
+
   const hasSelection = selectedCount > 0;
 
   return (
-    <div className={clsx('flex w-full items-center flex-wrap', className)}>
+    <div className={clsx('flex w-full items-start flex-wrap', className)}>
       <div className="grid gap-1 pr-12">
         <h3 className="text-lg font-medium">{title}</h3>
         {description && (
@@ -71,24 +97,29 @@ const BoxHeader: React.FC<BoxHeaderProps> = ({
 
       {!hasSelection && <RefreshButton />}
 
-      <div className="ml-auto grid grid-flow-col items-center gap-6 pl-8">
-        <Input
-          placeholder="Search"
-          type="text"
-          size={searchInputSize}
-          className="w-80"
-          icon="search"
-          value={searchValue}
-          clearable
-          onClear={handleClearSearch}
-          onChange={handleSearch}
-        />
+      <div className="ml-auto flex flex-col gap-3 pl-8">
+        <div className="flex flex-wrap items-center justify-end gap-6">
+          <Input
+            placeholder="Search"
+            type="text"
+            size={searchInputSize}
+            className="w-80"
+            icon="search"
+            value={searchValue}
+            clearable
+            onClear={handleClearSearch}
+            onChange={handleSearch}
+          />
+          <div className="flex flex-wrap items-center gap-3">
+            {showFilter && (
+              <DropdownFilter value={filters} onApply={handleFilterApply} />
+            )}
+            {children}
+          </div>
+        </div>
         {showFilter && (
-          <Button size="md" variant="secondary" icon="chevron-down">
-            Filter
-          </Button>
+          <AppliedFilterChips filters={filters} onRemove={handleRemoveFilter} />
         )}
-        {children}
       </div>
     </div>
   );

@@ -1,9 +1,12 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Box from '../../components/layout/Box';
 import Pagination from '../../components/common/base/Pagination';
 import BoxHeader from '../../components/layout/BoxHeader';
 import { ButtonTab } from '../../components/common/base/ButtonTab';
+import Button from '../../components/common/base/Button';
+import Menu from '../../components/common/base/Menu';
+import MenuCloseItem from '../../components/common/base/MenuCloseItem';
 import RootTable from '../../components/common/base/RootTable';
 import type { Payment } from './data';
 import CancelPaymentModal from '../../modals/CancelPaymentModal';
@@ -18,6 +21,26 @@ import {
   usePayables,
   useRerunPayable,
 } from '../../hooks/queries/usePayables';
+import { fetchPayables } from '../../api/payables';
+import type {
+  FilterSelections,
+  FilterCategoryId,
+} from '../../components/common/dropdowns/dropdownFilterUtils';
+import { countSelected } from '../../components/common/dropdowns/dropdownFilterUtils';
+import ManageColumnsModal, {
+  DEFAULT_COLUMNS_BY_TAB,
+  getDefaultColumnsForTab,
+  type ManageColumnConfig,
+  type PayablesStatusTab,
+} from '../../modals/ManageColumnsModal';
+import { exportPayables, type ExportFormat } from './exportUtils';
+
+const EXPORT_OPTIONS: { format: ExportFormat; label: string }[] = [
+  { format: 'csv', label: 'CSV (.csv)' },
+  { format: 'json', label: 'JSON (.json)' },
+  { format: 'xlsx', label: 'Excel (.xlsx)' },
+  { format: 'pdf', label: 'PDF (.pdf)' },
+];
 
 /** Tab labels map to the slugs the backend filters by. */
 const tabSlugs = {
@@ -27,7 +50,21 @@ const tabSlugs = {
   Exceptions: 'exceptions',
 } as const;
 
-type StatusLabel = keyof typeof tabSlugs;
+type StatusLabel = PayablesStatusTab;
+
+const serializeFilters = (filters: FilterSelections) => {
+  const active = (Object.keys(filters) as FilterCategoryId[]).reduce(
+    (acc, categoryId) => {
+      if (countSelected(categoryId, filters[categoryId]) > 0) {
+        acc[categoryId] = filters[categoryId];
+      }
+      return acc;
+    },
+    {} as FilterSelections
+  );
+
+  return Object.keys(active).length > 0 ? JSON.stringify(active) : undefined;
+};
 
 const BillsPayables = () => {
   const navigate = useNavigate();
@@ -40,19 +77,28 @@ const BillsPayables = () => {
   const [isReRunModalOpen, setIsReRunModalOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState<FilterSelections>({});
+  const [isManageColumnsOpen, setIsManageColumnsOpen] = useState(false);
+  const [columnsByTab, setColumnsByTab] = useState<
+    Record<StatusLabel, ManageColumnConfig[]>
+  >(DEFAULT_COLUMNS_BY_TAB);
   const debouncedSearch = useDebouncedValue(searchQuery);
+
   const [paymentToCancel, setPaymentToCancel] = useState<Payment | null>(null);
   const [bulkPaymentToCancel, setBulkPaymentToCancel] =
     useState<Payment | null>(null);
+
+  const serializedFilters = useMemo(() => serializeFilters(filters), [filters]);
 
   const listParams = useMemo(
     () => ({
       tab: tabSlugs[activeTab],
       search: debouncedSearch,
+      filters: serializedFilters,
       page: currentPage,
       perPage: itemsPerPage,
     }),
-    [activeTab, debouncedSearch, currentPage, itemsPerPage]
+    [activeTab, debouncedSearch, serializedFilters, currentPage, itemsPerPage]
   );
 
   const { data, isFetching, isError, error, refetch } = usePayables(listParams);
@@ -70,13 +116,37 @@ const BillsPayables = () => {
     setActiveTab(tab);
     setCurrentPage(1);
     setSelectedIds([]);
-    setSearchQuery('');
   };
 
   const handleSearch = (value: string) => {
     setSearchQuery(value);
     setCurrentPage(1);
   };
+
+  const handleFilterApply = (next: FilterSelections) => {
+    setFilters(next);
+    setCurrentPage(1);
+  };
+
+  const handleColumnsApply = (next: ManageColumnConfig[]) => {
+    setColumnsByTab((prev) => ({ ...prev, [activeTab]: next }));
+  };
+
+  // Export covers every matching row, not just the visible page.
+  const handleExport = useCallback(
+    async (format: ExportFormat) => {
+      const all = await fetchPayables({
+        tab: tabSlugs[activeTab],
+        search: debouncedSearch,
+        filters: serializedFilters,
+      });
+      exportPayables(all.rows, tabSlugs[activeTab], format);
+    },
+    [activeTab, debouncedSearch, serializedFilters]
+  );
+
+  const activeColumns = columnsByTab[activeTab];
+  const defaultColumnsForTab = getDefaultColumnsForTab(activeTab);
 
   const handlePageChange = (page: number) => setCurrentPage(page);
 
@@ -165,13 +235,53 @@ const BillsPayables = () => {
           selectedCount={isReadyToPay ? selectedIds.length : 0}
           searchValue={searchQuery}
           onSearch={handleSearch}
+          filters={filters}
+          onFilterApply={handleFilterApply}
           onDeselect={() => setSelectedIds([])}
           onPay={() => {
             if (selectedIds.length > 0) {
               navigate('/payables/multiple', { state: { selectedIds } });
             }
           }}
-        />
+        >
+          <Menu.Root placement="bottom-start">
+            <Menu.Trigger asChild>
+              <Button
+                size="md"
+                variant="secondary"
+                icon="arrow-up-tray"
+                iconDirection="right"
+              >
+                Export
+              </Button>
+            </Menu.Trigger>
+            <Menu.Portal>
+              <Menu.Positioner className="z-50">
+                <Menu.Popup className="min-w-20 overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-dropdown">
+                  {EXPORT_OPTIONS.map(({ format, label }) => (
+                    <MenuCloseItem
+                      key={format}
+                      className="px-4 py-2.5 text-sm leading-5 font-medium text-gray-700 hover:bg-gray-50"
+                      onClick={() => {
+                        void handleExport(format);
+                      }}
+                    >
+                      {label}
+                    </MenuCloseItem>
+                  ))}
+                </Menu.Popup>
+              </Menu.Positioner>
+            </Menu.Portal>
+          </Menu.Root>
+          <Button
+            size="md"
+            variant="secondary"
+            icon="adjustments-horizontal"
+            iconVariant="outline"
+            title="Manage columns"
+            onClick={() => setIsManageColumnsOpen(true)}
+          />
+        </BoxHeader>
       }
       footer={
         <div className="w-full flex justify-end">
@@ -216,6 +326,7 @@ const BillsPayables = () => {
             selectedIds={selectedIds}
             onSelectionChange={setSelectedIds}
             selectable={isReadyToPay}
+            columns={activeColumns}
             onCancelClick={handleCancelClick}
             onReRunClick={handleReRunClick}
             onCancelBulkPaymentClick={handleCancelBulkPaymentClick}
@@ -239,6 +350,13 @@ const BillsPayables = () => {
         open={isReRunModalOpen}
         onClose={handleReRunClose}
         onConfirm={handleReRunConfirm}
+      />
+      <ManageColumnsModal
+        open={isManageColumnsOpen}
+        onClose={() => setIsManageColumnsOpen(false)}
+        value={activeColumns}
+        defaultColumns={defaultColumnsForTab}
+        onApply={handleColumnsApply}
       />
     </Box>
   );

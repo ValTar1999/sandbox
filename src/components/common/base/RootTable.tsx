@@ -26,16 +26,42 @@ import {
   FLEX_CENTER,
 } from '../../../constants/tableStyles';
 import SD from '../../../assets/image/SMART-Disburse.svg';
+import type {
+  ManageColumnConfig,
+  ManageColumnId,
+} from '../../../modals/ManageColumnsModal';
 
 interface RootTableProps {
   payments: Payment[];
   selectedIds?: string[];
   onSelectionChange?: (ids: string[]) => void;
   selectable?: boolean;
+  columns?: ManageColumnConfig[];
   onCancelClick: (payment: Payment) => void;
   onReRunClick: (payment: Payment) => void;
   onCancelBulkPaymentClick?: (payment: Payment) => void;
 }
+
+const DEFAULT_VISIBLE_COLUMNS: ManageColumnId[] = [
+  'amount',
+  'billReference',
+  'payee',
+  'paymentType',
+  'source',
+  'dueDate',
+  'status',
+];
+
+const formatPaymentDate = (payment: Payment) => {
+  const raw = payment.unprocessed?.date;
+  if (!raw) return '—';
+  return raw.replace(/\s+\d{1,2}:\d{2}\s*(AM|PM)?\s*(\(.*\))?/i, '').trim();
+};
+
+const getFailureReason = (payment: Payment) => {
+  if (payment.status !== 'failed') return '—';
+  return payment.notes || '—';
+};
 
 const renderStatusBadge = (status: Payment['status']) => {
   const config = STATUS_BADGES[status as keyof typeof STATUS_BADGES];
@@ -52,6 +78,7 @@ const RootTable: React.FC<RootTableProps> = ({
   selectedIds = [],
   onSelectionChange,
   selectable = false,
+  columns,
   onCancelClick,
   onReRunClick,
   onCancelBulkPaymentClick,
@@ -118,6 +145,27 @@ const RootTable: React.FC<RootTableProps> = ({
     () => payments.some((payment) => payment.paymentType),
     [payments]
   );
+
+  const visibleColumns = useMemo(() => {
+    const source =
+      columns ??
+      DEFAULT_VISIBLE_COLUMNS.map((id) => ({
+        id,
+        visible: id !== 'paymentType' || hasPaymentType,
+      }));
+
+    return source
+      .filter((column) => column.visible)
+      .filter((column) => {
+        if (column.id !== 'paymentType') return true;
+        if (!columns) return hasPaymentType;
+        return true;
+      })
+      .map((column) => column.id);
+  }, [columns, hasPaymentType]);
+
+  const dataColSpan =
+    1 + (selectable ? 1 : 0) + visibleColumns.length + 1;
 
   const visiblePayees = useMemo(
     () =>
@@ -230,6 +278,261 @@ const RootTable: React.FC<RootTableProps> = ({
     );
   };
 
+  const renderColumnHeader = (columnId: ManageColumnId) => {
+    switch (columnId) {
+      case 'amount':
+        return (
+          <th key={columnId} className={TH_CLASS}>
+            <div className={FLEX_END}>
+              <button type="button">
+                <div className="flex items-center gap-1">
+                  <div className={TH_TEXT_CLASS}>amount</div>
+                  <Icon icon="selector" className="text-gray-400" />
+                </div>
+              </button>
+            </div>
+          </th>
+        );
+      case 'billReference':
+        return (
+          <th key={columnId} className={TH_CLASS}>
+            <div className={FLEX_START}>
+              <button type="button">
+                <div className="flex items-center gap-1">
+                  <div className={TH_TEXT_CLASS}>bill reference</div>
+                  <Icon icon="selector" className="text-gray-400" />
+                </div>
+              </button>
+            </div>
+          </th>
+        );
+      case 'payee':
+        return (
+          <th key={columnId} className={TH_CLASS}>
+            <div className={clsx('flex items-center gap-1', 'justify-start')}>
+              <button type="button" className="flex items-center gap-1">
+                <div className={TH_TEXT_CLASS}>payee</div>
+                <Icon icon="selector" className="text-gray-400" />
+              </button>
+              <Menu.Root placement="bottom-end">
+                <Menu.Trigger as="span" onClick={handleOpenPayeeFilter}>
+                  <Button icon="filter" size="xs" variant="linkSecondary" />
+                </Menu.Trigger>
+                <Menu.Portal>
+                  <Menu.Positioner>
+                    <Menu.Popup className="z-50">
+                      <Menu.Arrow className="fill-white text-gray-200" />
+                      <PayeeFilterTooltipContent />
+                    </Menu.Popup>
+                  </Menu.Positioner>
+                </Menu.Portal>
+              </Menu.Root>
+            </div>
+          </th>
+        );
+      case 'paymentType':
+        return (
+          <th key={columnId} className={TH_CLASS}>
+            <div className={clsx('flex items-center gap-1', 'justify-start')}>
+              <div className={TH_TEXT_CLASS}>Payment Type</div>
+              <Button icon="filter" size="xs" variant="linkSecondary" />
+            </div>
+          </th>
+        );
+      case 'source':
+        return (
+          <th key={columnId} className={TH_CLASS}>
+            <div className={clsx('flex items-center gap-1', 'justify-start')}>
+              <div className={TH_TEXT_CLASS}>source</div>
+              <Button icon="filter" size="xs" variant="linkSecondary" />
+            </div>
+          </th>
+        );
+      case 'dueDate':
+        return (
+          <th key={columnId} className={TH_CLASS}>
+            <div className={clsx('flex items-center gap-1', 'justify-start')}>
+              <div className={clsx('text-nowrap', TH_TEXT_CLASS)}>Due Date</div>
+              <Icon icon="selector" className="text-gray-400" />
+            </div>
+          </th>
+        );
+      case 'status':
+        return (
+          <th key={columnId} className={TH_CLASS}>
+            <div className={clsx('flex items-center gap-1', 'justify-start')}>
+              <div className={TH_TEXT_CLASS}>status</div>
+            </div>
+          </th>
+        );
+      case 'paymentDate':
+        return (
+          <th key={columnId} className={TH_CLASS}>
+            <div className={clsx('flex items-center gap-1', 'justify-start')}>
+              <div className={clsx('text-nowrap', TH_TEXT_CLASS)}>
+                Payment Date
+              </div>
+              <Icon icon="selector" className="text-gray-400" />
+            </div>
+          </th>
+        );
+      case 'failureReason':
+        return (
+          <th key={columnId} className={TH_CLASS}>
+            <div className={clsx('flex items-center gap-1', 'justify-start')}>
+              <div className={TH_TEXT_CLASS}>Failure Reason</div>
+            </div>
+          </th>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const renderColumnCell = (columnId: ManageColumnId, payment: Payment) => {
+    switch (columnId) {
+      case 'amount':
+        return (
+          <td
+            key={columnId}
+            className={clsx('w-[186px] max-w-[186px] min-w-[186px]', TD_CLASS)}
+          >
+            <div className={clsx('flex items-center gap-1', 'justify-end')}>
+              {payment.lock ? (
+                <Icon className="text-gray-500" icon="lock-closed" />
+              ) : null}
+              <div className="font-medium text-gray-900 text-sm">
+                {payment.totalAmount}
+              </div>
+              <div className="text-gray-500">{payment.amountValute}</div>
+            </div>
+          </td>
+        );
+      case 'billReference':
+        return (
+          <td
+            key={columnId}
+            className={clsx('w-[140px] max-w-[140px] min-w-[140px]', TD_CLASS)}
+          >
+            <div
+              className={clsx('text-sm text-gray-500 flex', 'justify-start')}
+            >
+              {payment.billReference}
+            </div>
+          </td>
+        );
+      case 'payee':
+        return (
+          <td
+            key={columnId}
+            className={clsx('min-w-0 max-w-xs overflow-hidden', TD_CLASS)}
+          >
+            <div className={clsx('flex items-center gap-2', 'justify-start')}>
+              {payment.vendors && payment.vendors.length > 0 && (
+                <Badge size="lg" rounded color="gray">
+                  {payment.vendors.length}
+                </Badge>
+              )}
+              <div className="text-sm text-gray-900 font-medium truncate">
+                {payment.payee}
+              </div>
+            </div>
+          </td>
+        );
+      case 'paymentType':
+        return (
+          <td key={columnId} className={TD_CLASS}>
+            {payment.paymentType ? (
+              <div className={clsx('flex items-center gap-2', 'justify-start')}>
+                {payment.paymentType === 'sd' ? (
+                  <>
+                    <img
+                      className="w-4.5 h-4.5"
+                      src={SD}
+                      alt="icon-sd"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <div className="text-sm text-gray-900">SMART Disburse</div>
+                  </>
+                ) : (
+                  <div className="text-sm text-gray-900">
+                    {payment.paymentType}
+                  </div>
+                )}
+              </div>
+            ) : null}
+          </td>
+        );
+      case 'source':
+        return (
+          <td key={columnId} className={TD_CLASS}>
+            <div
+              className={clsx(
+                'text-sm text-gray-900 flex font-medium',
+                'justify-start'
+              )}
+            >
+              {payment.source}
+            </div>
+          </td>
+        );
+      case 'dueDate':
+        return (
+          <td key={columnId} className={TD_CLASS}>
+            <div className={clsx('text-sm flex', 'justify-start')}>
+              {payment.status === 'pastDue' ? (
+                <div className="flex items-center gap-1">
+                  <div className="text-yellow-600 text-nowrap">
+                    {payment.dueDate}
+                  </div>
+                  <Icon
+                    className="text-yellow-500"
+                    icon="exclamation-circle"
+                  />
+                </div>
+              ) : (
+                <div className="text-gray-500 text-nowrap">
+                  {payment.dueDate}
+                </div>
+              )}
+            </div>
+          </td>
+        );
+      case 'status':
+        return (
+          <td key={columnId} className={TD_CLASS}>
+            <div className={FLEX_START}>
+              {renderStatusBadge(payment.status)}
+            </div>
+          </td>
+        );
+      case 'paymentDate':
+        return (
+          <td key={columnId} className={TD_CLASS}>
+            <div className={clsx('text-sm text-gray-500 flex', 'justify-start')}>
+              {formatPaymentDate(payment)}
+            </div>
+          </td>
+        );
+      case 'failureReason':
+        return (
+          <td key={columnId} className={TD_CLASS}>
+            <div
+              className={clsx(
+                'text-sm text-gray-900 flex font-medium',
+                'justify-start'
+              )}
+            >
+              {getFailureReason(payment)}
+            </div>
+          </td>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="overflow-x-auto w-full px-6 grid">
       <table className="min-w-full">
@@ -250,82 +553,8 @@ const RootTable: React.FC<RootTableProps> = ({
               </th>
             )}
 
-            <th className={TH_CLASS}>
-              <div className={FLEX_END}>
-                <button>
-                  <div className="flex items-center gap-1">
-                    <div className={TH_TEXT_CLASS}>amount</div>
-                    <Icon icon="selector" className="text-gray-400" />
-                  </div>
-                </button>
-              </div>
-            </th>
+            {visibleColumns.map((columnId) => renderColumnHeader(columnId))}
 
-            <th className={TH_CLASS}>
-              <div className={FLEX_START}>
-                <button>
-                  <div className="flex items-center gap-1">
-                    <div className={TH_TEXT_CLASS}>bill reference</div>
-                    <Icon icon="selector" className="text-gray-400" />
-                  </div>
-                </button>
-              </div>
-            </th>
-
-            <th className={TH_CLASS}>
-              <div className={clsx('flex items-center gap-1', 'justify-start')}>
-                <button className="flex items-center gap-1">
-                  <div className={TH_TEXT_CLASS}>payee</div>
-                  <Icon icon="selector" className="text-gray-400" />
-                </button>
-                <Menu.Root placement="bottom-end">
-                  <Menu.Trigger as="span" onClick={handleOpenPayeeFilter}>
-                    <Button icon="filter" size="xs" variant="linkSecondary" />
-                  </Menu.Trigger>
-                  <Menu.Portal>
-                    <Menu.Positioner>
-                      <Menu.Popup className="z-50">
-                        <Menu.Arrow className="fill-white text-gray-200" />
-                        <PayeeFilterTooltipContent />
-                      </Menu.Popup>
-                    </Menu.Positioner>
-                  </Menu.Portal>
-                </Menu.Root>
-              </div>
-            </th>
-
-            {hasPaymentType && (
-              <th className={TH_CLASS}>
-                <div
-                  className={clsx('flex items-center gap-1', 'justify-start')}
-                >
-                  <div className={TH_TEXT_CLASS}>Payment Type</div>
-                  <Button icon="filter" size="xs" variant="linkSecondary" />
-                </div>
-              </th>
-            )}
-
-            <th className={TH_CLASS}>
-              <div className={clsx('flex items-center gap-1', 'justify-start')}>
-                <div className={TH_TEXT_CLASS}>source</div>
-                <Button icon="filter" size="xs" variant="linkSecondary" />
-              </div>
-            </th>
-
-            <th className={TH_CLASS}>
-              <div className={clsx('flex items-center gap-1', 'justify-start')}>
-                <div className={clsx('text-nowrap', TH_TEXT_CLASS)}>
-                  Due Date
-                </div>
-                <Icon icon="selector" className="text-gray-400" />
-              </div>
-            </th>
-
-            <th className={TH_CLASS}>
-              <div className={clsx('flex items-center gap-1', 'justify-start')}>
-                <div className={TH_TEXT_CLASS}>status</div>
-              </div>
-            </th>
             <th className="w-[100px]" aria-label="Actions" />
           </tr>
         </thead>
@@ -365,126 +594,9 @@ const RootTable: React.FC<RootTableProps> = ({
                   </td>
                 )}
 
-                <td
-                  className={clsx(
-                    'w-[186px] max-w-[186px] min-w-[186px]',
-                    TD_CLASS
-                  )}
-                >
-                  <div
-                    className={clsx('flex items-center gap-1', 'justify-end')}
-                  >
-                    {payment.lock ? (
-                      <Icon className="text-gray-500" icon="lock-closed" />
-                    ) : null}
-                    <div className="font-medium text-gray-900 text-sm">
-                      {payment.totalAmount}
-                    </div>
-                    <div className="text-gray-500">{payment.amountValute}</div>
-                  </div>
-                </td>
-
-                <td
-                  className={clsx(
-                    'w-[140px] max-w-[140px] min-w-[140px]',
-                    TD_CLASS
-                  )}
-                >
-                  <div
-                    className={clsx(
-                      'text-sm text-gray-500 flex',
-                      'justify-start'
-                    )}
-                  >
-                    {payment.billReference}
-                  </div>
-                </td>
-
-                <td
-                  className={clsx('min-w-0 max-w-xs overflow-hidden', TD_CLASS)}
-                >
-                  <div
-                    className={clsx('flex items-center gap-2', 'justify-start')}
-                  >
-                    {payment.vendors && payment.vendors.length > 0 && (
-                      <Badge size="lg" rounded color="gray">
-                        {payment.vendors.length}
-                      </Badge>
-                    )}
-                    <div className="text-sm text-gray-900 font-medium truncate">
-                      {payment.payee}
-                    </div>
-                  </div>
-                </td>
-
-                {hasPaymentType && (
-                  <td className={TD_CLASS}>
-                    {payment.paymentType ? (
-                      <div
-                        className={clsx(
-                          'flex items-center gap-2',
-                          'justify-start'
-                        )}
-                      >
-                        {payment.paymentType === 'sd' ? (
-                          <>
-                            <img
-                              className="w-4.5 h-4.5"
-                              src={SD}
-                              alt="icon-sd"
-                              loading="lazy"
-                              decoding="async"
-                            />
-                            <div className="text-sm text-gray-900">
-                              SMART Disburse
-                            </div>
-                          </>
-                        ) : (
-                          <div className="text-sm text-gray-900">
-                            {payment.paymentType}
-                          </div>
-                        )}
-                      </div>
-                    ) : null}
-                  </td>
+                {visibleColumns.map((columnId) =>
+                  renderColumnCell(columnId, payment)
                 )}
-
-                <td className={TD_CLASS}>
-                  <div
-                    className={clsx(
-                      'text-sm text-gray-900 flex font-medium',
-                      'justify-start'
-                    )}
-                  >
-                    {payment.source}
-                  </div>
-                </td>
-
-                <td className={TD_CLASS}>
-                  <div className={clsx('text-sm flex', 'justify-start')}>
-                    {payment.status === 'pastDue' ? (
-                      <div className="flex items-center gap-1">
-                        <div className="text-yellow-600 text-nowrap">
-                          {payment.dueDate}
-                        </div>
-                        <Icon
-                          className="text-yellow-500"
-                          icon="exclamation-circle"
-                        />
-                      </div>
-                    ) : (
-                      <div className="text-gray-500 text-nowrap">
-                        {payment.dueDate}
-                      </div>
-                    )}
-                  </div>
-                </td>
-
-                <td className={TD_CLASS}>
-                  <div className={FLEX_START}>
-                    {renderStatusBadge(payment.status)}
-                  </div>
-                </td>
 
                 <td className="pl-4">
                   {payment.status === 'unprocessed' && (
@@ -533,7 +645,7 @@ const RootTable: React.FC<RootTableProps> = ({
               </tr>
 
               <ExpandableTableRow
-                colSpan={(hasPaymentType ? 10 : 9) - (selectable ? 0 : 1)}
+                colSpan={dataColSpan}
                 isExpanded={expandedRow === payment.id}
               >
                 <div className="flex flex-col">

@@ -14,41 +14,88 @@ export const getPaymentMethodLabel = (
     ? `Card •••• ${method.last4}`
     : 'SMART Exchange';
 
-export const exportPaymentsToCsv = (
-  rows: SmartExchangePayment[],
-  activeTab: SmartExchangeTab
-) => {
-  const headers = [
-    'Amount',
-    'Vendor Entry',
-    'Invoice #',
-    'Customer',
-    'Date Initiated',
-    'Payment Method',
-    'Status',
-  ];
-  const csvRows = rows.map((row) => [
-    (row.amountCents / 100).toFixed(2),
+export type ExportFormat = 'csv' | 'json' | 'xlsx' | 'pdf';
+
+const EXPORT_HEADERS = [
+  'Amount',
+  'Vendor Entry',
+  'Invoice #',
+  'Customer',
+  'Date Initiated',
+  'Payment Method',
+  'Status',
+] as const;
+
+const toExportRows = (rows: SmartExchangePayment[]) =>
+  rows.map((row) => ({
+    amount: (row.amountCents / 100).toFixed(2),
+    vendorEntry: row.vendorEntry,
+    invoiceNumber: row.invoiceNumber,
+    customer: row.customer,
+    dateInitiated: row.dateInitiated,
+    paymentMethod: getPaymentMethodLabel(row.paymentMethod),
+    status: row.status,
+  }));
+
+const downloadBlob = (blob: Blob, filename: string) => {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+};
+
+const buildCsv = (rows: SmartExchangePayment[]) => {
+  const csvRows = toExportRows(rows).map((row) => [
+    row.amount,
     row.vendorEntry,
     row.invoiceNumber,
     row.customer,
     row.dateInitiated,
-    getPaymentMethodLabel(row.paymentMethod),
+    row.paymentMethod,
     row.status,
   ]);
-  const csv = [headers, ...csvRows]
+  return [EXPORT_HEADERS, ...csvRows]
     .map((line) =>
       line.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')
     )
     .join('\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `smart-exchange-${activeTab}.csv`;
-  link.click();
-  URL.revokeObjectURL(url);
 };
+
+export const exportPayments = (
+  rows: SmartExchangePayment[],
+  activeTab: SmartExchangeTab,
+  format: ExportFormat
+) => {
+  const filename = `smart-exchange-${activeTab}.${format === 'xlsx' ? 'xlsx' : format}`;
+
+  if (format === 'json') {
+    downloadBlob(
+      new Blob([JSON.stringify(toExportRows(rows), null, 2)], {
+        type: 'application/json;charset=utf-8;',
+      }),
+      filename
+    );
+    return;
+  }
+
+  // Demo sandbox: CSV payload for csv/xlsx/pdf downloads.
+  const csv = buildCsv(rows);
+  const mimeType =
+    format === 'pdf'
+      ? 'application/pdf'
+      : format === 'xlsx'
+        ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        : 'text/csv;charset=utf-8;';
+
+  downloadBlob(new Blob([csv], { type: mimeType }), filename);
+};
+
+export const exportPaymentsToCsv = (
+  rows: SmartExchangePayment[],
+  activeTab: SmartExchangeTab
+) => exportPayments(rows, activeTab, 'csv');
 
 export const getCardAddressLines = (
   details: Extract<

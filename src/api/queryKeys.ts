@@ -1,6 +1,7 @@
 export type ListParams = {
   tab?: string;
   search?: string;
+  filters?: string;
   page?: number;
   perPage?: number;
 };

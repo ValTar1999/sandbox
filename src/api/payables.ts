@@ -11,6 +11,7 @@ export const fetchPayables = (params: ListParams) =>
     `/payables${buildQuery({
       tab: params.tab,
       search: params.search,
+      filters: params.filters,
       page: params.page,
       perPage: params.perPage,
     })}`

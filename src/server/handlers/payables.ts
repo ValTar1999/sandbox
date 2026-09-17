@@ -81,6 +81,186 @@ const matchesSearch = (row: Payment, search: string) =>
   row.id.toLowerCase().includes(search) ||
   (row.paymentType?.toLowerCase().includes(search) ?? false);
 
+type PayablesFilters = Partial<Record<string, string[]>>;
+
+const normalizePayeeText = (value: string) =>
+  value.toLowerCase().replace(/[`']/g, "'");
+
+const STATUS_FILTER_MAP: Record<string, string[]> = {
+  Unprocessed: ['unprocessed'],
+  Processing: ['processed'],
+  'Pending Initiation': ['processed'],
+  Initiated: ['processed'],
+  Scheduled: ['processed'],
+  'Past Due': ['pastDue'],
+  Paid: ['paid'],
+  Failed: ['failed'],
+};
+
+const PAYMENT_TYPE_FILTER_MAP: Record<string, string[]> = {
+  Card: ['Card', 'card'],
+  ACH: ['ACH', 'ach'],
+  Wire: ['Wire', 'wire'],
+  'SMART Disburse': ['SMART Disburse', 'sd', 'smart-disburse'],
+  'SMART Exchange': ['SMART Exchange', 'smart'],
+};
+
+const parseAmountValue = (totalAmount: string) => {
+  const parsed = Number(totalAmount.replace(/[^0-9.]/g, ''));
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const parseFilterDate = (value: string) => {
+  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value.trim());
+  if (!match) return null;
+  const month = Number(match[1]);
+  const day = Number(match[2]);
+  const year = Number(match[3]);
+  const date = new Date(year, month - 1, day);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const parseRowDate = (value: string) => {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const matchesPayeeFilter = (row: Payment, selected: string[]) => {
+  const payee = normalizePayeeText(row.payee);
+  const vendorNames = (row.vendors ?? []).map((vendor) =>
+    normalizePayeeText(vendor.name)
+  );
+
+  return selected.some((option) => {
+    const normalized = normalizePayeeText(option);
+    return (
+      payee.includes(normalized) ||
+      vendorNames.some(
+        (name) => name === normalized || name.includes(normalized)
+      )
+    );
+  });
+};
+
+const matchesSourceFilter = (row: Payment, selected: string[]) =>
+  selected.some((option) => {
+    if (option === 'ERP') return row.source.toLowerCase().includes('erp');
+    return row.source.toLowerCase() === option.toLowerCase();
+  });
+
+const matchesPaymentTypeFilter = (row: Payment, selected: string[]) => {
+  const type = row.paymentType ?? '';
+  return selected.some((option) =>
+    (PAYMENT_TYPE_FILTER_MAP[option] ?? [option]).some(
+      (alias) => alias.toLowerCase() === type.toLowerCase()
+    )
+  );
+};
+
+const matchesStatusFilter = (row: Payment, selected: string[]) =>
+  selected.some((option) =>
+    (STATUS_FILTER_MAP[option] ?? [option.toLowerCase()]).includes(row.status)
+  );
+
+const matchesAmountFilter = (row: Payment, range: string[]) => {
+  const amount = parseAmountValue(row.totalAmount);
+  if (amount == null) return false;
+
+  const fromRaw = range[0]?.trim() ?? '';
+  const toRaw = range[1]?.trim() ?? '';
+  const from =
+    fromRaw && fromRaw !== '0.00' ? Number(fromRaw.replace(/,/g, '')) : null;
+  const to = toRaw && toRaw !== '0.00' ? Number(toRaw.replace(/,/g, '')) : null;
+
+  if (from != null && !Number.isNaN(from) && amount < from) return false;
+  if (to != null && !Number.isNaN(to) && amount > to) return false;
+  return (
+    (from != null && !Number.isNaN(from)) || (to != null && !Number.isNaN(to))
+  );
+};
+
+const matchesDateRangeFilter = (
+  rowDateValue: string | undefined,
+  range: string[]
+) => {
+  if (!rowDateValue) return false;
+  const rowDate = parseRowDate(rowDateValue);
+  if (!rowDate) return false;
+
+  const from = range[0] ? parseFilterDate(range[0]) : null;
+  const to = range[1] ? parseFilterDate(range[1]) : null;
+  if (from && rowDate < from) return false;
+  if (to) {
+    const end = new Date(to);
+    end.setHours(23, 59, 59, 999);
+    if (rowDate > end) return false;
+  }
+  return Boolean(from || to);
+};
+
+const hasAmountRange = (range?: string[]) => {
+  if (!range?.length) return false;
+  const from = range[0]?.trim() ?? '';
+  const to = range[1]?.trim() ?? '';
+  return (from !== '' && from !== '0.00') || (to !== '' && to !== '0.00');
+};
+
+const hasDateRange = (range?: string[]) =>
+  Boolean(range?.[0]?.trim() || range?.[1]?.trim());
+
+const matchesFilters = (row: Payment, filters: PayablesFilters) => {
+  if (filters.payee?.length && !matchesPayeeFilter(row, filters.payee)) {
+    return false;
+  }
+  if (filters.source?.length && !matchesSourceFilter(row, filters.source)) {
+    return false;
+  }
+  if (
+    filters.paymentType?.length &&
+    !matchesPaymentTypeFilter(row, filters.paymentType)
+  ) {
+    return false;
+  }
+  if (filters.status?.length && !matchesStatusFilter(row, filters.status)) {
+    return false;
+  }
+  if (filters.checkStatus?.length) {
+    // Seed data has no check-status field yet; ignore until available.
+  }
+  if (filters.failureReasons?.length) {
+    // Seed data has no failure-reason field yet; ignore until available.
+  }
+  if (
+    hasAmountRange(filters.amount) &&
+    !matchesAmountFilter(row, filters.amount!)
+  ) {
+    return false;
+  }
+  if (
+    hasDateRange(filters.dueDate) &&
+    !matchesDateRangeFilter(row.dueDate, filters.dueDate!)
+  ) {
+    return false;
+  }
+  if (
+    hasDateRange(filters.paymentDate) &&
+    !matchesDateRangeFilter(row.unprocessed?.date, filters.paymentDate!)
+  ) {
+    return false;
+  }
+  return true;
+};
+
+const parseFiltersParam = (raw: string | null): PayablesFilters => {
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw) as PayablesFilters;
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+};
+
 export const payablesHandlers = [
   http.get(apiUrl('/payables'), async ({ request }) => {
     await delay(LOADING_DURATION_MS);
@@ -88,6 +268,7 @@ export const payablesHandlers = [
     const url = new URL(request.url);
     const tab = url.searchParams.get('tab');
     const search = (url.searchParams.get('search') ?? '').trim().toLowerCase();
+    const filters = parseFiltersParam(url.searchParams.get('filters'));
     const page = Number(url.searchParams.get('page')) || 0;
     const perPage = Number(url.searchParams.get('perPage')) || 0;
 
@@ -96,7 +277,8 @@ export const payablesHandlers = [
     const filtered = all.filter(
       (row) =>
         (!statuses || statuses.includes(row.status)) &&
-        (!search || matchesSearch(row, search))
+        (!search || matchesSearch(row, search)) &&
+        matchesFilters(row, filters)
     );
 
     const rows =
@@ -252,7 +434,9 @@ export const payablesHandlers = [
     }
 
     const updated = updateDb((db) => {
-      const target = db.payables.find((item) => item.id === params.id) as Payment;
+      const target = db.payables.find(
+        (item) => item.id === params.id
+      ) as Payment;
       markProcessing(target);
       return target;
     });

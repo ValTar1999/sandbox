@@ -4,6 +4,8 @@ import Pagination from '../../components/common/base/Pagination';
 import BoxHeader from '../../components/layout/BoxHeader';
 import Button from '../../components/common/base/Button';
 import { ButtonTab } from '../../components/common/base/ButtonTab';
+import Menu from '../../components/common/base/Menu';
+import MenuCloseItem from '../../components/common/base/MenuCloseItem';
 import TableWithLoading from '../../components/common/base/TableWithLoading';
 import QueryError from '../../components/common/base/QueryError';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
@@ -18,7 +20,14 @@ import {
   SMART_EXCHANGE_TAB_LABELS,
   SMART_EXCHANGE_TAB_TITLES,
 } from './constants';
-import { exportPaymentsToCsv } from './utils';
+import { exportPayments, type ExportFormat } from './utils';
+
+const EXPORT_OPTIONS: { format: ExportFormat; label: string }[] = [
+  { format: 'csv', label: 'CSV (.csv)' },
+  { format: 'json', label: 'JSON (.json)' },
+  { format: 'xlsx', label: 'Excel (.xlsx)' },
+  { format: 'pdf', label: 'PDF (.pdf)' },
+];
 
 const EMPTY_COUNTS: Record<SmartExchangeTab, number> = {
   pending: 0,
@@ -77,13 +86,16 @@ const SmartExchange = () => {
 
   // The export covers every matching row, not just the visible page, so it
   // asks the backend for the unpaginated set.
-  const handleExport = useCallback(async () => {
-    const all = await fetchSmartExchangePayments({
-      tab: activeTab,
-      search: debouncedSearch,
-    });
-    exportPaymentsToCsv(all.rows, activeTab);
-  }, [activeTab, debouncedSearch]);
+  const handleExport = useCallback(
+    async (format: ExportFormat) => {
+      const all = await fetchSmartExchangePayments({
+        tab: activeTab,
+        search: debouncedSearch,
+      });
+      exportPayments(all.rows, activeTab, format);
+    },
+    [activeTab, debouncedSearch]
+  );
 
   return (
     <Box
@@ -98,15 +110,35 @@ const SmartExchange = () => {
             setCurrentPage(1);
           }}
         >
-          <Button
-            size="lg"
-            variant="secondary"
-            icon="arrow-up-tray"
-            iconDirection="right"
-            onClick={handleExport}
-          >
-            Export
-          </Button>
+          <Menu.Root placement="bottom-start">
+            <Menu.Trigger asChild>
+              <Button
+                size="md"
+                variant="secondary"
+                icon="arrow-up-tray"
+                iconDirection="right"
+              >
+                Export
+              </Button>
+            </Menu.Trigger>
+            <Menu.Portal>
+              <Menu.Positioner className="z-50">
+                <Menu.Popup className="min-w-20 overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-dropdown">
+                  {EXPORT_OPTIONS.map(({ format, label }) => (
+                    <MenuCloseItem
+                      key={format}
+                      className="px-4 py-2.5 text-sm leading-5 font-medium text-gray-700 hover:bg-gray-50"
+                      onClick={() => {
+                        void handleExport(format);
+                      }}
+                    >
+                      {label}
+                    </MenuCloseItem>
+                  ))}
+                </Menu.Popup>
+              </Menu.Positioner>
+            </Menu.Portal>
+          </Menu.Root>
         </BoxHeader>
       }
       footer={
