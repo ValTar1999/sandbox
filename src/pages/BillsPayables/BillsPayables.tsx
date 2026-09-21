@@ -258,7 +258,9 @@ const BillsPayables = () => {
               getManageColumnDefinition(id as ManageColumnId)
             }
             description="Choose which columns appear in the payments table."
-            onApply={handleColumnsApply}
+            onApply={(next) =>
+              handleColumnsApply(next as ManageColumnConfig[])
+            }
           />
         </BoxHeader>
       }
