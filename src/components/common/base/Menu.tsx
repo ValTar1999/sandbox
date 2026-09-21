@@ -45,9 +45,10 @@ const useMenuInternal = (
     onOpenChange: setOpen,
     whileElementsMounted: autoUpdate,
     placement,
+    strategy: 'fixed',
     middleware: [
       offset(8),
-      flip(),
+      flip({ padding: 8 }),
       shift({ padding: 8 }),
       floatingArrow({ element: arrowRef, padding: 8 }),
     ],
@@ -225,7 +226,7 @@ const Positioner = ({
         left: x ?? 0,
         ...style,
       }}
-      className={clsx(className)}
+      className={clsx('max-w-[calc(100vw-1rem)]', className)}
       {...props}
     >
       {children}

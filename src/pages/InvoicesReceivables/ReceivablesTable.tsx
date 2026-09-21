@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import clsx from 'clsx';
 import Icon from '../../components/common/base/Icon';
 import Button from '../../components/common/base/Button';
@@ -16,6 +16,11 @@ import {
   PaymentType,
   PaymentMethodItem,
 } from './data';
+import type {
+  ReceivablesColumnConfig,
+  ReceivablesColumnId,
+} from './manageColumns';
+import { getDefaultColumnsForTab } from './manageColumns';
 import { STATUS_BADGES } from '../../constants/tableStatusBadges';
 import {
   TH_CLASS,
@@ -30,6 +35,7 @@ import SmartCollectIcon from '../../assets/image/SMART-Collect.svg';
 interface ReceivablesTableProps {
   receivables: Receivable[];
   activeTab?: ReceivableStatus;
+  columns?: ReceivablesColumnConfig[];
   onInvoiceClick?: (receivable: Receivable) => void;
   onReRunClick?: (receivable: Receivable) => void;
   onCancelClick?: (
@@ -336,6 +342,7 @@ const PaymentMethodDisplay: React.FC<{
 const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
   receivables,
   activeTab = 'Ready to Invoice',
+  columns,
   onInvoiceClick,
   onReRunClick,
   onCancelClick,
@@ -391,8 +398,15 @@ const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
   );
 
   const isInProgress = activeTab === 'In Progress';
-  const showPaymentType =
-    activeTab === 'Paid' || activeTab === 'Exceptions' || isInProgress;
+
+  const visibleColumns = useMemo(() => {
+    const source = columns ?? getDefaultColumnsForTab(activeTab);
+    return source
+      .filter((column) => column.visible)
+      .map((column) => column.id);
+  }, [columns, activeTab]);
+
+  const dataColSpan = 1 + visibleColumns.length + 1;
 
   const getPaymentTypeContent = (receivable: Receivable) => {
     if (isInProgress) {
@@ -496,7 +510,7 @@ const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
           </span>
         </ExpandableRow>
         <ExpandableRow label="Status">{statusContent}</ExpandableRow>
-        {showPaymentType && (
+        {visibleColumns.includes('paymentType') && (
           <ExpandableRow label="Payment type">
             <span className="text-sm font-medium text-gray-900">
               {getPaymentTypeLabel(receivable, isInProgress)}
@@ -596,282 +610,295 @@ const ReceivablesTable: React.FC<ReceivablesTableProps> = ({
     );
   };
 
+  const renderColumnHeader = (columnId: ReceivablesColumnId) => {
+    switch (columnId) {
+      case 'amount':
+        return (
+          <th key={columnId} className={TH_CLASS}>
+            <div className={FLEX_END}>
+              <button type="button">
+                <div className="flex items-center gap-1">
+                  <div className={TH_TEXT_CLASS}>amount</div>
+                  <Icon icon="selector" className="text-gray-400" />
+                </div>
+              </button>
+            </div>
+          </th>
+        );
+      case 'invoiceNumber':
+        return (
+          <th key={columnId} className={TH_CLASS}>
+            <div className={FLEX_START}>
+              <button type="button">
+                <div className="flex items-center gap-1">
+                  <div className={TH_TEXT_CLASS}>invoice number</div>
+                  <Icon icon="selector" className="text-gray-400" />
+                </div>
+              </button>
+            </div>
+          </th>
+        );
+      case 'customer':
+        return (
+          <th key={columnId} className={TH_CLASS}>
+            <div className={FLEX_START}>
+              <button type="button">
+                <div className="flex items-center gap-1">
+                  <div className={TH_TEXT_CLASS}>customer</div>
+                  <Icon icon="selector" className="text-gray-400" />
+                </div>
+              </button>
+            </div>
+          </th>
+        );
+      case 'created':
+      case 'due':
+      case 'presented':
+      case 'expected':
+        return (
+          <th key={columnId} className={TH_CLASS}>
+            <div className={clsx('flex items-center gap-1', 'justify-start')}>
+              <button type="button" className="flex items-center gap-1">
+                <ThWithInfo>{columnId}</ThWithInfo>
+                <Icon icon="selector" className="text-gray-400" />
+              </button>
+            </div>
+          </th>
+        );
+      case 'paymentType':
+        return (
+          <th key={columnId} className={TH_CLASS}>
+            <div className={clsx('flex items-center gap-1', 'justify-start')}>
+              <div className={TH_TEXT_CLASS}>payment type</div>
+              <Menu.Root placement="bottom-end">
+                <Menu.Trigger as="span">
+                  <Button icon="filter" size="xs" variant="linkSecondary" />
+                </Menu.Trigger>
+                <Menu.Portal>
+                  <Menu.Positioner>
+                    <Menu.Popup className="z-50">
+                      <Menu.Arrow className="fill-white text-gray-200" />
+                      <FilterContent />
+                    </Menu.Popup>
+                  </Menu.Positioner>
+                </Menu.Portal>
+              </Menu.Root>
+            </div>
+          </th>
+        );
+      case 'status':
+        return (
+          <th key={columnId} className={TH_CLASS}>
+            <div className={clsx('flex items-center gap-1', 'justify-start')}>
+              <div className={TH_TEXT_CLASS}>status</div>
+              <Menu.Root placement="bottom-end">
+                <Menu.Trigger as="span">
+                  <Button icon="filter" size="xs" variant="linkSecondary" />
+                </Menu.Trigger>
+                <Menu.Portal>
+                  <Menu.Positioner>
+                    <Menu.Popup className="z-50">
+                      <Menu.Arrow className="fill-white text-gray-200" />
+                      <StatusFilterContent />
+                    </Menu.Popup>
+                  </Menu.Positioner>
+                </Menu.Portal>
+              </Menu.Root>
+            </div>
+          </th>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const renderColumnCell = (
+    columnId: ReceivablesColumnId,
+    receivable: Receivable
+  ) => {
+    const primaryPm = receivable.paymentMethods?.[0];
+    const isPastDue = primaryPm?.status === 'pastDue';
+
+    switch (columnId) {
+      case 'amount':
+        return (
+          <td
+            key={columnId}
+            className={clsx(
+              'w-[186px] max-w-[186px] min-w-[186px]',
+              TD_CLASS
+            )}
+          >
+            <div className={clsx('flex items-center gap-1', 'justify-end')}>
+              <div className="font-medium text-gray-900 text-sm">
+                {receivable.amount}
+              </div>
+              <div className="text-gray-500">{receivable.amountCurrency}</div>
+            </div>
+          </td>
+        );
+      case 'invoiceNumber':
+        return (
+          <td
+            key={columnId}
+            className={clsx(
+              'w-[140px] max-w-[140px] min-w-[140px]',
+              TD_CLASS
+            )}
+          >
+            <div
+              className={clsx(
+                'text-sm text-gray-500 flex text-nowrap',
+                'justify-start'
+              )}
+            >
+              {receivable.invoiceNumber}
+            </div>
+          </td>
+        );
+      case 'customer':
+        return (
+          <td
+            key={columnId}
+            className={clsx('min-w-0 max-w-xs overflow-hidden', TD_CLASS)}
+          >
+            <div
+              className={clsx(
+                'text-sm text-gray-900 font-medium truncate',
+                'justify-start'
+              )}
+            >
+              {receivable.customer}
+            </div>
+          </td>
+        );
+      case 'created':
+        return (
+          <td key={columnId} className={TD_CLASS}>
+            <div
+              className={clsx(
+                'text-sm text-gray-500 flex text-nowrap',
+                'justify-start'
+              )}
+            >
+              {receivable.created}
+            </div>
+          </td>
+        );
+      case 'due':
+        return (
+          <td key={columnId} className={TD_CLASS}>
+            <div
+              className={clsx(
+                'text-sm text-gray-500 flex text-nowrap',
+                'justify-start'
+              )}
+            >
+              {receivable.due}
+            </div>
+          </td>
+        );
+      case 'presented':
+        return (
+          <td key={columnId} className={TD_CLASS}>
+            <div
+              className={clsx(
+                'flex items-center text-nowrap text-sm text-gray-500',
+                'justify-start'
+              )}
+            >
+              {receivable.presented}
+            </div>
+          </td>
+        );
+      case 'expected':
+        return (
+          <td key={columnId} className={TD_CLASS}>
+            <div
+              className={clsx(
+                'text-sm flex text-nowrap items-center gap-1',
+                'justify-start',
+                isPastDue ? 'text-yellow-600 font-medium' : 'text-gray-500'
+              )}
+            >
+              {receivable.expected}
+              {isPastDue && (
+                <Icon
+                  icon="information-circle"
+                  className="w-4 h-4 text-yellow-500"
+                />
+              )}
+            </div>
+          </td>
+        );
+      case 'paymentType':
+        return (
+          <td key={columnId} className={TD_CLASS}>
+            <div className={clsx('flex', 'justify-start')}>
+              {getPaymentTypeContent(receivable)}
+            </div>
+          </td>
+        );
+      case 'status':
+        return (
+          <td key={columnId} className={TD_CLASS}>
+            <div className={clsx('flex', 'justify-start')}>
+              {getStatusContent(receivable)}
+            </div>
+          </td>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="overflow-x-auto w-full px-6 grid">
       <table className="min-w-full">
         <thead>
           <tr className="border-b border-dashed border-gray-200">
             <th className="w-[52px] max-w-[52px] min-w-[52px]"></th>
-
-            <th className={TH_CLASS}>
-              <div className={FLEX_END}>
-                <button>
-                  <div className="flex items-center gap-1">
-                    <div className={TH_TEXT_CLASS}>amount</div>
-                    <Icon icon="selector" className="text-gray-400" />
-                  </div>
-                </button>
-              </div>
-            </th>
-
-            <th className={TH_CLASS}>
-              <div className={FLEX_START}>
-                <button>
-                  <div className="flex items-center gap-1">
-                    <div className={TH_TEXT_CLASS}>invoice number</div>
-                    <Icon icon="selector" className="text-gray-400" />
-                  </div>
-                </button>
-              </div>
-            </th>
-
-            <th className={TH_CLASS}>
-              <div className={FLEX_START}>
-                <button>
-                  <div className="flex items-center gap-1">
-                    <div className={TH_TEXT_CLASS}>customer</div>
-                    <Icon icon="selector" className="text-gray-400" />
-                  </div>
-                </button>
-              </div>
-            </th>
-
-            <th className={TH_CLASS}>
-              <div className={clsx('flex items-center gap-1', 'justify-start')}>
-                <button className="flex items-center gap-1">
-                  <ThWithInfo>created</ThWithInfo>
-                  <Icon icon="selector" className="text-gray-400" />
-                </button>
-              </div>
-            </th>
-
-            <th className={TH_CLASS}>
-              <div className={clsx('flex items-center gap-1', 'justify-start')}>
-                <button className="flex items-center gap-1">
-                  <ThWithInfo>due</ThWithInfo>
-                  <Icon icon="selector" className="text-gray-400" />
-                </button>
-              </div>
-            </th>
-
-            <th className={TH_CLASS}>
-              <div className={clsx('flex items-center gap-1', 'justify-start')}>
-                <button className="flex items-center gap-1">
-                  <ThWithInfo>presented</ThWithInfo>
-                  <Icon icon="selector" className="text-gray-400" />
-                </button>
-              </div>
-            </th>
-
-            <th className={TH_CLASS}>
-              <div className={clsx('flex items-center gap-1', 'justify-start')}>
-                <button className="flex items-center gap-1">
-                  <ThWithInfo>expected</ThWithInfo>
-                  <Icon icon="selector" className="text-gray-400" />
-                </button>
-              </div>
-            </th>
-
-            {showPaymentType && (
-              <th className={TH_CLASS}>
-                <div
-                  className={clsx('flex items-center gap-1', 'justify-start')}
-                >
-                  <div className={TH_TEXT_CLASS}>payment type</div>
-                  <Menu.Root placement="bottom-end">
-                    <Menu.Trigger as="span">
-                      <Button icon="filter" size="xs" variant="linkSecondary" />
-                    </Menu.Trigger>
-                    <Menu.Portal>
-                      <Menu.Positioner>
-                        <Menu.Popup className="z-50">
-                          <Menu.Arrow className="fill-white text-gray-200" />
-                          <FilterContent />
-                        </Menu.Popup>
-                      </Menu.Positioner>
-                    </Menu.Portal>
-                  </Menu.Root>
-                </div>
-              </th>
-            )}
-
-            <th className={TH_CLASS}>
-              <div className={clsx('flex items-center gap-1', 'justify-start')}>
-                <div className={TH_TEXT_CLASS}>status</div>
-                <Menu.Root placement="bottom-end">
-                  <Menu.Trigger as="span">
-                    <Button icon="filter" size="xs" variant="linkSecondary" />
-                  </Menu.Trigger>
-                  <Menu.Portal>
-                    <Menu.Positioner>
-                      <Menu.Popup className="z-50">
-                        <Menu.Arrow className="fill-white text-gray-200" />
-                        <StatusFilterContent />
-                      </Menu.Popup>
-                    </Menu.Positioner>
-                  </Menu.Portal>
-                </Menu.Root>
-              </div>
-            </th>
-
+            {visibleColumns.map((columnId) => renderColumnHeader(columnId))}
             <th className="w-[100px]"></th>
           </tr>
         </thead>
 
         <tbody>
-          {receivables.map((receivable) => {
-            const primaryPm = receivable.paymentMethods?.[0];
-            const isPastDue = primaryPm?.status === 'pastDue';
-
-            return (
-              <React.Fragment key={receivable.id}>
-                <tr
-                  onClick={() => toggleExpand(receivable.id)}
-                  className={clsx(
-                    'transition-colors duration-300 ease-in-out',
-                    'hover:bg-gray-50 cursor-pointer',
-                    expandedRow === receivable.id && 'bg-gray-100'
-                  )}
-                >
-                  <td className="w-[52px] max-w-[52px] min-w-[52px]">
-                    <Icon
-                      icon="chevron-right"
-                      className={clsx(
-                        'ml-4 text-gray-500 transition-transform duration-300 ease-in-out',
-                        expandedRow === receivable.id && 'rotate-90'
-                      )}
-                    />
-                  </td>
-
-                  <td
+          {receivables.map((receivable) => (
+            <React.Fragment key={receivable.id}>
+              <tr
+                onClick={() => toggleExpand(receivable.id)}
+                className={clsx(
+                  'transition-colors duration-300 ease-in-out',
+                  'hover:bg-gray-50 cursor-pointer',
+                  expandedRow === receivable.id && 'bg-gray-100'
+                )}
+              >
+                <td className="w-[52px] max-w-[52px] min-w-[52px]">
+                  <Icon
+                    icon="chevron-right"
                     className={clsx(
-                      'w-[186px] max-w-[186px] min-w-[186px]',
-                      TD_CLASS
+                      'ml-4 text-gray-500 transition-transform duration-300 ease-in-out',
+                      expandedRow === receivable.id && 'rotate-90'
                     )}
-                  >
-                    <div
-                      className={clsx('flex items-center gap-1', 'justify-end')}
-                    >
-                      <div className="font-medium text-gray-900 text-sm">
-                        {receivable.amount}
-                      </div>
-                      <div className="text-gray-500">
-                        {receivable.amountCurrency}
-                      </div>
-                    </div>
-                  </td>
+                  />
+                </td>
 
-                  <td
-                    className={clsx(
-                      'w-[140px] max-w-[140px] min-w-[140px]',
-                      TD_CLASS
-                    )}
-                  >
-                    <div
-                      className={clsx(
-                        'text-sm text-gray-500 flex text-nowrap',
-                        'justify-start'
-                      )}
-                    >
-                      {receivable.invoiceNumber}
-                    </div>
-                  </td>
+                {visibleColumns.map((columnId) =>
+                  renderColumnCell(columnId, receivable)
+                )}
 
-                  <td
-                    className={clsx(
-                      'min-w-0 max-w-xs overflow-hidden',
-                      TD_CLASS
-                    )}
-                  >
-                    <div
-                      className={clsx(
-                        'text-sm text-gray-900 font-medium truncate',
-                        'justify-start'
-                      )}
-                    >
-                      {receivable.customer}
-                    </div>
-                  </td>
+                <td className="pl-4">{getActionContent(receivable)}</td>
+              </tr>
 
-                  <td className={TD_CLASS}>
-                    <div
-                      className={clsx(
-                        'text-sm text-gray-500 flex text-nowrap',
-                        'justify-start'
-                      )}
-                    >
-                      {receivable.created}
-                    </div>
-                  </td>
-
-                  <td className={TD_CLASS}>
-                    <div
-                      className={clsx(
-                        'text-sm text-gray-500 flex text-nowrap',
-                        'justify-start'
-                      )}
-                    >
-                      {receivable.due}
-                    </div>
-                  </td>
-
-                  <td className={TD_CLASS}>
-                    <div
-                      className={clsx(
-                        'flex items-center text-nowrap text-sm text-gray-500',
-                        'justify-start'
-                      )}
-                    >
-                      {receivable.presented}
-                    </div>
-                  </td>
-
-                  <td className={TD_CLASS}>
-                    <div
-                      className={clsx(
-                        'text-sm flex text-nowrap items-center gap-1',
-                        'justify-start',
-                        isPastDue
-                          ? 'text-yellow-600 font-medium'
-                          : 'text-gray-500'
-                      )}
-                    >
-                      {receivable.expected}
-                      {isPastDue && (
-                        <Icon
-                          icon="information-circle"
-                          className="w-4 h-4 text-yellow-500"
-                        />
-                      )}
-                    </div>
-                  </td>
-
-                  {showPaymentType && (
-                    <td className={TD_CLASS}>
-                      <div className={clsx('flex', 'justify-start')}>
-                        {getPaymentTypeContent(receivable)}
-                      </div>
-                    </td>
-                  )}
-
-                  <td className={TD_CLASS}>
-                    <div className={clsx('flex', 'justify-start')}>
-                      {getStatusContent(receivable)}
-                    </div>
-                  </td>
-
-                  <td className="pl-4">{getActionContent(receivable)}</td>
-                </tr>
-
-                <ExpandableTableRow
-                  colSpan={showPaymentType ? 11 : 10}
-                  isExpanded={expandedRow === receivable.id}
-                >
-                  {getExpandableContent(receivable)}
-                </ExpandableTableRow>
-              </React.Fragment>
-            );
-          })}
+              <ExpandableTableRow
+                colSpan={dataColSpan}
+                isExpanded={expandedRow === receivable.id}
+              >
+                {getExpandableContent(receivable)}
+              </ExpandableTableRow>
+            </React.Fragment>
+          ))}
         </tbody>
       </table>
     </div>

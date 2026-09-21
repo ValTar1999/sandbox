@@ -7,7 +7,7 @@ import CheckBox from '../base/CheckBox';
 import Icon from '../base/Icon';
 import Badge from '../base/Badge';
 import {
-  FILTER_CATEGORIES,
+  PAYABLES_FILTER_CATEGORIES,
   RANGE_FROM_INDEX,
   RANGE_TO_INDEX,
   countActiveCategories,
@@ -19,6 +19,7 @@ import {
   getRangeValues,
   isAmountValueSet,
   isDateValueSet,
+  type FilterCategory,
   type FilterCategoryId,
   type FilterSelections,
 } from './dropdownFilterUtils';
@@ -26,19 +27,22 @@ import {
 const FilterPanel = ({
   applied,
   onApply,
+  categories,
 }: {
   applied: FilterSelections;
   onApply: (next: FilterSelections) => void;
+  categories: FilterCategory[];
 }) => {
   const { setOpen } = useMenuContext();
-  const [activeCategoryId, setActiveCategoryId] =
-    useState<FilterCategoryId>('payee');
+  const [activeCategoryId, setActiveCategoryId] = useState<FilterCategoryId>(
+    categories[0]?.id ?? ''
+  );
   const [draft, setDraft] = useState<FilterSelections>(applied);
   const [searchQuery, setSearchQuery] = useState('');
 
   const activeCategory =
-    FILTER_CATEGORIES.find((category) => category.id === activeCategoryId) ??
-    FILTER_CATEGORIES[0];
+    categories.find((category) => category.id === activeCategoryId) ??
+    categories[0];
 
   const selectedValues = draft[activeCategory.id] ?? [];
   const amountRange = getRangeValues(draft, 'amount');
@@ -118,17 +122,20 @@ const FilterPanel = ({
     setOpen(false);
   };
 
-  const hasDraftSelection = countAllSelected(draft) > 0;
+  const hasDraftSelection = countAllSelected(draft, categories) > 0;
+
+  if (!activeCategory) return null;
 
   return (
-    <div className="flex w-[628px] flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-dropdown">
-      <div className="flex h-auto">
+    <div className="flex w-[628px] max-w-[calc(100vw-1rem)] flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-dropdown">
+      <div className="flex h-auto min-w-0">
         <div className="w-3xs shrink-0 border-r border-gray-200 p-3 bg-gray-50">
           <nav className="flex flex-col">
-            {FILTER_CATEGORIES.map((category) => {
+            {categories.map((category) => {
               const selectedCount = countSelected(
                 category.id,
-                draft[category.id]
+                draft[category.id],
+                categories
               );
               const isActive = category.id === activeCategoryId;
 
@@ -285,14 +292,14 @@ const FilterPanel = ({
                 </div>
               )}
 
-              <div className="max-h-[418px] space-y-3 overflow-y-auto no-scrollbar px-3 pb-6">
+              <div className="max-h-[418px] space-y-3 overflow-y-auto overflow-x-hidden no-scrollbar px-3 pb-6">
                 {visibleOptions.map((option, index) => (
                   <CheckBox
                     key={`${option}-${index}`}
                     checked={selectedValues.includes(option)}
                     onChange={() => toggleOption(option)}
-                    wrapperClassName="flex w-full items-center cursor-pointer"
-                    labelClassName="ml-3 text-sm text-gray-900"
+                    wrapperClassName="flex w-full min-w-0 items-center cursor-pointer"
+                    labelClassName="ml-3 min-w-0 truncate text-sm text-gray-900"
                     label={option}
                   />
                 ))}
@@ -332,16 +339,19 @@ const FilterPanel = ({
 interface DropdownFilterProps {
   value?: FilterSelections;
   onApply?: (filters: FilterSelections) => void;
+  categories?: FilterCategory[];
 }
 
 export const AppliedFilterChips = ({
   filters,
   onRemove,
+  categories = PAYABLES_FILTER_CATEGORIES,
 }: {
   filters: FilterSelections;
   onRemove: (categoryId: FilterCategoryId) => void;
+  categories?: FilterCategory[];
 }) => {
-  const chips = getAppliedFilterChips(filters);
+  const chips = getAppliedFilterChips(filters, categories);
   if (chips.length === 0) return null;
 
   return (
@@ -379,12 +389,13 @@ export const AppliedFilterChips = ({
 export const DropdownFilter: React.FC<DropdownFilterProps> = ({
   value,
   onApply,
+  categories = PAYABLES_FILTER_CATEGORIES,
 }) => {
   const [internalApplied, setInternalApplied] =
     useState<FilterSelections>(emptySelections());
   const applied = value ?? internalApplied;
 
-  const totalApplied = countActiveCategories(applied);
+  const totalApplied = countActiveCategories(applied, categories);
 
   const handleApply = (next: FilterSelections) => {
     if (value === undefined) {
@@ -411,9 +422,10 @@ export const DropdownFilter: React.FC<DropdownFilterProps> = ({
         <Menu.Positioner className="z-50">
           <Menu.Popup>
             <FilterPanel
-              key={JSON.stringify(applied)}
+              key={`${categories.map((c) => c.id).join('-')}-${JSON.stringify(applied)}`}
               applied={applied}
               onApply={handleApply}
+              categories={categories}
             />
           </Menu.Popup>
         </Menu.Positioner>

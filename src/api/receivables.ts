@@ -10,6 +10,7 @@ export const fetchReceivables = (params: ListParams) =>
     `/receivables${buildQuery({
       tab: params.tab,
       search: params.search,
+      filters: params.filters,
       page: params.page,
       perPage: params.perPage,
     })}`

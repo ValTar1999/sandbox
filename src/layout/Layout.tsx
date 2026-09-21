@@ -21,7 +21,9 @@ const Layout = ({ children, className }: LayoutProps) => {
       <div className="flex-1 flex flex-col">
         <Header />
 
-        <main className={clsx('p-6 overflow-y-scroll h-full')}>{content}</main>
+        <main className={clsx('h-full overflow-x-hidden overflow-y-auto p-6')}>
+          {content}
+        </main>
       </div>
     </div>
   );

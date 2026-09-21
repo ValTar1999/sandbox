@@ -5,12 +5,17 @@ import WrapModal from '../components/common/modal/WrapModal';
 import Button from '../components/common/base/Button';
 import CheckBox from '../components/common/base/CheckBox';
 import Badge from '../components/common/base/Badge';
-import {
-  DEFAULT_MANAGE_COLUMNS,
-  getManageColumnDefinition,
-  type ManageColumnConfig,
-  type ManageColumnId,
-} from '../pages/BillsPayables/manageColumns';
+
+export type ManageColumnConfig = {
+  id: string;
+  visible: boolean;
+};
+
+export type ManageColumnDefinition = {
+  id: string;
+  label: string;
+  badge?: string;
+};
 
 const DragHandleIcon = () => (
   <svg
@@ -51,20 +56,24 @@ const DragHandleIcon = () => (
 interface ManageColumnsModalProps {
   open: boolean;
   onClose: () => void;
-  value?: ManageColumnConfig[];
-  defaultColumns?: ManageColumnConfig[];
+  value: ManageColumnConfig[];
+  defaultColumns: ManageColumnConfig[];
+  getColumnDefinition: (id: string) => ManageColumnDefinition;
+  description?: string;
   onApply?: (columns: ManageColumnConfig[]) => void;
 }
 
 const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
   open,
   onClose,
-  value = DEFAULT_MANAGE_COLUMNS,
-  defaultColumns = DEFAULT_MANAGE_COLUMNS,
+  value,
+  defaultColumns,
+  getColumnDefinition,
+  description = 'Choose which columns appear in the table.',
   onApply,
 }) => {
   const [draft, setDraft] = useState<ManageColumnConfig[]>(value);
-  const [draggedId, setDraggedId] = useState<ManageColumnId | null>(null);
+  const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dropIndex, setDropIndex] = useState<number | null>(null);
 
   useEffect(() => {
@@ -75,7 +84,7 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
     }
   }, [open, value]);
 
-  const toggleVisible = (id: ManageColumnId) => {
+  const toggleVisible = (id: string) => {
     setDraft((prev) =>
       prev.map((column) =>
         column.id === id ? { ...column, visible: !column.visible } : column
@@ -83,7 +92,7 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
     );
   };
 
-  const reorder = (fromId: ManageColumnId, toIndex: number) => {
+  const reorder = (fromId: string, toIndex: number) => {
     setDraft((prev) => {
       const fromIndex = prev.findIndex((column) => column.id === fromId);
       if (fromIndex < 0 || fromIndex === toIndex) return prev;
@@ -96,7 +105,7 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
     });
   };
 
-  const handleDragStart = (id: ManageColumnId) => {
+  const handleDragStart = (id: string) => {
     setDraggedId(id);
   };
 
@@ -155,9 +164,7 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
             <h2 className="text-lg font-semibold leading-6 text-gray-900">
               Manage columns
             </h2>
-            <p className="text-sm leading-5 text-gray-500">
-              Choose which columns appear in the payments table.
-            </p>
+            <p className="text-sm leading-5 text-gray-500">{description}</p>
           </div>
           <Button
             icon="x"
@@ -170,7 +177,7 @@ const ManageColumnsModal: React.FC<ManageColumnsModalProps> = ({
 
         <ul className="relative grid gap-2 px-5 py-4" onDragEnd={handleDrop}>
           {draft.map((column, index) => {
-            const definition = getManageColumnDefinition(column.id);
+            const definition = getColumnDefinition(column.id);
             const isDragging = draggedId === column.id;
             const showDropLine = dropIndex === index && draggedId !== column.id;
 

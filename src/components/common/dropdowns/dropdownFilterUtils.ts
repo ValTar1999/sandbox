@@ -1,13 +1,4 @@
-export type FilterCategoryId =
-  | 'payee'
-  | 'paymentType'
-  | 'status'
-  | 'checkStatus'
-  | 'failureReasons'
-  | 'amount'
-  | 'dueDate'
-  | 'paymentDate'
-  | 'source';
+export type FilterCategoryId = string;
 
 export type FilterSelections = Partial<Record<FilterCategoryId, string[]>>;
 
@@ -77,7 +68,8 @@ export const formatMmDdYyyyInput = (raw: string) => {
   return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
 };
 
-export const FILTER_CATEGORIES: FilterCategory[] = [
+/** Default payables filter categories — Bills Payables table data. */
+export const PAYABLES_FILTER_CATEGORIES: FilterCategory[] = [
   {
     id: 'payee',
     label: 'Payee',
@@ -170,13 +162,17 @@ export const FILTER_CATEGORIES: FilterCategory[] = [
   },
 ];
 
+/** @deprecated use PAYABLES_FILTER_CATEGORIES or pass page-specific categories */
+export const FILTER_CATEGORIES = PAYABLES_FILTER_CATEGORIES;
+
 export const emptySelections = (): FilterSelections => ({});
 
 export const countSelected = (
   categoryId: FilterCategoryId,
-  values?: string[]
+  values?: string[],
+  categories: FilterCategory[] = PAYABLES_FILTER_CATEGORIES
 ) => {
-  const category = FILTER_CATEGORIES.find((item) => item.id === categoryId);
+  const category = categories.find((item) => item.id === categoryId);
   if (category?.type === 'amountRange') {
     const from = values?.[RANGE_FROM_INDEX] ?? '';
     const to = values?.[RANGE_TO_INDEX] ?? '';
@@ -190,24 +186,32 @@ export const countSelected = (
   return values?.length ?? 0;
 };
 
-export const countAllSelected = (selections: FilterSelections) =>
+export const countAllSelected = (
+  selections: FilterSelections,
+  categories: FilterCategory[] = PAYABLES_FILTER_CATEGORIES
+) =>
   (Object.keys(selections) as FilterCategoryId[]).reduce(
     (sum, categoryId) =>
-      sum + countSelected(categoryId, selections[categoryId]),
+      sum + countSelected(categoryId, selections[categoryId], categories),
     0
   );
 
-export const countActiveCategories = (selections: FilterSelections) =>
-  FILTER_CATEGORIES.filter(
-    (category) => countSelected(category.id, selections[category.id]) > 0
+export const countActiveCategories = (
+  selections: FilterSelections,
+  categories: FilterCategory[] = PAYABLES_FILTER_CATEGORIES
+) =>
+  categories.filter(
+    (category) =>
+      countSelected(category.id, selections[category.id], categories) > 0
   ).length;
 
 export const getAppliedFilterChips = (
-  selections: FilterSelections
+  selections: FilterSelections,
+  categories: FilterCategory[] = PAYABLES_FILTER_CATEGORIES
 ): AppliedFilterChip[] => {
   const chips: AppliedFilterChip[] = [];
 
-  for (const category of FILTER_CATEGORIES) {
+  for (const category of categories) {
     if (category.type === 'amountRange') {
       const { from, to } = getRangeValues(selections, category.id);
       const value = formatAmountChipValue(from, to);

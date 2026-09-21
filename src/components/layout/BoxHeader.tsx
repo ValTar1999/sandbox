@@ -8,6 +8,8 @@ import DropdownFilter, {
 } from '../common/dropdowns/DropdownFilter';
 import {
   removeFilterCategory,
+  PAYABLES_FILTER_CATEGORIES,
+  type FilterCategory,
   type FilterCategoryId,
   type FilterSelections,
 } from '../common/dropdowns/dropdownFilterUtils';
@@ -21,6 +23,7 @@ interface BoxHeaderProps {
   onPay?: () => void;
   filters?: FilterSelections;
   onFilterApply?: (filters: FilterSelections) => void;
+  filterCategories?: FilterCategory[];
   showFilter?: boolean;
   searchInputSize?: 'sm' | 'md';
   searchValue?: string;
@@ -37,6 +40,7 @@ const BoxHeader: React.FC<BoxHeaderProps> = ({
   onPay,
   filters: filtersProp,
   onFilterApply,
+  filterCategories = PAYABLES_FILTER_CATEGORIES,
   showFilter = true,
   searchInputSize = 'sm',
   searchValue = '',
@@ -112,13 +116,21 @@ const BoxHeader: React.FC<BoxHeaderProps> = ({
           />
           <div className="flex flex-wrap items-center gap-3">
             {showFilter && (
-              <DropdownFilter value={filters} onApply={handleFilterApply} />
+              <DropdownFilter
+                value={filters}
+                onApply={handleFilterApply}
+                categories={filterCategories}
+              />
             )}
             {children}
           </div>
         </div>
         {showFilter && (
-          <AppliedFilterChips filters={filters} onRemove={handleRemoveFilter} />
+          <AppliedFilterChips
+            filters={filters}
+            onRemove={handleRemoveFilter}
+            categories={filterCategories}
+          />
         )}
       </div>
     </div>

@@ -37,10 +37,7 @@ const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
 
     return (
       <label
-        className={clsx(
-          'inline-flex items-center overflow-visible',
-          wrapperClassName
-        )}
+        className={clsx('inline-flex items-center', wrapperClassName)}
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {

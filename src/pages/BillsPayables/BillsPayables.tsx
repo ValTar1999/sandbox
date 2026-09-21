@@ -26,12 +26,17 @@ import type {
   FilterSelections,
   FilterCategoryId,
 } from '../../components/common/dropdowns/dropdownFilterUtils';
-import { countSelected } from '../../components/common/dropdowns/dropdownFilterUtils';
+import {
+  countSelected,
+  PAYABLES_FILTER_CATEGORIES,
+} from '../../components/common/dropdowns/dropdownFilterUtils';
 import ManageColumnsModal from '../../modals/ManageColumnsModal';
 import {
   DEFAULT_COLUMNS_BY_TAB,
   getDefaultColumnsForTab,
+  getManageColumnDefinition,
   type ManageColumnConfig,
+  type ManageColumnId,
   type PayablesStatusTab,
 } from './manageColumns';
 import { exportPayables, type ExportFormat } from './exportUtils';
@@ -238,6 +243,7 @@ const BillsPayables = () => {
           onSearch={handleSearch}
           filters={filters}
           onFilterApply={handleFilterApply}
+          filterCategories={PAYABLES_FILTER_CATEGORIES}
           onDeselect={() => setSelectedIds([])}
           onPay={() => {
             if (selectedIds.length > 0) {
@@ -357,6 +363,10 @@ const BillsPayables = () => {
         onClose={() => setIsManageColumnsOpen(false)}
         value={activeColumns}
         defaultColumns={defaultColumnsForTab}
+        getColumnDefinition={(id) =>
+          getManageColumnDefinition(id as ManageColumnId)
+        }
+        description="Choose which columns appear in the payments table."
         onApply={handleColumnsApply}
       />
     </Box>

@@ -105,6 +105,7 @@ const SmartExchange = () => {
           title="SMART Exchange Overview"
           description={`${total} Payments`}
           searchValue={searchQuery}
+          showFilter={false}
           onSearch={(value) => {
             setSearchQuery(value);
             setCurrentPage(1);
