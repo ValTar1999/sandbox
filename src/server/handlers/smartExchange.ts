@@ -7,10 +7,159 @@ import type {
   SmartExchangeTab,
 } from '../../pages/SmartExchange/data';
 
+type SmartExchangeFilters = Partial<
+  Record<
+    | 'customer'
+    | 'vendorEntry'
+    | 'paymentMethod'
+    | 'status'
+    | 'amount'
+    | 'dateInitiated',
+    string[]
+  >
+>;
+
+const STATUS_FILTER_MAP: Record<string, string[]> = {
+  'Pending Your Action': ['pending_your_action'],
+  Paid: ['paid'],
+  Exception: ['exception'],
+};
+
 const matchesSearch = (row: SmartExchangePayment, search: string) =>
   row.invoiceNumber.toLowerCase().includes(search) ||
   row.vendorEntry.toLowerCase().includes(search) ||
   row.customer.toLowerCase().includes(search);
+
+const normalizeText = (value: string) => value.trim().toLowerCase();
+
+const parseFilterDate = (value: string) => {
+  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value.trim());
+  if (!match) return null;
+  const month = Number(match[1]);
+  const day = Number(match[2]);
+  const year = Number(match[3]);
+  const date = new Date(year, month - 1, day);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const parseRowDate = (value: string) => {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const hasAmountRange = (range?: string[]) => {
+  if (!range?.length) return false;
+  const from = range[0]?.trim() ?? '';
+  const to = range[1]?.trim() ?? '';
+  return (from !== '' && from !== '0.00') || (to !== '' && to !== '0.00');
+};
+
+const hasDateRange = (range?: string[]) =>
+  Boolean(range?.[0]?.trim() || range?.[1]?.trim());
+
+const matchesAmountFilter = (row: SmartExchangePayment, range: string[]) => {
+  const amount = row.amountCents / 100;
+  const fromRaw = range[0]?.trim() ?? '';
+  const toRaw = range[1]?.trim() ?? '';
+  const from =
+    fromRaw && fromRaw !== '0.00' ? Number(fromRaw.replace(/,/g, '')) : null;
+  const to = toRaw && toRaw !== '0.00' ? Number(toRaw.replace(/,/g, '')) : null;
+
+  if (from != null && !Number.isNaN(from) && amount < from) return false;
+  if (to != null && !Number.isNaN(to) && amount > to) return false;
+  return (
+    (from != null && !Number.isNaN(from)) || (to != null && !Number.isNaN(to))
+  );
+};
+
+const matchesDateRangeFilter = (rowDateValue: string, range: string[]) => {
+  const rowDate = parseRowDate(rowDateValue);
+  if (!rowDate) return false;
+
+  const from = range[0] ? parseFilterDate(range[0]) : null;
+  const to = range[1] ? parseFilterDate(range[1]) : null;
+  if (from && rowDate < from) return false;
+  if (to) {
+    const end = new Date(to);
+    end.setHours(23, 59, 59, 999);
+    if (rowDate > end) return false;
+  }
+  return Boolean(from || to);
+};
+
+const matchesPaymentMethodFilter = (
+  row: SmartExchangePayment,
+  selected: string[]
+) =>
+  selected.some((option) => {
+    if (option === 'Card') return row.paymentMethod.kind === 'card';
+    if (option === 'SMART Exchange')
+      return row.paymentMethod.kind === 'smart_exchange';
+    return false;
+  });
+
+const matchesFilters = (
+  row: SmartExchangePayment,
+  filters: SmartExchangeFilters
+) => {
+  if (filters.customer?.length) {
+    const customer = normalizeText(row.customer);
+    if (
+      !filters.customer.some((option) => {
+        const normalized = normalizeText(option);
+        return customer === normalized || customer.includes(normalized);
+      })
+    ) {
+      return false;
+    }
+  }
+  if (filters.vendorEntry?.length) {
+    const vendor = normalizeText(row.vendorEntry);
+    if (
+      !filters.vendorEntry.some((option) => {
+        const normalized = normalizeText(option);
+        return vendor === normalized || vendor.includes(normalized);
+      })
+    ) {
+      return false;
+    }
+  }
+  if (
+    filters.paymentMethod?.length &&
+    !matchesPaymentMethodFilter(row, filters.paymentMethod)
+  ) {
+    return false;
+  }
+  if (filters.status?.length) {
+    const matched = filters.status.some((option) =>
+      (STATUS_FILTER_MAP[option] ?? [option]).includes(row.status)
+    );
+    if (!matched) return false;
+  }
+  if (
+    hasAmountRange(filters.amount) &&
+    !matchesAmountFilter(row, filters.amount!)
+  ) {
+    return false;
+  }
+  if (
+    hasDateRange(filters.dateInitiated) &&
+    !matchesDateRangeFilter(row.dateInitiated, filters.dateInitiated!)
+  ) {
+    return false;
+  }
+  return true;
+};
+
+const parseFiltersParam = (raw: string | null): SmartExchangeFilters => {
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw) as SmartExchangeFilters;
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+};
 
 const countByTab = (rows: SmartExchangePayment[]) => {
   const counts: Record<SmartExchangeTab, number> = {
@@ -32,13 +181,16 @@ export const smartExchangeHandlers = [
     const url = new URL(request.url);
     const tab = url.searchParams.get('tab') as SmartExchangeTab | null;
     const search = (url.searchParams.get('search') ?? '').trim().toLowerCase();
+    const filters = parseFiltersParam(url.searchParams.get('filters'));
     const page = Number(url.searchParams.get('page')) || 0;
     const perPage = Number(url.searchParams.get('perPage')) || 0;
 
     const all = getDb().smartExchangePayments;
     const filtered = all.filter(
       (row) =>
-        (!tab || row.tab === tab) && (!search || matchesSearch(row, search))
+        (!tab || row.tab === tab) &&
+        (!search || matchesSearch(row, search)) &&
+        matchesFilters(row, filters)
     );
 
     // Without pagination params the whole filtered set comes back, which is

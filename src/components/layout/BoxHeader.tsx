@@ -3,9 +3,7 @@ import { clsx } from 'clsx';
 import Input from '../common/base/Input';
 import Button from '../common/base/Button';
 import { RefreshButton } from '../common/base/RefreshButton';
-import DropdownFilter, {
-  AppliedFilterChips,
-} from '../common/dropdowns/DropdownFilter';
+import { Filter, AppliedFilterChips } from '../common/table';
 import {
   removeFilterCategory,
   PAYABLES_FILTER_CATEGORIES,
@@ -116,7 +114,7 @@ const BoxHeader: React.FC<BoxHeaderProps> = ({
           />
           <div className="flex flex-wrap items-center gap-3">
             {showFilter && (
-              <DropdownFilter
+              <Filter
                 value={filters}
                 onApply={handleFilterApply}
                 categories={filterCategories}

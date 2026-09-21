@@ -263,3 +263,21 @@ export const removeFilterCategory = (
   delete next[categoryId];
   return next;
 };
+
+/** Keep only categories with an active selection — for API query strings. */
+export const serializeFilters = (
+  filters: FilterSelections,
+  categories: FilterCategory[] = PAYABLES_FILTER_CATEGORIES
+) => {
+  const active = (Object.keys(filters) as FilterCategoryId[]).reduce(
+    (acc, categoryId) => {
+      if (countSelected(categoryId, filters[categoryId], categories) > 0) {
+        acc[categoryId] = filters[categoryId];
+      }
+      return acc;
+    },
+    {} as FilterSelections
+  );
+
+  return Object.keys(active).length > 0 ? JSON.stringify(active) : undefined;
+};

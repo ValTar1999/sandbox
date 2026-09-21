@@ -2,13 +2,18 @@ import { useState, useMemo, useCallback } from 'react';
 import Box from '../../components/layout/Box';
 import Pagination from '../../components/common/base/Pagination';
 import BoxHeader from '../../components/layout/BoxHeader';
-import Button from '../../components/common/base/Button';
 import { ButtonTab } from '../../components/common/base/ButtonTab';
-import Menu from '../../components/common/base/Menu';
-import MenuCloseItem from '../../components/common/base/MenuCloseItem';
 import TableWithLoading from '../../components/common/base/TableWithLoading';
 import QueryError from '../../components/common/base/QueryError';
+import {
+  ExportMenu,
+  ManageColumns,
+  serializeFilters,
+  type ExportFormat,
+  type FilterSelections,
+} from '../../components/common/table';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
+import { usePersistedState } from '../../hooks/usePersistedState';
 import {
   useMarkPaymentPaid,
   useSmartExchangePayments,
@@ -20,14 +25,23 @@ import {
   SMART_EXCHANGE_TAB_LABELS,
   SMART_EXCHANGE_TAB_TITLES,
 } from './constants';
-import { exportPayments, type ExportFormat } from './utils';
+import { exportPayments } from './utils';
+import { SMART_EXCHANGE_FILTER_CATEGORIES } from './filterCategories';
+import {
+  DEFAULT_COLUMNS_BY_TAB,
+  getDefaultColumnsForTab,
+  getManageColumnDefinition,
+  type SmartExchangeColumnConfig,
+  type SmartExchangeColumnId,
+} from './manageColumns';
 
-const EXPORT_OPTIONS: { format: ExportFormat; label: string }[] = [
-  { format: 'csv', label: 'CSV (.csv)' },
-  { format: 'json', label: 'JSON (.json)' },
-  { format: 'xlsx', label: 'Excel (.xlsx)' },
-  { format: 'pdf', label: 'PDF (.pdf)' },
-];
+const STORAGE_KEYS = {
+  activeTab: 'smart-hub:smart-exchange:activeTab',
+  search: 'smart-hub:smart-exchange:search',
+  filters: 'smart-hub:smart-exchange:filters',
+  columns: 'smart-hub:smart-exchange:columns',
+  perPage: 'smart-hub:smart-exchange:perPage',
+} as const;
 
 const EMPTY_COUNTS: Record<SmartExchangeTab, number> = {
   pending: 0,
@@ -36,20 +50,41 @@ const EMPTY_COUNTS: Record<SmartExchangeTab, number> = {
 };
 
 const SmartExchange = () => {
-  const [activeTab, setActiveTab] = useState<SmartExchangeTab>('pending');
+  const [activeTab, setActiveTab] = usePersistedState<SmartExchangeTab>(
+    STORAGE_KEYS.activeTab,
+    'pending'
+  );
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [itemsPerPage, setItemsPerPage] = usePersistedState(
+    STORAGE_KEYS.perPage,
+    10
+  );
+  const [searchQuery, setSearchQuery] = usePersistedState(
+    STORAGE_KEYS.search,
+    ''
+  );
+  const [filters, setFilters] = usePersistedState<FilterSelections>(
+    STORAGE_KEYS.filters,
+    {}
+  );
+  const [columnsByTab, setColumnsByTab] = usePersistedState<
+    Record<SmartExchangeTab, SmartExchangeColumnConfig[]>
+  >(STORAGE_KEYS.columns, DEFAULT_COLUMNS_BY_TAB);
   const debouncedSearch = useDebouncedValue(searchQuery);
+  const serializedFilters = useMemo(
+    () => serializeFilters(filters, SMART_EXCHANGE_FILTER_CATEGORIES),
+    [filters]
+  );
 
   const listParams = useMemo(
     () => ({
       tab: activeTab,
       search: debouncedSearch,
+      filters: serializedFilters,
       page: currentPage,
       perPage: itemsPerPage,
     }),
-    [activeTab, debouncedSearch, currentPage, itemsPerPage]
+    [activeTab, debouncedSearch, serializedFilters, currentPage, itemsPerPage]
   );
 
   const { data, isFetching, isError, error, refetch } =
@@ -60,6 +95,8 @@ const SmartExchange = () => {
   const total = data?.total ?? 0;
   const counts = data?.counts ?? EMPTY_COUNTS;
   const totalPages = Math.max(1, Math.ceil(total / itemsPerPage));
+  const activeColumns = columnsByTab[activeTab];
+  const defaultColumnsForTab = getDefaultColumnsForTab(activeTab);
 
   const handleTabClick = useCallback(
     (tab: SmartExchangeTab) => {
@@ -67,34 +104,45 @@ const SmartExchange = () => {
       setActiveTab(tab);
       setCurrentPage(1);
     },
-    [activeTab]
+    [activeTab, setActiveTab]
   );
+
+  const handleFilterApply = (next: FilterSelections) => {
+    setFilters(next);
+    setCurrentPage(1);
+  };
+
+  const handleColumnsApply = (next: SmartExchangeColumnConfig[]) => {
+    setColumnsByTab((prev) => ({ ...prev, [activeTab]: next }));
+  };
 
   const handlePageChange = useCallback((page: number) => {
     setCurrentPage(page);
   }, []);
 
-  const handleItemsPerPageChange = useCallback((items: number) => {
-    setItemsPerPage(items);
-    setCurrentPage(1);
-  }, []);
+  const handleItemsPerPageChange = useCallback(
+    (items: number) => {
+      setItemsPerPage(items);
+      setCurrentPage(1);
+    },
+    [setItemsPerPage]
+  );
 
   const handleMarkPaid = useCallback(
     (paymentId: string) => markPaid.mutateAsync(paymentId),
     [markPaid]
   );
 
-  // The export covers every matching row, not just the visible page, so it
-  // asks the backend for the unpaginated set.
   const handleExport = useCallback(
     async (format: ExportFormat) => {
       const all = await fetchSmartExchangePayments({
         tab: activeTab,
         search: debouncedSearch,
+        filters: serializedFilters,
       });
       exportPayments(all.rows, activeTab, format);
     },
-    [activeTab, debouncedSearch]
+    [activeTab, debouncedSearch, serializedFilters]
   );
 
   return (
@@ -105,41 +153,30 @@ const SmartExchange = () => {
           title="SMART Exchange Overview"
           description={`${total} Payments`}
           searchValue={searchQuery}
-          showFilter={false}
           onSearch={(value) => {
             setSearchQuery(value);
             setCurrentPage(1);
           }}
+          filters={filters}
+          onFilterApply={handleFilterApply}
+          filterCategories={SMART_EXCHANGE_FILTER_CATEGORIES}
         >
-          <Menu.Root placement="bottom-start">
-            <Menu.Trigger asChild>
-              <Button
-                size="md"
-                variant="secondary"
-                icon="arrow-up-tray"
-                iconDirection="right"
-              >
-                Export
-              </Button>
-            </Menu.Trigger>
-            <Menu.Portal>
-              <Menu.Positioner className="z-50">
-                <Menu.Popup className="min-w-20 overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-dropdown">
-                  {EXPORT_OPTIONS.map(({ format, label }) => (
-                    <MenuCloseItem
-                      key={format}
-                      className="px-4 py-2.5 text-sm leading-5 font-medium text-gray-700 hover:bg-gray-50"
-                      onClick={() => {
-                        void handleExport(format);
-                      }}
-                    >
-                      {label}
-                    </MenuCloseItem>
-                  ))}
-                </Menu.Popup>
-              </Menu.Positioner>
-            </Menu.Portal>
-          </Menu.Root>
+          <ExportMenu
+            onExport={(format) => {
+              void handleExport(format);
+            }}
+          />
+          <ManageColumns
+            value={activeColumns}
+            defaultColumns={defaultColumnsForTab}
+            getColumnDefinition={(id) =>
+              getManageColumnDefinition(id as SmartExchangeColumnId)
+            }
+            description="Choose which columns appear in the SMART Exchange table."
+            onApply={(next) =>
+              handleColumnsApply(next as SmartExchangeColumnConfig[])
+            }
+          />
         </BoxHeader>
       }
       footer={
@@ -182,6 +219,7 @@ const SmartExchange = () => {
         <TableWithLoading isLoading={isFetching}>
           <SmartExchangePaymentsTable
             payments={rows}
+            columns={activeColumns}
             onMarkPaid={handleMarkPaid}
           />
         </TableWithLoading>

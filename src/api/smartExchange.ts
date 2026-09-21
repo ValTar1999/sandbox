@@ -28,6 +28,7 @@ export const fetchSmartExchangePayments = (params: ListParams) =>
     `/smart-exchange/payments${buildQuery({
       tab: params.tab,
       search: params.search,
+      filters: params.filters,
       page: params.page,
       perPage: params.perPage,
     })}`

@@ -4,28 +4,27 @@ import Box from '../../components/layout/Box';
 import Pagination from '../../components/common/base/Pagination';
 import BoxHeader from '../../components/layout/BoxHeader';
 import { ButtonTab } from '../../components/common/base/ButtonTab';
-import Button from '../../components/common/base/Button';
-import Menu from '../../components/common/base/Menu';
-import MenuCloseItem from '../../components/common/base/MenuCloseItem';
 import ReceivablesTable from './ReceivablesTable';
 import { statusMap, Receivable, ReceivableStatus } from './data';
 import TableWithLoading from '../../components/common/base/TableWithLoading';
 import QueryError from '../../components/common/base/QueryError';
 import CancelPaymentModal from '../../modals/CancelPaymentModal';
 import ReRunPaymentModal from '../../modals/ReRunPaymentModal';
-import ManageColumnsModal from '../../modals/ManageColumnsModal';
+import {
+  ExportMenu,
+  ManageColumns,
+  serializeFilters,
+  type ExportFormat,
+  type FilterSelections,
+} from '../../components/common/table';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
+import { usePersistedState } from '../../hooks/usePersistedState';
 import {
   useCancelReceivable,
   useReceivables,
   useRerunReceivable,
 } from '../../hooks/queries/useReceivables';
 import { fetchReceivables } from '../../api/receivables';
-import type {
-  FilterSelections,
-  FilterCategoryId,
-} from '../../components/common/dropdowns/dropdownFilterUtils';
-import { countSelected } from '../../components/common/dropdowns/dropdownFilterUtils';
 import { RECEIVABLES_FILTER_CATEGORIES } from './filterCategories';
 import {
   DEFAULT_COLUMNS_BY_TAB,
@@ -34,14 +33,15 @@ import {
   type ReceivablesColumnConfig,
   type ReceivablesColumnId,
 } from './manageColumns';
-import { exportReceivables, type ExportFormat } from './exportUtils';
+import { exportReceivables } from './exportUtils';
 
-const EXPORT_OPTIONS: { format: ExportFormat; label: string }[] = [
-  { format: 'csv', label: 'CSV (.csv)' },
-  { format: 'json', label: 'JSON (.json)' },
-  { format: 'xlsx', label: 'Excel (.xlsx)' },
-  { format: 'pdf', label: 'PDF (.pdf)' },
-];
+const STORAGE_KEYS = {
+  activeTab: 'smart-hub:receivables:activeTab',
+  search: 'smart-hub:receivables:search',
+  filters: 'smart-hub:receivables:filters',
+  columns: 'smart-hub:receivables:columns',
+  perPage: 'smart-hub:receivables:perPage',
+} as const;
 
 const tabSlugs: Record<ReceivableStatus, string> = {
   'Ready to Invoice': 'ready-to-invoice',
@@ -50,44 +50,37 @@ const tabSlugs: Record<ReceivableStatus, string> = {
   Exceptions: 'exceptions',
 };
 
-const serializeFilters = (filters: FilterSelections) => {
-  const active = (Object.keys(filters) as FilterCategoryId[]).reduce(
-    (acc, categoryId) => {
-      if (
-        countSelected(
-          categoryId,
-          filters[categoryId],
-          RECEIVABLES_FILTER_CATEGORIES
-        ) > 0
-      ) {
-        acc[categoryId] = filters[categoryId];
-      }
-      return acc;
-    },
-    {} as FilterSelections
-  );
-
-  return Object.keys(active).length > 0 ? JSON.stringify(active) : undefined;
-};
-
 const InvoicesReceivables = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] =
-    useState<ReceivableStatus>('Ready to Invoice');
+  const [activeTab, setActiveTab] = usePersistedState<ReceivableStatus>(
+    STORAGE_KEYS.activeTab,
+    'Ready to Invoice'
+  );
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState<FilterSelections>({});
-  const [isManageColumnsOpen, setIsManageColumnsOpen] = useState(false);
-  const [columnsByTab, setColumnsByTab] = useState<
+  const [itemsPerPage, setItemsPerPage] = usePersistedState(
+    STORAGE_KEYS.perPage,
+    10
+  );
+  const [searchQuery, setSearchQuery] = usePersistedState(
+    STORAGE_KEYS.search,
+    ''
+  );
+  const [filters, setFilters] = usePersistedState<FilterSelections>(
+    STORAGE_KEYS.filters,
+    {}
+  );
+  const [columnsByTab, setColumnsByTab] = usePersistedState<
     Record<ReceivableStatus, ReceivablesColumnConfig[]>
-  >(DEFAULT_COLUMNS_BY_TAB);
+  >(STORAGE_KEYS.columns, DEFAULT_COLUMNS_BY_TAB);
   const debouncedSearch = useDebouncedValue(searchQuery);
   const [receivableToCancel, setReceivableToCancel] =
     useState<Receivable | null>(null);
   const [isReRunModalOpen, setIsReRunModalOpen] = useState(false);
 
-  const serializedFilters = useMemo(() => serializeFilters(filters), [filters]);
+  const serializedFilters = useMemo(
+    () => serializeFilters(filters, RECEIVABLES_FILTER_CATEGORIES),
+    [filters]
+  );
 
   const listParams = useMemo(
     () => ({
@@ -195,42 +188,21 @@ const InvoicesReceivables = () => {
           onFilterApply={handleFilterApply}
           filterCategories={RECEIVABLES_FILTER_CATEGORIES}
         >
-          <Menu.Root placement="bottom-start">
-            <Menu.Trigger asChild>
-              <Button
-                size="md"
-                variant="secondary"
-                icon="arrow-up-tray"
-                iconDirection="right"
-              >
-                Export
-              </Button>
-            </Menu.Trigger>
-            <Menu.Portal>
-              <Menu.Positioner className="z-50">
-                <Menu.Popup className="min-w-20 overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-dropdown">
-                  {EXPORT_OPTIONS.map(({ format, label }) => (
-                    <MenuCloseItem
-                      key={format}
-                      className="px-4 py-2.5 text-sm leading-5 font-medium text-gray-700 hover:bg-gray-50"
-                      onClick={() => {
-                        void handleExport(format);
-                      }}
-                    >
-                      {label}
-                    </MenuCloseItem>
-                  ))}
-                </Menu.Popup>
-              </Menu.Positioner>
-            </Menu.Portal>
-          </Menu.Root>
-          <Button
-            size="md"
-            variant="secondary"
-            icon="adjustments-horizontal"
-            iconVariant="outline"
-            title="Manage columns"
-            onClick={() => setIsManageColumnsOpen(true)}
+          <ExportMenu
+            onExport={(format) => {
+              void handleExport(format);
+            }}
+          />
+          <ManageColumns
+            value={activeColumns}
+            defaultColumns={defaultColumnsForTab}
+            getColumnDefinition={(id) =>
+              getManageColumnDefinition(id as ReceivablesColumnId)
+            }
+            description="Choose which columns appear in the receivables table."
+            onApply={(next) =>
+              handleColumnsApply(next as ReceivablesColumnConfig[])
+            }
           />
         </BoxHeader>
       }
@@ -298,19 +270,6 @@ const InvoicesReceivables = () => {
         open={isReRunModalOpen}
         onClose={() => setIsReRunModalOpen(false)}
         onConfirm={() => setIsReRunModalOpen(false)}
-      />
-      <ManageColumnsModal
-        open={isManageColumnsOpen}
-        onClose={() => setIsManageColumnsOpen(false)}
-        value={activeColumns}
-        defaultColumns={defaultColumnsForTab}
-        getColumnDefinition={(id) =>
-          getManageColumnDefinition(id as ReceivablesColumnId)
-        }
-        description="Choose which columns appear in the receivables table."
-        onApply={(next) =>
-          handleColumnsApply(next as ReceivablesColumnConfig[])
-        }
       />
     </Box>
   );

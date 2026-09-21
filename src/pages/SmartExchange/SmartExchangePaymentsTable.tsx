@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format, parseISO } from 'date-fns';
 import clsx from 'clsx';
@@ -21,6 +21,11 @@ import {
 import type { SmartExchangePayment } from './data';
 import { formatAmountValue } from './utils';
 import { ACTIVITY_LOG_ICONS } from './constants';
+import type {
+  SmartExchangeColumnConfig,
+  SmartExchangeColumnId,
+} from './manageColumns';
+import { getDefaultColumnsForTab } from './manageColumns';
 import PaymentMethodCell from './components/table/PaymentMethodCell';
 import StatusCell from './components/table/StatusCell';
 import CardPaymentDetailsPanel from './components/table/CardPaymentDetailsPanel';
@@ -35,15 +40,15 @@ import FilterColumnHeader from './components/table/FilterColumnHeader';
 import ViewCardDetailsModal from '../../modals/ViewCardDetailsModal';
 import { useSmartExchangeSetupAlert } from '../../context/smartExchangeSetupAlert';
 
-const TABLE_COL_SPAN = 9;
-
 interface SmartExchangePaymentsTableProps {
   payments: SmartExchangePayment[];
+  columns?: SmartExchangeColumnConfig[];
   onMarkPaid: (paymentId: string) => Promise<unknown>;
 }
 
 const SmartExchangePaymentsTable = ({
   payments,
+  columns,
   onMarkPaid,
 }: SmartExchangePaymentsTableProps) => {
   const navigate = useNavigate();
@@ -62,6 +67,13 @@ const SmartExchangePaymentsTable = ({
   const [showSetupAlertOnDetailsClose, setShowSetupAlertOnDetailsClose] =
     useState(false);
   const { showSetupAlert } = useSmartExchangeSetupAlert();
+
+  const visibleColumns = useMemo(() => {
+    const source = columns ?? getDefaultColumnsForTab('pending');
+    return source.filter((column) => column.visible).map((column) => column.id);
+  }, [columns]);
+
+  const dataColSpan = 1 + visibleColumns.length + 1;
 
   const toggleExpand = useCallback((id: string) => {
     setExpandedRow((prev) => (prev === id ? null : id));
@@ -247,6 +259,166 @@ const SmartExchangePaymentsTable = ({
     [navigate, revealedCardDetailsRowIds, handleCardDetailsRevealedChange]
   );
 
+  const renderColumnHeader = (columnId: SmartExchangeColumnId) => {
+    switch (columnId) {
+      case 'amount':
+        return (
+          <th key={columnId} scope="col" className={TH_CLASS}>
+            <div className={FLEX_END}>
+              <button type="button" className="flex items-center gap-1">
+                <div className={TH_TEXT_CLASS}>amount</div>
+                <Icon icon="selector" className="h-4 w-4 text-gray-400" />
+              </button>
+            </div>
+          </th>
+        );
+      case 'vendorEntry':
+        return (
+          <th key={columnId} scope="col" className={TH_CLASS}>
+            <FilterColumnHeader label="vendor entry" />
+          </th>
+        );
+      case 'invoiceNumber':
+        return (
+          <th key={columnId} scope="col" className={TH_CLASS}>
+            <div className={FLEX_START}>
+              <button type="button" className="flex items-center gap-1">
+                <div className={TH_TEXT_CLASS}>invoice #</div>
+                <Icon icon="selector" className="h-4 w-4 text-gray-400" />
+              </button>
+            </div>
+          </th>
+        );
+      case 'customer':
+        return (
+          <th key={columnId} scope="col" className={TH_CLASS}>
+            <div className={FLEX_START}>
+              <button type="button" className="flex items-center gap-1">
+                <div className={TH_TEXT_CLASS}>customer</div>
+                <Icon icon="selector" className="h-4 w-4 text-gray-400" />
+              </button>
+            </div>
+          </th>
+        );
+      case 'dateInitiated':
+        return (
+          <th key={columnId} scope="col" className={TH_CLASS}>
+            <div className={clsx('flex items-center gap-1', FLEX_START)}>
+              <div className={TH_TEXT_CLASS}>date initiated</div>
+              <Tooltip trigger="hover" placement="top">
+                <TooltipTrigger
+                  as="span"
+                  className="inline-flex shrink-0 cursor-help"
+                >
+                  <Icon
+                    icon="information-circle"
+                    variant="solid"
+                    className="h-4 w-4 text-gray-400"
+                  />
+                </TooltipTrigger>
+                <TooltipContent className="relative max-w-72 -translate-y-2 bg-gray-900 p-3 text-xs text-gray-100 rounded-lg after:absolute after:left-1/2 after:top-full after:-ml-2 after:border-8 after:border-transparent after:border-t-gray-900">
+                  The date the payment was initiated by your customer to you.
+                </TooltipContent>
+              </Tooltip>
+              <button
+                type="button"
+                className="inline-flex shrink-0"
+                aria-label="Sort by date initiated"
+              >
+                <Icon icon="selector" className="h-4 w-4 text-gray-400" />
+              </button>
+            </div>
+          </th>
+        );
+      case 'paymentMethod':
+        return (
+          <th key={columnId} scope="col" className={TH_CLASS}>
+            <FilterColumnHeader label="payment method" />
+          </th>
+        );
+      case 'status':
+        return (
+          <th key={columnId} scope="col" className={TH_CLASS}>
+            <FilterColumnHeader label="status" />
+          </th>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const renderColumnCell = (
+    columnId: SmartExchangeColumnId,
+    row: SmartExchangePayment
+  ) => {
+    switch (columnId) {
+      case 'amount':
+        return (
+          <td key={columnId} className={clsx(TD_CLASS, 'whitespace-nowrap')}>
+            <div className={clsx('flex items-center gap-1', FLEX_END)}>
+              <div className="text-sm font-medium text-gray-900">
+                {formatAmountValue(row.amountCents)}
+              </div>
+              <div className="text-sm font-normal text-gray-500">USD</div>
+            </div>
+          </td>
+        );
+      case 'vendorEntry':
+        return (
+          <td
+            key={columnId}
+            className={clsx(TD_CLASS, 'whitespace-nowrap text-sm text-gray-900')}
+          >
+            {row.vendorEntry}
+          </td>
+        );
+      case 'invoiceNumber':
+        return (
+          <td
+            key={columnId}
+            className={clsx(
+              TD_CLASS,
+              'whitespace-nowrap text-sm font-normal text-gray-500'
+            )}
+          >
+            {row.invoiceNumber}
+          </td>
+        );
+      case 'customer':
+        return (
+          <td
+            key={columnId}
+            className={clsx(TD_CLASS, 'whitespace-nowrap text-sm text-gray-900')}
+          >
+            {row.customer}
+          </td>
+        );
+      case 'dateInitiated':
+        return (
+          <td
+            key={columnId}
+            className={clsx(TD_CLASS, 'whitespace-nowrap text-sm text-gray-500')}
+          >
+            {format(parseISO(row.dateInitiated), 'MMM d, yyyy')}
+          </td>
+        );
+      case 'paymentMethod':
+        return (
+          <td key={columnId} className={TD_CLASS}>
+            <PaymentMethodCell method={row.paymentMethod} />
+          </td>
+        );
+      case 'status':
+        return (
+          <td key={columnId} className={TD_CLASS}>
+            <StatusCell status={row.status} />
+          </td>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <>
       <div className="overflow-x-auto w-full px-6 grid">
@@ -257,68 +429,7 @@ const SmartExchangePaymentsTable = ({
                 className="w-[52px] max-w-[52px] min-w-[52px]"
                 aria-label="Expand row"
               />
-
-              <th scope="col" className={TH_CLASS}>
-                <div className={FLEX_END}>
-                  <button type="button" className="flex items-center gap-1">
-                    <div className={TH_TEXT_CLASS}>amount</div>
-                    <Icon icon="selector" className="h-4 w-4 text-gray-400" />
-                  </button>
-                </div>
-              </th>
-              <th scope="col" className={TH_CLASS}>
-                <FilterColumnHeader label="vendor entry" />
-              </th>
-              <th scope="col" className={TH_CLASS}>
-                <div className={FLEX_START}>
-                  <button type="button" className="flex items-center gap-1">
-                    <div className={TH_TEXT_CLASS}>invoice #</div>
-                    <Icon icon="selector" className="h-4 w-4 text-gray-400" />
-                  </button>
-                </div>
-              </th>
-              <th scope="col" className={TH_CLASS}>
-                <div className={FLEX_START}>
-                  <button type="button" className="flex items-center gap-1">
-                    <div className={TH_TEXT_CLASS}>customer</div>
-                    <Icon icon="selector" className="h-4 w-4 text-gray-400" />
-                  </button>
-                </div>
-              </th>
-              <th scope="col" className={TH_CLASS}>
-                <div className={clsx('flex items-center gap-1', FLEX_START)}>
-                  <div className={TH_TEXT_CLASS}>date initiated</div>
-                  <Tooltip trigger="hover" placement="top">
-                    <TooltipTrigger
-                      as="span"
-                      className="inline-flex shrink-0 cursor-help"
-                    >
-                      <Icon
-                        icon="information-circle"
-                        variant="solid"
-                        className="h-4 w-4 text-gray-400"
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent className="relative max-w-72 -translate-y-2 bg-gray-900 p-3 text-xs text-gray-100 rounded-lg after:absolute after:left-1/2 after:top-full after:-ml-2 after:border-8 after:border-transparent after:border-t-gray-900">
-                      The date the payment was initiated by your customer to
-                      you.
-                    </TooltipContent>
-                  </Tooltip>
-                  <button
-                    type="button"
-                    className="inline-flex shrink-0"
-                    aria-label="Sort by date initiated"
-                  >
-                    <Icon icon="selector" className="h-4 w-4 text-gray-400" />
-                  </button>
-                </div>
-              </th>
-              <th scope="col" className={TH_CLASS}>
-                <FilterColumnHeader label="payment method" />
-              </th>
-              <th scope="col" className={TH_CLASS}>
-                <FilterColumnHeader label="status" />
-              </th>
+              {visibleColumns.map((columnId) => renderColumnHeader(columnId))}
               <th className="w-[100px]" aria-label="Actions" />
             </tr>
           </thead>
@@ -343,56 +454,9 @@ const SmartExchangePaymentsTable = ({
                         )}
                       />
                     </td>
-                    <td className={clsx(TD_CLASS, 'whitespace-nowrap')}>
-                      <div
-                        className={clsx('flex items-center gap-1', FLEX_END)}
-                      >
-                        <div className="text-sm font-medium text-gray-900">
-                          {formatAmountValue(row.amountCents)}
-                        </div>
-                        <div className="text-sm font-normal text-gray-500">
-                          USD
-                        </div>
-                      </div>
-                    </td>
-                    <td
-                      className={clsx(
-                        TD_CLASS,
-                        'whitespace-nowrap text-sm text-gray-900'
-                      )}
-                    >
-                      {row.vendorEntry}
-                    </td>
-                    <td
-                      className={clsx(
-                        TD_CLASS,
-                        'whitespace-nowrap text-sm font-normal text-gray-500'
-                      )}
-                    >
-                      {row.invoiceNumber}
-                    </td>
-                    <td
-                      className={clsx(
-                        TD_CLASS,
-                        'whitespace-nowrap text-sm text-gray-900'
-                      )}
-                    >
-                      {row.customer}
-                    </td>
-                    <td
-                      className={clsx(
-                        TD_CLASS,
-                        'whitespace-nowrap text-sm text-gray-500'
-                      )}
-                    >
-                      {format(parseISO(row.dateInitiated), 'MMM d, yyyy')}
-                    </td>
-                    <td className={TD_CLASS}>
-                      <PaymentMethodCell method={row.paymentMethod} />
-                    </td>
-                    <td className={TD_CLASS}>
-                      <StatusCell status={row.status} />
-                    </td>
+                    {visibleColumns.map((columnId) =>
+                      renderColumnCell(columnId, row)
+                    )}
                     <td
                       className={clsx(TD_CLASS, 'text-right')}
                       onClick={(e) => e.stopPropagation()}
@@ -419,7 +483,7 @@ const SmartExchangePaymentsTable = ({
                     </td>
                   </tr>
                   <ExpandableTableRow
-                    colSpan={TABLE_COL_SPAN}
+                    colSpan={dataColSpan}
                     isExpanded={expandedRow === row.id}
                   >
                     {getExpandableContent(row)}
